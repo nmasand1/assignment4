@@ -1,57 +1,39 @@
-import csv
 from lxml import etree
 
 def extract_summitTTSProductCode(xml_string):
     """
     Extracts the summitTTSProductCode value from the given XML string.
-    Handles XML namespaces and malformed XML.
+    This version ignores namespaces and attempts to clean malformed XML.
     """
     try:
-        # Parse the XML, handling possible issues with namespaces
-        parser = etree.XMLParser(recover=True)  # Recover from malformed XML
+        # Parse the XML, with recovery for malformed XML
+        parser = etree.XMLParser(recover=True)
         root = etree.fromstring(xml_string.encode(), parser=parser)
-        
-        # Find the summitTTSProductCode using XPath, accounting for namespaces
-        summit_code = root.xpath('.//*[local-name()="summitTTSProductCode"]')
+
+        # Ignore namespaces and find 'summitTTSProductCode' in the tree
+        summit_code = root.xpath(".//*[local-name()='summitTTSProductCode']")
         if summit_code:
             return summit_code[0].text
         else:
-            print("summitTTSProductCode not found in the XML.")
+            print("summitTTSProductCode not found in this XML.")
             return None
-    except etree.XMLSyntaxError as e:
-        print(f"Error parsing XML: {e}")
+    except Exception as e:
+        print(f"Error processing XML: {e}")
         return None
 
-def process_csv(input_csv, output_csv):
-    """
-    Reads the CSV file, extracts summitTTSProductCode from XML data, 
-    and writes the results to a new CSV file.
-    """
-    with open(input_csv, mode='r', newline='', encoding='utf-8') as infile, \
-         open(output_csv, mode='w', newline='', encoding='utf-8') as outfile:
-        
-        reader = csv.DictReader(infile)
-        # Check if the 'xmlstring' column exists in the input file
-        if 'xmlstring' not in reader.fieldnames:
-            print(f"'xmlstring' column not found in the input CSV.")
-            return
 
-        # Add 'summitTTSProductCode' as a new column in the output CSV
-        fieldnames = reader.fieldnames + ['summitTTSProductCode']
-        writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-        writer.writeheader()
+# Test with your XML input
+test_xml = '''<BCTrade xmlns="http://uri.barcapint.com/BarCapML"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+               <trade>
+                   <tradeHeader>
+                       <tradeId>
+                           <alternateId type="summitTTSProductCode">34378479B</alternateId>
+                       </tradeId>
+                   </tradeHeader>
+               </trade>
+           </BCTrade>'''
 
-        for row in reader:
-            xml_string = row.get('xmlstring', '')
-            # Check if the XML string is valid before processing
-            if xml_string.strip():
-                summit_code = extract_summitTTSProductCode(xml_string)
-                row['summitTTSProductCode'] = summit_code
-            else:
-                row['summitTTSProductCode'] = None
-            writer.writerow(row)
-
-if __name__ == "__main__":
-    input_csv = 'input_file.csv'  # Replace with your input CSV file path
-    output_csv = 'output_file.csv'  # Replace with your desired output CSV file path
-    process_csv(input_csv, output_csv)
+# Call the function to extract summitTTSProductCode
+extracted_value = extract_summitTTSProductCode(test_xml)
+print(f"Extracted summitTTSProductCode: {extracted_value}")
