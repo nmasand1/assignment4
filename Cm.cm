@@ -1,24 +1,24 @@
 import csv
-import xml.etree.ElementTree as ET
-import sys
-
-# Set a reasonable field size limit to avoid large field errors
-csv.field_size_limit(10**7)
+from lxml import etree
 
 def extract_summitTTSProductCode(xml_string):
     """
     Extracts the summitTTSProductCode value from the given XML string.
+    Handles XML namespaces and malformed XML.
     """
     try:
-        root = ET.fromstring(xml_string)
-        # Look for the summitTTSProductCode tag in the XML structure
-        summit_code = root.find('.//summitTTSProductCode')
-        if summit_code is not None:
-            return summit_code.text
+        # Parse the XML, handling possible issues with namespaces
+        parser = etree.XMLParser(recover=True)  # Recover from malformed XML
+        root = etree.fromstring(xml_string.encode(), parser=parser)
+        
+        # Find the summitTTSProductCode using XPath, accounting for namespaces
+        summit_code = root.xpath('.//*[local-name()="summitTTSProductCode"]')
+        if summit_code:
+            return summit_code[0].text
         else:
             print("summitTTSProductCode not found in the XML.")
             return None
-    except ET.ParseError as e:
+    except etree.XMLSyntaxError as e:
         print(f"Error parsing XML: {e}")
         return None
 
