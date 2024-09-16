@@ -56,3 +56,73 @@ test_xml = '''<BCTrade xmlns="http://uri.barcapint.com/BarCapML"
 # Call the function to extract summitTTSProductCode
 extracted_value = extract_summitTTSProductCode(test_xml)
 print(f"Extracted summitTTSProductCode: {extracted_value}")
+
+
+
+
+
+
+import pandas as pd
+from lxml import etree
+
+def strip_namespaces(xml_string):
+    """Strip namespaces from the XML."""
+    try:
+        # Parse the XML, with recovery for malformed XML
+        parser = etree.XMLParser(recover=True)
+        root = etree.fromstring(xml_string.encode(), parser=parser)
+        
+        # Remove namespaces from the XML
+        for elem in root.getiterator():
+            if not hasattr(elem.tag, 'find'): continue  # Skip comments, etc.
+            i = elem.tag.find('}')
+            if i > 0:
+                elem.tag = elem.tag[i + 1:]  # Strip all namespaces
+        return root
+    except Exception as e:
+        print(f"Error stripping namespaces: {e}")
+        return None
+
+def extract_summitTTSProductCode(xml_string):
+    """Extract the summitTTSProductCode value after stripping namespaces."""
+    try:
+        # Strip namespaces and parse XML
+        root = strip_namespaces(xml_string)
+        
+        # Look for the 'summitTTSProductCode' element
+        summit_code = root.xpath(".//alternateId[@type='summitTTSProductCode']")
+        
+        if summit_code:
+            return summit_code[0].text
+        else:
+            return None
+    except Exception as e:
+        print(f"Error processing XML: {e}")
+        return None
+
+def process_csv(input_csv, output_csv):
+    """Process the CSV, extract summitTTSProductCode from XML, and save results."""
+    try:
+        # Read the input CSV
+        df = pd.read_csv(input_csv)
+        
+        # Check if 'xmlstring' column exists
+        if 'xmlstring' not in df.columns:
+            print("The 'xmlstring' column was not found in the CSV file.")
+            return
+        
+        # Extract summitTTSProductCode for each row
+        df['summitTTSProductCode'] = df['xmlstring'].apply(extract_summitTTSProductCode)
+        
+        # Save the result to a new CSV
+        df.to_csv(output_csv, index=False)
+        print(f"Processing complete. Results saved to {output_csv}")
+    
+    except Exception as e:
+        print(f"Error processing CSV: {e}")
+
+# Usage
+input_csv = 'input_file.csv'  # Path to your input CSV file
+output_csv = 'output_file.csv'  # Path to save the output CSV file
+process_csv(input_csv, output_csv)
+
