@@ -1,21 +1,40 @@
 from lxml import etree
 
-def extract_summitTTSProductCode(xml_string):
-    """
-    Extracts the summitTTSProductCode value from the given XML string.
-    This version ignores namespaces and attempts to clean malformed XML.
-    """
+def strip_namespaces(xml_string):
+    """Strip namespaces from the XML."""
     try:
         # Parse the XML, with recovery for malformed XML
         parser = etree.XMLParser(recover=True)
         root = etree.fromstring(xml_string.encode(), parser=parser)
+        
+        # Remove namespaces from the XML
+        for elem in root.getiterator():
+            if not hasattr(elem.tag, 'find'): continue  # Skip comments, etc.
+            i = elem.tag.find('}')
+            if i > 0:
+                elem.tag = elem.tag[i + 1:]  # Strip all namespaces
+        return root
+    except Exception as e:
+        print(f"Error stripping namespaces: {e}")
+        return None
 
-        # Ignore namespaces and find 'summitTTSProductCode' in the tree
-        summit_code = root.xpath(".//*[local-name()='summitTTSProductCode']")
+def extract_summitTTSProductCode(xml_string):
+    """Extract the summitTTSProductCode value after stripping namespaces."""
+    try:
+        # Strip namespaces and parse XML
+        root = strip_namespaces(xml_string)
+        
+        # Print the entire tree for debugging
+        print("Parsed XML:")
+        print(etree.tostring(root, pretty_print=True).decode())
+
+        # Look for the 'summitTTSProductCode' element
+        summit_code = root.xpath(".//alternateId[@type='summitTTSProductCode']")
+        
         if summit_code:
             return summit_code[0].text
         else:
-            print("summitTTSProductCode not found in this XML.")
+            print("summitTTSProductCode not found.")
             return None
     except Exception as e:
         print(f"Error processing XML: {e}")
