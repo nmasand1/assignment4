@@ -1,67 +1,3 @@
-from lxml import etree
-
-def strip_namespaces(xml_string):
-    """Strip namespaces from the XML."""
-    try:
-        # Parse the XML, with recovery for malformed XML
-        parser = etree.XMLParser(recover=True)
-        root = etree.fromstring(xml_string.encode(), parser=parser)
-        
-        # Remove namespaces from the XML
-        for elem in root.getiterator():
-            if not hasattr(elem.tag, 'find'): continue  # Skip comments, etc.
-            i = elem.tag.find('}')
-            if i > 0:
-                elem.tag = elem.tag[i + 1:]  # Strip all namespaces
-        return root
-    except Exception as e:
-        print(f"Error stripping namespaces: {e}")
-        return None
-
-def extract_summitTTSProductCode(xml_string):
-    """Extract the summitTTSProductCode value after stripping namespaces."""
-    try:
-        # Strip namespaces and parse XML
-        root = strip_namespaces(xml_string)
-        
-        # Print the entire tree for debugging
-        print("Parsed XML:")
-        print(etree.tostring(root, pretty_print=True).decode())
-
-        # Look for the 'summitTTSProductCode' element
-        summit_code = root.xpath(".//alternateId[@type='summitTTSProductCode']")
-        
-        if summit_code:
-            return summit_code[0].text
-        else:
-            print("summitTTSProductCode not found.")
-            return None
-    except Exception as e:
-        print(f"Error processing XML: {e}")
-        return None
-
-
-# Test with your XML input
-test_xml = '''<BCTrade xmlns="http://uri.barcapint.com/BarCapML"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-               <trade>
-                   <tradeHeader>
-                       <tradeId>
-                           <alternateId type="summitTTSProductCode">34378479B</alternateId>
-                       </tradeId>
-                   </tradeHeader>
-               </trade>
-           </BCTrade>'''
-
-# Call the function to extract summitTTSProductCode
-extracted_value = extract_summitTTSProductCode(test_xml)
-print(f"Extracted summitTTSProductCode: {extracted_value}")
-
-
-
-
-
-
 import pandas as pd
 from lxml import etree
 
@@ -93,8 +29,10 @@ def extract_summitTTSProductCode(xml_string):
         summit_code = root.xpath(".//alternateId[@type='summitTTSProductCode']")
         
         if summit_code:
+            print(f"Found summitTTSProductCode: {summit_code[0].text}")
             return summit_code[0].text
         else:
+            print("summitTTSProductCode not found")
             return None
     except Exception as e:
         print(f"Error processing XML: {e}")
@@ -125,4 +63,3 @@ def process_csv(input_csv, output_csv):
 input_csv = 'input_file.csv'  # Path to your input CSV file
 output_csv = 'output_file.csv'  # Path to save the output CSV file
 process_csv(input_csv, output_csv)
-
