@@ -1,0 +1,39 @@
+import xml.etree.ElementTree as ET
+import re
+
+def clean_xml(xml_string):
+    # Replace problematic characters or patterns
+    xml_string = re.sub(r'(?<!\s)>(?!\s)', '>\n', xml_string)  # Ensure each tag is on a new line
+    xml_string = xml_string.replace('\r\n', '\n').replace('\r', '\n')  # Normalize newlines
+    return xml_string
+
+def extract_data(xml_string):
+    try:
+        root = ET.fromstring(xml_string)
+        summit_product_names = [elem.text for elem in root.findall('.//summitproductname')]
+        front_office_component_types = [elem.text for elem in root.findall('.//frontofficecomponenttype')]
+        
+        # Write summitproductname values to CSV
+        with open('summitproductname.csv', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['summitproductname'])  # Header
+            for name in summit_product_names:
+                writer.writerow([name])
+
+        # Write frontofficecomponenttype values to CSV
+        with open('frontofficecomponenttype.csv', 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['frontofficecomponenttype'])  # Header
+            for type_ in front_office_component_types:
+                writer.writerow([type_])
+                
+    except ET.ParseError as e:
+        print(f"ParseError: {e}")
+
+# Read the XML file
+with open('yourfile.xml', 'r', encoding='utf-8') as file:
+    xml_content = file.read()
+
+# Clean and extract data
+cleaned_xml_content = clean_xml(xml_content)
+extract_data(cleaned_xml_content)
