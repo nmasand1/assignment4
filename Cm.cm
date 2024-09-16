@@ -1,39 +1,57 @@
+import csv
 import xml.etree.ElementTree as ET
-import re
+import sys
 
-def clean_xml(xml_string):
-    # Replace problematic characters or patterns
-    xml_string = re.sub(r'(?<!\s)>(?!\s)', '>\n', xml_string)  # Ensure each tag is on a new line
-    xml_string = xml_string.replace('\r\n', '\n').replace('\r', '\n')  # Normalize newlines
-    return xml_string
+# Set a reasonable field size limit to avoid large field errors
+csv.field_size_limit(10**7)
 
-def extract_data(xml_string):
+def extract_summitTTSProductCode(xml_string):
+    """
+    Extracts the summitTTSProductCode value from the given XML string.
+    """
     try:
         root = ET.fromstring(xml_string)
-        summit_product_names = [elem.text for elem in root.findall('.//summitproductname')]
-        front_office_component_types = [elem.text for elem in root.findall('.//frontofficecomponenttype')]
-        
-        # Write summitproductname values to CSV
-        with open('summitproductname.csv', 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['summitproductname'])  # Header
-            for name in summit_product_names:
-                writer.writerow([name])
-
-        # Write frontofficecomponenttype values to CSV
-        with open('frontofficecomponenttype.csv', 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(['frontofficecomponenttype'])  # Header
-            for type_ in front_office_component_types:
-                writer.writerow([type_])
-                
+        # Look for the summitTTSProductCode tag in the XML structure
+        summit_code = root.find('.//summitTTSProductCode')
+        if summit_code is not None:
+            return summit_code.text
+        else:
+            print("summitTTSProductCode not found in the XML.")
+            return None
     except ET.ParseError as e:
-        print(f"ParseError: {e}")
+        print(f"Error parsing XML: {e}")
+        return None
 
-# Read the XML file
-with open('yourfile.xml', 'r', encoding='utf-8') as file:
-    xml_content = file.read()
+def process_csv(input_csv, output_csv):
+    """
+    Reads the CSV file, extracts summitTTSProductCode from XML data, 
+    and writes the results to a new CSV file.
+    """
+    with open(input_csv, mode='r', newline='', encoding='utf-8') as infile, \
+         open(output_csv, mode='w', newline='', encoding='utf-8') as outfile:
+        
+        reader = csv.DictReader(infile)
+        # Check if the 'xmlstring' column exists in the input file
+        if 'xmlstring' not in reader.fieldnames:
+            print(f"'xmlstring' column not found in the input CSV.")
+            return
 
-# Clean and extract data
-cleaned_xml_content = clean_xml(xml_content)
-extract_data(cleaned_xml_content)
+        # Add 'summitTTSProductCode' as a new column in the output CSV
+        fieldnames = reader.fieldnames + ['summitTTSProductCode']
+        writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for row in reader:
+            xml_string = row.get('xmlstring', '')
+            # Check if the XML string is valid before processing
+            if xml_string.strip():
+                summit_code = extract_summitTTSProductCode(xml_string)
+                row['summitTTSProductCode'] = summit_code
+            else:
+                row['summitTTSProductCode'] = None
+            writer.writerow(row)
+
+if __name__ == "__main__":
+    input_csv = 'input_file.csv'  # Replace with your input CSV file path
+    output_csv = 'output_file.csv'  # Replace with your desired output CSV file path
+    process_csv(input_csv, output_csv)
