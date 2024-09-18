@@ -1,19 +1,240 @@
-<div style="margin-right: 20px;">
-    <label for="asset-class" style="font-weight: bold;">Asset Class</label><br>
-    <div style="position: relative;">
-      <button (click)="toggleDropdown()" style="padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; width: 150px;">
-        Select Asset Classes
-      </button>
-      <div *ngIf="isDropdownOpen" style="position: absolute; background: white; border: 1px solid #ccc; border-radius: 4px; z-index: 1000; width: 150px;">
-        <button (click)="selectAll()" style="padding: 8px; width: 100%; border: none; background-color: #007bff; color: white; border-radius: 4px; cursor: pointer;">
-          {{ assetClasses.every(asset => asset.selected) ? 'Deselect All' : 'Select All' }}
-        </button>
-        <div *ngFor="let asset of assetClasses">
-          <label style="display: block; padding: 8px;">
-            <input type="checkbox" [checked]="asset.selected" (change)="toggleSelection(asset)" />
-            {{ asset.displayName }}
-          </label>
-        </div>
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FilterOption } from './filters-options.interface';
+import { MultiSelectOption } from './multi-select-options.interface';
+
+@Component({
+  selector: 'app-filters-panel',
+  standalone: true,
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+  imports: []
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: FilterOption[] = [];
+  reportableDatasets: FilterOption[] = [];
+  reportableFields: FilterOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productTypes: FilterOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+
+  // Individual state tracking for each dropdown
+  isRegulationDropdownOpen = false;
+  isDatasetDropdownOpen = false;
+  isFieldDropdownOpen = false;
+  isAssetClassDropdownOpen = false;
+  isProductTypeDropdownOpen = false;
+
+  selectAllRegulations = false;
+  selectAllDatasets = false;
+  selectAllFields = false;
+  selectAllAssetClasses = false;
+  selectAllProductTypes = false;
+
+  private jsonUrl = 'assets/mock-data/response/json1_filters.json';
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
+
+  loadFiltersData(): void {
+    this.http.get<any>(this.jsonUrl).subscribe(data => {
+      this.regulations = data.data.regulations.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        value: item.value,
+        selected: false
+      }));
+
+      this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        value: item.value,
+        selected: false
+      }));
+
+      this.reportableFields = data.data.reportableField.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        value: item.value,
+        selected: false
+      }));
+
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+
+      this.productTypes = data.data.productTypes.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        value: item.value,
+        selected: false
+      }));
+    });
+  }
+
+  // Toggle selection for individual asset classes or other filter options
+  toggleSelection(option: MultiSelectOption | FilterOption): void {
+    option.selected = !option.selected;
+  }
+
+  // Toggle dropdown open state
+  toggleDropdown(dropdown: string): void {
+    switch (dropdown) {
+      case 'regulation':
+        this.isRegulationDropdownOpen = !this.isRegulationDropdownOpen;
+        break;
+      case 'dataset':
+        this.isDatasetDropdownOpen = !this.isDatasetDropdownOpen;
+        break;
+      case 'field':
+        this.isFieldDropdownOpen = !this.isFieldDropdownOpen;
+        break;
+      case 'assetClass':
+        this.isAssetClassDropdownOpen = !this.isAssetClassDropdownOpen;
+        break;
+      case 'productType':
+        this.isProductTypeDropdownOpen = !this.isProductTypeDropdownOpen;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Select All / Deselect All logic for each dropdown
+  toggleSelectAll(dropdown: string): void {
+    switch (dropdown) {
+      case 'regulation':
+        this.selectAllRegulations = !this.selectAllRegulations;
+        this.regulations.forEach(item => item.selected = this.selectAllRegulations);
+        break;
+      case 'dataset':
+        this.selectAllDatasets = !this.selectAllDatasets;
+        this.reportableDatasets.forEach(item => item.selected = this.selectAllDatasets);
+        break;
+      case 'field':
+        this.selectAllFields = !this.selectAllFields;
+        this.reportableFields.forEach(item => item.selected = this.selectAllFields);
+        break;
+      case 'assetClass':
+        this.selectAllAssetClasses = !this.selectAllAssetClasses;
+        this.assetClasses.forEach(item => item.selected = this.selectAllAssetClasses);
+        break;
+      case 'productType':
+        this.selectAllProductTypes = !this.selectAllProductTypes;
+        this.productTypes.forEach(item => item.selected = this.selectAllProductTypes);
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Close the dropdown after 'Done' is clicked
+  closeDropdown(dropdown: string): void {
+    switch (dropdown) {
+      case 'regulation':
+        this.isRegulationDropdownOpen = false;
+        break;
+      case 'dataset':
+        this.isDatasetDropdownOpen = false;
+        break;
+      case 'field':
+        this.isFieldDropdownOpen = false;
+        break;
+      case 'assetClass':
+        this.isAssetClassDropdownOpen = false;
+        break;
+      case 'productType':
+        this.isProductTypeDropdownOpen = false;
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+
+
+
+<div>
+  <!-- Regulation Dropdown -->
+  <div (click)="toggleDropdown('regulation')">
+    <label for="regulation">Regulation</label>
+    <div *ngIf="isRegulationDropdownOpen">
+      <div>
+        <input
+          type="checkbox"
+          [checked]="selectAllRegulations"
+          (change)="toggleSelectAll('regulation')"
+        /> Select All
       </div>
+      <ul>
+        <li *ngFor="let regulation of regulations">
+          <input
+            type="checkbox"
+            [(ngModel)]="regulation.selected"
+          />
+          {{ regulation.displayName }}
+        </li>
+      </ul>
+      <button (click)="closeDropdown('regulation')">Done</button>
     </div>
   </div>
+
+  <!-- Dataset Dropdown -->
+  <div (click)="toggleDropdown('dataset')">
+    <label for="dataset">Reportable Dataset</label>
+    <div *ngIf="isDatasetDropdownOpen">
+      <div>
+        <input
+          type="checkbox"
+          [checked]="selectAllDatasets"
+          (change)="toggleSelectAll('dataset')"
+        /> Select All
+      </div>
+      <ul>
+        <li *ngFor="let dataset of reportableDatasets">
+          <input
+            type="checkbox"
+            [(ngModel)]="dataset.selected"
+          />
+          {{ dataset.displayName }}
+        </li>
+      </ul>
+      <button (click)="closeDropdown('dataset')">Done</button>
+    </div>
+  </div>
+
+  <!-- Asset Class Dropdown -->
+  <div (click)="toggleDropdown('assetClass')">
+    <label for="assetClass">Asset Class</label>
+    <div *ngIf="isAssetClassDropdownOpen">
+      <div>
+        <input
+          type="checkbox"
+          [checked]="selectAllAssetClasses"
+          (change)="toggleSelectAll('assetClass')"
+        /> Select All
+      </div>
+      <ul>
+        <li *ngFor="let assetClass of assetClasses">
+          <input
+            type="checkbox"
+            [(ngModel)]="assetClass.selected"
+          />
+          {{ assetClass.displayName }}
+        </li>
+      </ul>
+      <button (click)="closeDropdown('assetClass')">Done</button>
+    </div>
+  </div>
+</div>
