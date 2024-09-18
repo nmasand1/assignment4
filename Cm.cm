@@ -18,13 +18,14 @@ export class FiltersPanelComponent implements OnInit {
   productTypes: FilterOption[] = [];
   selectedAssetClasses: MultiSelectOption[] = [];
 
-  // Individual state tracking for each dropdown
+  // Track the open/close state for each dropdown
   isRegulationDropdownOpen = false;
   isDatasetDropdownOpen = false;
   isFieldDropdownOpen = false;
   isAssetClassDropdownOpen = false;
   isProductTypeDropdownOpen = false;
 
+  // Flags for select all functionality
   selectAllRegulations = false;
   selectAllDatasets = false;
   selectAllFields = false;
