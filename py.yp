@@ -74,3 +74,116 @@ output_csv_path = "output_file.csv"  # Path where you want to save the output
 process_csv(input_csv_path, output_csv_path)
 
 print("Process completed. Extracted data saved to:", output_csv_path)
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+from lxml import etree
+
+def strip_namespaces(xml_string):
+    """Remove namespaces from the XML string."""
+    parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
+    tree = etree.fromstring(xml_string.encode('utf-8'), parser=parser)
+    for elem in tree.iter():
+        if elem.tag.startswith('{'):
+            elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
+    return tree
+
+def extract_trade_ids(xml_string):
+    """Extract 'id' and associated 'alternateId' elements from the specified path."""
+    try:
+        # Remove namespaces for easier XPath processing
+        root = strip_namespaces(xml_string)
+        
+        # Search for the specific path, in this case <trade><tradeHeader><tradeId>
+        trade_id_nodes = root.xpath(".//trade/tradeHeader/tradeId")
+        
+        # Initialize list to store results
+        trade_id_data = []
+
+        # If tradeId nodes are found, extract 'id' and 'alternateId' values
+        for trade_id_node in trade_id_nodes:
+            id_elements = trade_id_node.xpath(".//id")
+            
+            # For each 'id' element, find the associated 'alternateId' elements
+            for id_element in id_elements:
+                id_type = id_element.attrib.get('type', 'No id type')
+                id_value = id_element.text.strip() if id_element.text else 'No id value'
+                
+                # Find all 'alternateId' elements under the same 'tradeId'
+                alternate_id_elements = trade_id_node.xpath(".//alternateId")
+                
+                # Create a base entry for this id
+                if not alternate_id_elements:
+                    trade_id_data.append({
+                        "ID Type": id_type,
+                        "ID Value": id_value,
+                        "Alternate ID Type": "No alternateId",
+                        "Alternate ID Value": "No alternateId"
+                    })
+                else:
+                    # Handle multiple 'alternateId' elements
+                    for alternate_id_element in alternate_id_elements:
+                        alternate_id_type = alternate_id_element.attrib.get('type', 'No alternate id type')
+                        alternate_id_value = alternate_id_element.text.strip() if alternate_id_element.text else 'No alternate id value'
+                        
+                        trade_id_data.append({
+                            "ID Type": id_type,
+                            "ID Value": id_value,
+                            "Alternate ID Type": alternate_id_type,
+                            "Alternate ID Value": alternate_id_value
+                        })
+
+        return trade_id_data
+
+    except etree.XMLSyntaxError:
+        print("Error parsing XML string")
+        return None
+
+def process_csv(input_csv, output_csv):
+    """Read the CSV file, extract trade ids from XML, and write to a new CSV."""
+    # Read the input CSV (Assumes the column containing XML is 'xmlstring')
+    df = pd.read_csv(input_csv)
+
+    # Store the results in a new DataFrame
+    results = []
+
+    # Iterate over each row (assuming XML is in the 'xmlstring' column)
+    for index, row in df.iterrows():
+        xml_string = row['xmlstring']
+        extracted_data = extract_trade_ids(xml_string)
+        
+        # Create a row for each extracted trade id and type
+        for data in extracted_data:
+            results.append({
+                'Row Index': index,
+                'ID Type': data['ID Type'],
+                'ID Value': data['ID Value'],
+                'Alternate ID Type': data['Alternate ID Type'],
+                'Alternate ID Value': data['Alternate ID Value']
+            })
+    
+    # Convert the results into a DataFrame
+    results_df = pd.DataFrame(results)
+    
+    # Write the results to the output CSV
+    results_df.to_csv(output_csv, index=False)
+
+# Example usage
+input_csv_path = "input_file.csv"  # Path to your input CSV file
+output_csv_path = "output_file.csv"  # Path where you want to save the output
+
+# Call the process_csv function to extract data and save it
+process_csv(input_csv_path, output_csv_path)
+
+print("Process completed. Extracted data saved to:", output_csv_path)
+
