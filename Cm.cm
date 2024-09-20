@@ -1,79 +1,37 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Assuming path for multi-select options model
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { MultiSelectOption } from 'src/app/models/multi-select-options';
 
 @Component({
-  selector: 'app-filters-panel',
-  standalone: true,
-  templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.css'],
-  imports: [HttpClient],
+  selector: 'app-multiselect',
+  templateUrl: './multiselect.component.html',
+  styleUrls: ['./multiselect.component.css']
 })
-export class FiltersPanelComponent implements OnInit {
-  regulations: MultiSelectOption[] = [];
-  reportableDatasets: MultiSelectOption[] = [];
-  reportableFields: MultiSelectOption[] = [];
-  assetClasses: MultiSelectOption[] = [];
-  productType: MultiSelectOption[] = [];
+export class MultiselectComponent {
+  @Input() options: MultiSelectOption[] = [];
+  @Input() dropdownLabel: string = '';
+  @Output() selectionChange = new EventEmitter<MultiSelectOption[]>();
+  
+  isDropdownOpen: boolean = false;
 
-  selectedRegulations: MultiSelectOption[] = [];
-  selectedReportableDatasets: MultiSelectOption[] = [];
-  selectedReportableFields: MultiSelectOption[] = [];
-  selectedAssetClasses: MultiSelectOption[] = [];
-  selectedProductType: MultiSelectOption[] = [];
-
-  dropdownStates: { [key: string]: boolean } = {
-    regulations: false,
-    reportableDatasets: false,
-    reportableFields: false,
-    assetClasses: false,
-    productTypes: false,
-  };
-
-  private jsonUrl = 'assets/mock-data/response/json1_filters.json';
-
-  constructor(private http: HttpClient) {}
-
-  ngOnInit(): void {
-    this.loadFiltersData();
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
   }
 
-  loadFiltersData(): void {
-    this.http.get<any>(this.jsonUrl).subscribe((data) => {
-      this.regulations = data.data.regulations.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-      this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-      this.reportableFields = data.data.reportableField.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-      this.assetClasses = data.data.assetClasses.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-      this.productType = data.data.productType.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
+  selectAll(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.options.forEach(option => {
+      option.selected = checked;
     });
+    this.emitSelectionChange();
   }
 
-  toggleDropdown(dropdown: string): void {
-    this.dropdownStates[dropdown] = !this.dropdownStates[dropdown];
+  toggleSelection(option: MultiSelectOption): void {
+    option.selected = !option.selected;
+    this.emitSelectionChange();
+  }
+
+  private emitSelectionChange(): void {
+    const selectedOptions = this.options.filter(option => option.selected);
+    this.selectionChange.emit(selectedOptions);
   }
 }
