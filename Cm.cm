@@ -1,25 +1,44 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { DropDownOption } from 'src/app/models/dropdown-options';
 import { MultiSelectOption } from 'src/app/models/multi-select-options';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-filters-panel',
+  standalone: true,
   templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.css']
+  styleUrls: ['./filters-panel.component.css'],
+  imports: [CommonModule, HttpClientModule],
 })
 export class FiltersPanelComponent implements OnInit {
   regulations: MultiSelectOption[] = [];
   reportableDatasets: MultiSelectOption[] = [];
   reportableFields: MultiSelectOption[] = [];
   assetClasses: MultiSelectOption[] = [];
-  productTypes: MultiSelectOption[] = [];
+  productType: MultiSelectOption[] = [];
+  
+  selectedReportableDatasets: MultiSelectOption[] = [];
+  selectedReportableFields: MultiSelectOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+  selectedRegulations: MultiSelectOption[] = [];
+  selectedProductType: MultiSelectOption[] = [];
 
+  dropdownStates: { [key: string]: boolean } = {}; // Track dropdown open/close state for each dropdown
   private jsonUrl = 'assets/mock-data/response/json1_filters.json';
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadFiltersData();
+    // Initialize all dropdowns as closed
+    this.dropdownStates = {
+      regulations: false,
+      reportableDatasets: false,
+      reportableFields: false,
+      assetClasses: false,
+      productTypes: false,
+    };
   }
 
   loadFiltersData(): void {
@@ -28,37 +47,209 @@ export class FiltersPanelComponent implements OnInit {
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        selected: false
       }));
       this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        selected: false
+        selected: false,
       }));
       this.reportableFields = data.data.reportableField.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        selected: false
+        selected: false,
       }));
       this.assetClasses = data.data.assetClasses.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        selected: false
+        selected: false,
       }));
-      this.productTypes = data.data.productType.map((item: any) => ({
+      this.productType = data.data.productType.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        selected: false
+        selected: false,
       }));
     });
   }
 
-  onSelectionChange(type: string, selectedOptions: MultiSelectOption[]): void {
-    console.log(`Selected options for ${type}:`, selectedOptions);
-    // Here you can handle the selected options per type
+  // Toggle dropdown visibility for a specific dropdown
+  toggleDropdown(dropdown: string): void {
+    this.dropdownStates[dropdown] = !this.dropdownStates[dropdown];
+  }
+
+  selectAll(event: Event, type: string): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    switch (type) {
+      case 'assetClasses':
+        this.assetClasses.forEach(asset => {
+          asset.selected = checked;
+        });
+        this.selectedAssetClasses = checked ? [...this.assetClasses] : [];
+        break;
+      case 'regulations':
+        this.regulations.forEach(regulation => {
+          regulation.selected = checked;
+        });
+        this.selectedRegulations = checked ? [...this.regulations] : [];
+        break;
+      case 'reportableDatasets':
+        this.reportableDatasets.forEach(dataset => {
+          dataset.selected = checked;
+        });
+        this.selectedReportableDatasets = checked ? [...this.reportableDatasets] : [];
+        break;
+      case 'reportableFields':
+        this.reportableFields.forEach(field => {
+          field.selected = checked;
+        });
+        this.selectedReportableFields = checked ? [...this.reportableFields] : [];
+        break;
+      case 'productTypes':
+        this.productType.forEach(product => {
+          product.selected = checked;
+        });
+        this.selectedProductType = checked ? [...this.productType] : [];
+        break;
+    }
+  }
+
+  toggleSelection(option: MultiSelectOption, type: string): void {
+    option.selected = !option.selected;
+    switch (type) {
+      case 'assetClasses':
+        this.selectedAssetClasses = option.selected
+          ? [...this.selectedAssetClasses, option]
+          : this.selectedAssetClasses.filter(item => item.id !== option.id);
+        break;
+      case 'regulations':
+        this.selectedRegulations = option.selected
+          ? [...this.selectedRegulations, option]
+          : this.selectedRegulations.filter(item => item.id !== option.id);
+        break;
+      case 'reportableDatasets':
+        this.selectedReportableDatasets = option.selected
+          ? [...this.selectedReportableDatasets, option]
+          : this.selectedReportableDatasets.filter(item => item.id !== option.id);
+        break;
+      case 'reportableFields':
+        this.selectedReportableFields = option.selected
+          ? [...this.selectedReportableFields, option]
+          : this.selectedReportableFields.filter(item => item.id !== option.id);
+        break;
+      case 'productTypes':
+        this.selectedProductType = option.selected
+          ? [...this.selectedProductType, option]
+          : this.selectedProductType.filter(item => item.id !== option.id);
+        break;
+    }
   }
 }
+
+
+
+<div class="dropdown-container">
+
+  <!-- Regulations Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('regulations')">Regulations</button>
+    <div *ngIf="dropdownStates['regulations']" class="dropdown-content">
+      <label>
+        <input type="checkbox" (change)="selectAll($event, 'regulations')" /> Select All
+      </label>
+      <div *ngFor="let option of regulations">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'regulations')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reportable Datasets Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('reportableDatasets')">Reportable Datasets</button>
+    <div *ngIf="dropdownStates['reportableDatasets']" class="dropdown-content">
+      <label>
+        <input type="checkbox" (change)="selectAll($event, 'reportableDatasets')" /> Select All
+      </label>
+      <div *ngFor="let option of reportableDatasets">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'reportableDatasets')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reportable Fields Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('reportableFields')">Reportable Fields</button>
+    <div *ngIf="dropdownStates['reportableFields']" class="dropdown-content">
+      <label>
+        <input type="checkbox" (change)="selectAll($event, 'reportableFields')" /> Select All
+      </label>
+      <div *ngFor="let option of reportableFields">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'reportableFields')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Asset Classes Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('assetClasses')">Asset Classes</button>
+    <div *ngIf="dropdownStates['assetClasses']" class="dropdown-content">
+      <label>
+        <input type="checkbox" (change)="selectAll($event, 'assetClasses')" /> Select All
+      </label>
+      <div *ngFor="let option of assetClasses">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'assetClasses')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Types Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('productTypes')">Product Types</button>
+    <div *ngIf="dropdownStates['productTypes']" class="dropdown-content">
+      <label>
+        <input type="checkbox" (change)="selectAll($event, 'productTypes')" /> Select All
+      </label>
+      <div *ngFor="let option of productType">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'productTypes')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+</div>
