@@ -1,33 +1,64 @@
-<div class="filter-panel">
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { MultiSelectOption } from 'src/app/models/multi-select-options';
 
-  <app-multiselect
-    [options]="regulations"
-    dropdownLabel="Regulations"
-    (selectionChange)="onSelectionChange('regulations', $event)">
-  </app-multiselect>
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css']
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  reportableFields: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productTypes: MultiSelectOption[] = [];
 
-  <app-multiselect
-    [options]="reportableDatasets"
-    dropdownLabel="Reportable Datasets"
-    (selectionChange)="onSelectionChange('reportableDatasets', $event)">
-  </app-multiselect>
+  private jsonUrl = 'assets/mock-data/response/json1_filters.json';
 
-  <app-multiselect
-    [options]="reportableFields"
-    dropdownLabel="Reportable Fields"
-    (selectionChange)="onSelectionChange('reportableFields', $event)">
-  </app-multiselect>
+  constructor(private http: HttpClient) {}
 
-  <app-multiselect
-    [options]="assetClasses"
-    dropdownLabel="Asset Classes"
-    (selectionChange)="onSelectionChange('assetClasses', $event)">
-  </app-multiselect>
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
 
-  <app-multiselect
-    [options]="productTypes"
-    dropdownLabel="Product Types"
-    (selectionChange)="onSelectionChange('productTypes', $event)">
-  </app-multiselect>
+  loadFiltersData(): void {
+    this.http.get<any>(this.jsonUrl).subscribe(data => {
+      this.regulations = data.data.regulations.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+      this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+      this.reportableFields = data.data.reportableField.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+      this.productTypes = data.data.productType.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+    });
+  }
 
-</div>
+  onSelectionChange(type: string, selectedOptions: MultiSelectOption[]): void {
+    console.log(`Selected options for ${type}:`, selectedOptions);
+    // Here you can handle the selected options per type
+  }
+}
