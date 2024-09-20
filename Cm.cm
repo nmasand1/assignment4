@@ -1,33 +1,33 @@
-.dropdown {
-  margin-bottom: 15px;
-}
+<div class="filter-panel">
 
-button {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
+  <app-multiselect
+    [options]="regulations"
+    dropdownLabel="Regulations"
+    (selectionChange)="onSelectionChange('regulations', $event)">
+  </app-multiselect>
 
-button:hover {
-  background-color: #0056b3;
-}
+  <app-multiselect
+    [options]="reportableDatasets"
+    dropdownLabel="Reportable Datasets"
+    (selectionChange)="onSelectionChange('reportableDatasets', $event)">
+  </app-multiselect>
 
-.dropdown-content {
-  display: flex;
-  flex-direction: column;
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  padding: 10px;
-}
+  <app-multiselect
+    [options]="reportableFields"
+    dropdownLabel="Reportable Fields"
+    (selectionChange)="onSelectionChange('reportableFields', $event)">
+  </app-multiselect>
 
-.dropdown-content label {
-  margin: 5px 0;
-}
+  <app-multiselect
+    [options]="assetClasses"
+    dropdownLabel="Asset Classes"
+    (selectionChange)="onSelectionChange('assetClasses', $event)">
+  </app-multiselect>
 
-input[type="checkbox"] {
-  margin-right: 10px;
-}
+  <app-multiselect
+    [options]="productTypes"
+    dropdownLabel="Product Types"
+    (selectionChange)="onSelectionChange('productTypes', $event)">
+  </app-multiselect>
+
+</div>
