@@ -21,7 +21,7 @@ export class FiltersPanelComponent implements OnInit {
   selectedRegulations: MultiSelectOption[] = [];
   selectedProductType: MultiSelectOption[] = [];
 
-  // Manage dropdown states individually
+  // This will manage dropdown states individually
   dropdownStates: { [key: string]: boolean } = {
     regulations: false,
     reportableDatasets: false,
@@ -77,7 +77,7 @@ export class FiltersPanelComponent implements OnInit {
     });
   }
 
-  // Toggle individual dropdown visibility
+  // Toggle visibility of each dropdown
   toggleDropdown(dropdown: string): void {
     this.dropdownStates[dropdown] = !this.dropdownStates[dropdown];
   }
@@ -149,6 +149,7 @@ export class FiltersPanelComponent implements OnInit {
     }
   }
 }
+
 
 
 <div class="dropdown-container">
