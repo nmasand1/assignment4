@@ -1,18 +1,33 @@
-<div class="dropdown">
-  <button (click)="toggleDropdown()">{{ dropdownLabel }}</button>
-  <div *ngIf="isDropdownOpen" class="dropdown-content">
-    <label>
-      <input type="checkbox" (change)="selectAll($event)" /> Select All
-    </label>
-    <div *ngFor="let option of options">
-      <label>
-        <input
-          type="checkbox"
-          [(ngModel)]="option.selected"
-          (change)="toggleSelection(option)"
-        />
-        {{ option.displayName }}
-      </label>
-    </div>
-  </div>
-</div>
+.dropdown {
+  margin-bottom: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.dropdown-content {
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.dropdown-content label {
+  margin: 5px 0;
+}
+
+input[type="checkbox"] {
+  margin-right: 10px;
+}
