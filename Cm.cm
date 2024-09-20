@@ -102,3 +102,137 @@ export class FiltersPanelComponent implements OnInit {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }
+
+
+
+
+
+<div class="dropdown-container">
+
+  <!-- Regulations Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('regulations')">
+      Regulations
+    </button>
+    <div *ngIf="dropdownStates['regulations']" class="dropdown-content">
+      <label>
+        <input
+          type="checkbox"
+          (change)="selectAll($event, 'regulations')"
+        /> Select All
+      </label>
+      <div *ngFor="let option of regulations">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'regulations')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reportable Datasets Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('reportableDatasets')">
+      Reportable Datasets
+    </button>
+    <div *ngIf="dropdownStates['reportableDatasets']" class="dropdown-content">
+      <label>
+        <input
+          type="checkbox"
+          (change)="selectAll($event, 'reportableDatasets')"
+        /> Select All
+      </label>
+      <div *ngFor="let option of reportableDatasets">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'reportableDatasets')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reportable Fields Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('reportableFields')">
+      Reportable Fields
+    </button>
+    <div *ngIf="dropdownStates['reportableFields']" class="dropdown-content">
+      <label>
+        <input
+          type="checkbox"
+          (change)="selectAll($event, 'reportableFields')"
+        /> Select All
+      </label>
+      <div *ngFor="let option of reportableFields">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'reportableFields')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Asset Classes Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('assetClasses')">
+      Asset Classes
+    </button>
+    <div *ngIf="dropdownStates['assetClasses']" class="dropdown-content">
+      <label>
+        <input
+          type="checkbox"
+          (change)="selectAll($event, 'assetClasses')"
+        /> Select All
+      </label>
+      <div *ngFor="let option of assetClasses">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'assetClasses')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Type Dropdown -->
+  <div class="dropdown">
+    <button (click)="toggleDropdown('productType')">
+      Product Type
+    </button>
+    <div *ngIf="dropdownStates['productType']" class="dropdown-content">
+      <label>
+        <input
+          type="checkbox"
+          (change)="selectAll($event, 'productType')"
+        /> Select All
+      </label>
+      <div *ngFor="let option of productType">
+        <label>
+          <input
+            type="checkbox"
+            [(ngModel)]="option.selected"
+            (change)="toggleSelection(option, 'productType')"
+          />
+          {{ option.displayName }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
