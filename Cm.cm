@@ -11,20 +11,20 @@ import { MultiSelectOption } from './multi-select-options.interface';
   imports: []
 })
 export class FiltersPanelComponent implements OnInit {
+
   regulations: FilterOption[] = [];
   reportableDatasets: FilterOption[] = [];
   reportableFields: FilterOption[] = [];
   assetClasses: MultiSelectOption[] = [];
   productTypes: FilterOption[] = [];
 
-  // Selected items for each dropdown
   selectedRegulations: FilterOption[] = [];
   selectedReportableDatasets: FilterOption[] = [];
   selectedReportableFields: FilterOption[] = [];
   selectedAssetClasses: MultiSelectOption[] = [];
   selectedProductTypes: FilterOption[] = [];
 
-  // Track open/close states for each dropdown
+  // Individual dropdown open/close states
   dropdownStates: { [key: string]: boolean } = {
     regulations: false,
     reportableDatasets: false,
@@ -43,31 +43,30 @@ export class FiltersPanelComponent implements OnInit {
 
   loadFiltersData(): void {
     this.http.get<any>(this.jsonUrl).subscribe(data => {
-      // Load regulations
       this.regulations = data.data.regulations.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        value: item.value
+        value: item.value,
+        selected: false
       }));
 
-      // Load reportable datasets
       this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        value: item.value
+        value: item.value,
+        selected: false
       }));
 
-      // Load reportable fields
       this.reportableFields = data.data.reportableField.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        value: item.value
+        value: item.value,
+        selected: false
       }));
 
-      // Load asset classes
       this.assetClasses = data.data.assetClasses.map((item: any) => ({
         id: item.id,
         name: item.name,
@@ -75,53 +74,52 @@ export class FiltersPanelComponent implements OnInit {
         selected: false
       }));
 
-      // Load product types
       this.productTypes = data.data.productTypes.map((item: any) => ({
         id: item.id,
         name: item.name,
         displayName: item.displayName,
-        value: item.value
+        value: item.value,
+        selected: false
       }));
     });
   }
 
-  // Toggle dropdown visibility for individual dropdown
+  // Toggle dropdown visibility for each dropdown type
   toggleDropdown(dropdown: string): void {
     this.dropdownStates[dropdown] = !this.dropdownStates[dropdown];
   }
 
-  // Select or deselect all items for a dropdown
+  // Select or deselect all options for a dropdown
   selectAll(event: Event, dropdown: string): void {
     const checked = (event.target as HTMLInputElement).checked;
-    
     switch (dropdown) {
       case 'regulations':
-        this.regulations.forEach(option => option.selected = checked);
+        this.regulations.forEach(item => item.selected = checked);
         this.selectedRegulations = checked ? [...this.regulations] : [];
         break;
       case 'reportableDatasets':
-        this.reportableDatasets.forEach(option => option.selected = checked);
+        this.reportableDatasets.forEach(item => item.selected = checked);
         this.selectedReportableDatasets = checked ? [...this.reportableDatasets] : [];
         break;
       case 'reportableFields':
-        this.reportableFields.forEach(option => option.selected = checked);
+        this.reportableFields.forEach(item => item.selected = checked);
         this.selectedReportableFields = checked ? [...this.reportableFields] : [];
         break;
       case 'assetClasses':
-        this.assetClasses.forEach(option => option.selected = checked);
+        this.assetClasses.forEach(item => item.selected = checked);
         this.selectedAssetClasses = checked ? [...this.assetClasses] : [];
         break;
       case 'productTypes':
-        this.productTypes.forEach(option => option.selected = checked);
+        this.productTypes.forEach(item => item.selected = checked);
         this.selectedProductTypes = checked ? [...this.productTypes] : [];
         break;
     }
   }
 
-  // Toggle selection for individual option in a dropdown
+  // Toggle selection for individual options within a dropdown
   toggleSelection(option: FilterOption | MultiSelectOption, dropdown: string): void {
     option.selected = !option.selected;
-    
+
     switch (dropdown) {
       case 'regulations':
         this.updateSelectedOptions(option, this.selectedRegulations);
@@ -141,8 +139,8 @@ export class FiltersPanelComponent implements OnInit {
     }
   }
 
-  // Helper function to update selected options
-  private updateSelectedOptions(option: FilterOption | MultiSelectOption, selectedList: FilterOption[] | MultiSelectOption[]): void {
+  // Helper function to update the selected options list
+  updateSelectedOptions(option: FilterOption | MultiSelectOption, selectedList: (FilterOption | MultiSelectOption)[]): void {
     if (option.selected) {
       selectedList.push(option);
     } else {
@@ -153,7 +151,6 @@ export class FiltersPanelComponent implements OnInit {
     }
   }
 }
-
 
 
 
@@ -240,4 +237,3 @@ export class FiltersPanelComponent implements OnInit {
   </div>
 
 </div>
-
