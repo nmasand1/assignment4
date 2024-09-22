@@ -8,24 +8,12 @@ import { MultiSelectOption } from 'src/app/models/multi-select-options';
 })
 export class MultiSelectComponent {
   @Input() options: MultiSelectOption[] = [];
-  @Input() dropdownLabel: string = '';
-  @Output() selectedChange = new EventEmitter<MultiSelectOption[]>();
-
-  isDropdownOpen = false;
-  selectedOptions: MultiSelectOption[] = [];
+  @Input() label: string = '';
+  @Input() isOpen: boolean = false;
+  @Output() selectionChange: EventEmitter<MultiSelectOption[]> = new EventEmitter<MultiSelectOption[]>();
 
   toggleDropdown(): void {
-    this.isDropdownOpen = !this.isDropdownOpen;
-  }
-
-  toggleSelection(option: MultiSelectOption): void {
-    option.selected = !option.selected;
-    if (option.selected) {
-      this.selectedOptions.push(option);
-    } else {
-      this.selectedOptions = this.selectedOptions.filter(item => item.id !== option.id);
-    }
-    this.selectedChange.emit(this.selectedOptions);
+    this.isOpen = !this.isOpen;
   }
 
   selectAll(event: Event): void {
@@ -33,46 +21,54 @@ export class MultiSelectComponent {
     this.options.forEach(option => {
       option.selected = checked;
     });
-    this.selectedOptions = checked ? [...this.options] : [];
-    this.selectedChange.emit(this.selectedOptions);
+    this.emitSelection();
+  }
+
+  toggleSelection(option: MultiSelectOption): void {
+    option.selected = !option.selected;
+    this.emitSelection();
+  }
+
+  private emitSelection(): void {
+    const selectedOptions = this.options.filter(option => option.selected);
+    this.selectionChange.emit(selectedOptions);
   }
 }
 
 
+
+
+
+
 <div class="multi-select">
   <div class="dropdown-label" (click)="toggleDropdown()">
-    {{ dropdownLabel }} <span *ngIf="isDropdownOpen">▲</span><span *ngIf="!isDropdownOpen">▼</span>
+    {{ label }}
+    <span class="dropdown-arrow">{{ isOpen ? '▲' : '▼' }}</span>
   </div>
-
-  <div *ngIf="isDropdownOpen" class="dropdown-menu">
-    <label>
-      <input type="checkbox" (change)="selectAll($event)" />
-      Select All
-    </label>
-    <ul>
-      <li *ngFor="let option of options">
-        <label>
-          <input type="checkbox" [(ngModel)]="option.selected" (change)="toggleSelection(option)" />
-          {{ option.displayName }}
-        </label>
-      </li>
-    </ul>
+  <div *ngIf="isOpen" class="dropdown-content">
+    <div class="select-all">
+      <input type="checkbox" (change)="selectAll($event)" /> Select All
+    </div>
+    <div *ngFor="let option of options" class="dropdown-item">
+      <input type="checkbox" [(ngModel)]="option.selected" (change)="toggleSelection(option)" />
+      {{ option.displayName }}
+    </div>
   </div>
 </div>
+
+
+
 
 
 
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MultiSelectOption } from 'src/app/models/multi-select-options';
-import { MultiSelectComponent } from '../multi-select/multi-select.component'; // Import the MultiSelectComponent
 
 @Component({
   selector: 'app-filters-panel',
-  standalone: true,
   templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.css'],
-  imports: [MultiSelectComponent] // Directly import MultiSelectComponent
+  styleUrls: ['./filters-panel.component.css']
 })
 export class FiltersPanelComponent implements OnInit {
   regulations: MultiSelectOption[] = [];
@@ -157,41 +153,42 @@ export class FiltersPanelComponent implements OnInit {
 
 
 
+
 <div class="filters-panel">
   <h2>Filters Panel</h2>
 
   <!-- Regulations Dropdown -->
   <app-multi-select
     [options]="regulations"
-    [dropdownLabel]="'Regulations'"
-    (selectedChange)="onRegulationsChange($event)"
+    [label]="'Regulations'"
+    (selectionChange)="onRegulationsChange($event)"
   ></app-multi-select>
 
   <!-- Reportable Datasets Dropdown -->
   <app-multi-select
     [options]="reportableDatasets"
-    [dropdownLabel]="'Reportable Datasets'"
-    (selectedChange)="onReportableDatasetsChange($event)"
+    [label]="'Reportable Datasets'"
+    (selectionChange)="onReportableDatasetsChange($event)"
   ></app-multi-select>
 
   <!-- Reportable Fields Dropdown -->
   <app-multi-select
     [options]="reportableFields"
-    [dropdownLabel]="'Reportable Fields'"
-    (selectedChange)="onReportableFieldsChange($event)"
+    [label]="'Reportable Fields'"
+    (selectionChange)="onReportableFieldsChange($event)"
   ></app-multi-select>
 
   <!-- Asset Classes Dropdown -->
   <app-multi-select
     [options]="assetClasses"
-    [dropdownLabel]="'Asset Classes'"
-    (selectedChange)="onAssetClassesChange($event)"
+    [label]="'Asset Classes'"
+    (selectionChange)="onAssetClassesChange($event)"
   ></app-multi-select>
 
   <!-- Product Type Dropdown -->
   <app-multi-select
     [options]="productType"
-    [dropdownLabel]="'Product Type'"
-    (selectedChange)="onProductTypeChange($event)"
+    [label]="'Product Type'"
+    (selectionChange)="onProductTypeChange($event)"
   ></app-multi-select>
 </div>
