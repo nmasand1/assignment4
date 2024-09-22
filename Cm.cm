@@ -36,175 +36,51 @@
       [label]="'Product Type'"
       (selectionChange)="onProductTypeChange($event)"
     ></app-multi-select>
-  </div>
 
-  <div class="filters-buttons">
-    <button class="btn btn-search">Search</button>
-    <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
+    <!-- Buttons should be in the same flex container -->
+    <div class="filters-buttons">
+      <button class="btn btn-search" (click)="searchFilters()">Search</button>
+      <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
+    </div>
   </div>
 </div>
 
 
 
 
-.filters-panel {
-  background-color: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 .filters-container {
   display: flex;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px; /* Reduced gap between dropdowns */
+  gap: 10px; /* Adjusts the gap between the elements */
+  align-items: center; /* Vertically align dropdowns and buttons */
+}
+
+.filter-dropdown {
+  flex: 1;
+  min-width: 200px; /* Ensure dropdowns have a minimum width */
 }
 
 .filters-buttons {
   display: flex;
-  justify-content: flex-start;
-  gap: 8px; /* Reduced gap between buttons */
-  margin-top: 10px; /* Reduced space above buttons */
+  gap: 10px; /* Gap between the buttons */
 }
 
-.filters-buttons .btn {
-  padding: 8px 16px; /* Slightly smaller button padding */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.filters-buttons .btn-search {
+.btn {
+  padding: 8px 16px;
   background-color: #007bff;
+  border: none;
   color: white;
-}
-
-.filters-buttons .btn-reset {
-  background-color: #6c757d;
-  color: white;
-}
-
-/* Style for the MultiSelectComponent */
-.multi-select {
-  position: relative;
-  width: 180px; /* Reduced width for more compact appearance */
-  margin: 0 auto;
-}
-
-.dropdown-label {
-  display: flex;
-  justify-content: space-between;
-  background-color: #ffffff;
-  border: 1px solid #ced4da;
-  padding: 8px; /* Reduced padding inside the dropdown label */
-  border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.dropdown-arrow {
-  font-size: 12px;
+.btn-search {
+  background-color: #28a745;
 }
 
-.dropdown-content {
-  position: absolute;
-  background-color: #ffffff;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 100;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  margin-top: 4px;
+.btn-reset {
+  background-color: #dc3545;
 }
 
-.select-all, .dropdown-item {
-  padding: 6px; /* Reduced padding inside the dropdown items */
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #f1f1f1;
-}
-
-.select-all input, .dropdown-item input {
-  margin-right: 8px;
-}
-
-.dropdown-item:last-child {
-  border-bottom: none;
-}
-
-
-
-
-
-
-
-.multi-select {
-  width: 200px;
-  margin: 0 10px;
-}
-
-.dropdown-label {
-  padding: 8px;
-  border: 1px solid #ddd;
-  background-color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 500;
-}
-
-.dropdown-content {
-  margin-top: 5px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #fff;
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 10px;
-  position: absolute;
-  width: 100%;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.select-all {
-  padding: 5px;
-  display: flex;
-  align-items: center;
-}
-
-.dropdown-item {
-  padding: 5px;
-  display: flex;
-  align-items: center;
-}
-
-.dropdown-item input {
-  margin-right: 10px;
-}
-
-.dropdown-arrow {
-  font-size: 12px;
-  padding-left: 5px;
-}
-
-
-
-
-resetFilters(): void {
-  this.resetOptions(this.regulations);
-  this.resetOptions(this.reportableDatasets);
-  this.resetOptions(this.reportableFields);
-  this.resetOptions(this.assetClasses);
-  this.resetOptions(this.productType);
-}
-
-resetOptions(options: MultiSelectOption[]): void {
-  options.forEach(option => option.selected = false);
+.btn:hover {
+  opacity: 0.9;
 }
