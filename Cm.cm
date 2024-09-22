@@ -2,43 +2,42 @@
   <h2>Filters Panel</h2>
 
   <div class="filters-container">
-    <!-- Regulations Dropdown -->
     <app-multi-select
+      class="filter-dropdown"
       [options]="regulations"
       [label]="'Regulations'"
       (selectionChange)="onRegulationsChange($event)"
     ></app-multi-select>
 
-    <!-- Reportable Datasets Dropdown -->
     <app-multi-select
+      class="filter-dropdown"
       [options]="reportableDatasets"
       [label]="'Reportable Datasets'"
       (selectionChange)="onReportableDatasetsChange($event)"
     ></app-multi-select>
 
-    <!-- Reportable Fields Dropdown -->
     <app-multi-select
+      class="filter-dropdown"
       [options]="reportableFields"
       [label]="'Reportable Fields'"
       (selectionChange)="onReportableFieldsChange($event)"
     ></app-multi-select>
 
-    <!-- Asset Classes Dropdown -->
     <app-multi-select
+      class="filter-dropdown"
       [options]="assetClasses"
       [label]="'Asset Classes'"
       (selectionChange)="onAssetClassesChange($event)"
     ></app-multi-select>
 
-    <!-- Product Type Dropdown -->
     <app-multi-select
+      class="filter-dropdown"
       [options]="productType"
       [label]="'Product Type'"
       (selectionChange)="onProductTypeChange($event)"
     ></app-multi-select>
   </div>
 
-  <!-- Search and Reset Buttons -->
   <div class="filters-buttons">
     <button class="btn btn-search">Search</button>
     <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
@@ -50,7 +49,7 @@
 
 .filters-panel {
   background-color: #f8f9fa;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -59,18 +58,18 @@
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 10px; /* Reduced gap between dropdowns */
 }
 
 .filters-buttons {
   display: flex;
   justify-content: flex-start;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 8px; /* Reduced gap between buttons */
+  margin-top: 10px; /* Reduced space above buttons */
 }
 
 .filters-buttons .btn {
-  padding: 10px 20px;
+  padding: 8px 16px; /* Slightly smaller button padding */
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -91,7 +90,7 @@
 /* Style for the MultiSelectComponent */
 .multi-select {
   position: relative;
-  width: 200px;
+  width: 180px; /* Reduced width for more compact appearance */
   margin: 0 auto;
 }
 
@@ -100,7 +99,7 @@
   justify-content: space-between;
   background-color: #ffffff;
   border: 1px solid #ced4da;
-  padding: 10px;
+  padding: 8px; /* Reduced padding inside the dropdown label */
   border-radius: 4px;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -124,14 +123,14 @@
 }
 
 .select-all, .dropdown-item {
-  padding: 8px;
+  padding: 6px; /* Reduced padding inside the dropdown items */
   display: flex;
   align-items: center;
   border-bottom: 1px solid #f1f1f1;
 }
 
 .select-all input, .dropdown-item input {
-  margin-right: 10px;
+  margin-right: 8px;
 }
 
 .dropdown-item:last-child {
