@@ -36,3 +36,33 @@ export class MultiSelectComponent {
     this.onOptionChange();
   }
 }
+
+
+
+<div class="multi-select-container">
+  <div class="multi-select-header" (click)="toggleDropdown()">
+    <span>{{ label }}</span>
+    <span class="dropdown-icon">{{ isDropdownOpen ? '▲' : '▼' }}</span>
+  </div>
+
+  <div class="multi-select-options" *ngIf="isDropdownOpen">
+    <div class="select-all">
+      <label>
+        <input type="checkbox" (change)="selectAll($event)" />
+        Select All
+      </label>
+    </div>
+
+    <div *ngFor="let option of options" class="multi-select-option">
+      <label>
+        <input
+          type="checkbox"
+          [checked]="option.selected"
+          (change)="toggleSelection(option)"
+        />
+        {{ option.displayName }}
+      </label>
+    </div>
+  </div>
+</div>
+
