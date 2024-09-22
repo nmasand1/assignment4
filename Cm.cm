@@ -7,59 +7,56 @@ import { MultiSelectOption } from 'src/app/models/multi-select-options';
   styleUrls: ['./multi-select.component.css']
 })
 export class MultiSelectComponent {
-  @Input() options: MultiSelectOption[] = []; // The options to display
-  @Input() dropdownLabel: string = ''; // The label for the dropdown
-  @Input() isDropdownOpen: boolean = false; // Whether the dropdown is open
-  @Output() selectedChange = new EventEmitter<MultiSelectOption[]>(); // Emit the selected items
+  @Input() options: MultiSelectOption[] = [];
+  @Input() dropdownLabel: string = '';
+  @Output() selectedChange = new EventEmitter<MultiSelectOption[]>();
 
-  selectedItems: MultiSelectOption[] = []; // The selected options
+  isDropdownOpen = false;
+  selectedOptions: MultiSelectOption[] = [];
 
-  // Toggle dropdown visibility
   toggleDropdown(): void {
     this.isDropdownOpen = !this.isDropdownOpen;
   }
 
-  // Select or deselect all options
+  toggleSelection(option: MultiSelectOption): void {
+    option.selected = !option.selected;
+    if (option.selected) {
+      this.selectedOptions.push(option);
+    } else {
+      this.selectedOptions = this.selectedOptions.filter(item => item.id !== option.id);
+    }
+    this.selectedChange.emit(this.selectedOptions);
+  }
+
   selectAll(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     this.options.forEach(option => {
       option.selected = checked;
     });
-    this.selectedItems = checked ? [...this.options] : [];
-    this.selectedChange.emit(this.selectedItems); // Emit selected options
-  }
-
-  // Toggle selection for individual option
-  toggleSelection(option: MultiSelectOption): void {
-    option.selected = !option.selected;
-    if (option.selected) {
-      this.selectedItems.push(option);
-    } else {
-      this.selectedItems = this.selectedItems.filter(item => item.id !== option.id);
-    }
-    this.selectedChange.emit(this.selectedItems); // Emit selected options
+    this.selectedOptions = checked ? [...this.options] : [];
+    this.selectedChange.emit(this.selectedOptions);
   }
 }
 
 
+<div class="multi-select">
+  <div class="dropdown-label" (click)="toggleDropdown()">
+    {{ dropdownLabel }} <span *ngIf="isDropdownOpen">▲</span><span *ngIf="!isDropdownOpen">▼</span>
+  </div>
 
-<div class="dropdown">
-  <button (click)="toggleDropdown()" class="dropdown-toggle">
-    {{ dropdownLabel }} ▼
-  </button>
   <div *ngIf="isDropdownOpen" class="dropdown-menu">
-    <div>
-      <label>
-        <input type="checkbox" (change)="selectAll($event)" />
-        Select All
-      </label>
-    </div>
-    <div *ngFor="let option of options">
-      <label>
-        <input type="checkbox" [(ngModel)]="option.selected" (change)="toggleSelection(option)" />
-        {{ option.displayName }}
-      </label>
-    </div>
+    <label>
+      <input type="checkbox" (change)="selectAll($event)" />
+      Select All
+    </label>
+    <ul>
+      <li *ngFor="let option of options">
+        <label>
+          <input type="checkbox" [(ngModel)]="option.selected" (change)="toggleSelection(option)" />
+          {{ option.displayName }}
+        </label>
+      </li>
+    </ul>
   </div>
 </div>
 
@@ -68,16 +65,14 @@ export class MultiSelectComponent {
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MultiSelectOption } from 'src/app/models/multi-select-options';
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-import { MultiSelectComponent } from 'src/app/components/multi-select/multi-select.component';
+import { MultiSelectComponent } from '../multi-select/multi-select.component'; // Import the MultiSelectComponent
 
 @Component({
   selector: 'app-filters-panel',
   standalone: true,
   templateUrl: './filters-panel.component.html',
   styleUrls: ['./filters-panel.component.css'],
-  imports: [CommonModule, HttpClientModule, MultiSelectComponent] // Include MultiSelectComponent
+  imports: [MultiSelectComponent] // Directly import MultiSelectComponent
 })
 export class FiltersPanelComponent implements OnInit {
   regulations: MultiSelectOption[] = [];
@@ -139,7 +134,6 @@ export class FiltersPanelComponent implements OnInit {
     });
   }
 
-  // Handlers for selected items from MultiSelectComponent
   onRegulationsChange(selected: MultiSelectOption[]): void {
     this.selectedRegulations = selected;
   }
