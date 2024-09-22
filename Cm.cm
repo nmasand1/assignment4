@@ -1,86 +1,38 @@
-<div class="filters-panel">
-  <h2>Filters Panel</h2>
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { MultiSelectOption } from 'src/app/models/multi-select-options';
 
-  <div class="filters-container">
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="regulations"
-      [label]="'Regulations'"
-      (selectionChange)="onRegulationsChange($event)"
-    ></app-multi-select>
+@Component({
+  selector: 'app-multi-select',
+  templateUrl: './multi-select.component.html',
+  styleUrls: ['./multi-select.component.css']
+})
+export class MultiSelectComponent {
+  @Input() options: MultiSelectOption[] = [];
+  @Input() label: string = '';
+  @Output() selectionChange = new EventEmitter<MultiSelectOption[]>();
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="reportableDatasets"
-      [label]="'Reportable Datasets'"
-      (selectionChange)="onReportableDatasetsChange($event)"
-    ></app-multi-select>
+  isDropdownOpen: boolean = false;
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="reportableFields"
-      [label]="'Reportable Fields'"
-      (selectionChange)="onReportableFieldsChange($event)"
-    ></app-multi-select>
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="assetClasses"
-      [label]="'Asset Classes'"
-      (selectionChange)="onAssetClassesChange($event)"
-    ></app-multi-select>
+  // Emit selected options when they change
+  onOptionChange(): void {
+    const selectedOptions = this.options.filter(option => option.selected);
+    this.selectionChange.emit(selectedOptions);
+  }
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="productType"
-      [label]="'Product Type'"
-      (selectionChange)="onProductTypeChange($event)"
-    ></app-multi-select>
+  // Select all options
+  selectAll(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.options.forEach(option => option.selected = checked);
+    this.onOptionChange();
+  }
 
-    <!-- Buttons should be in the same flex container -->
-    <div class="filters-buttons">
-      <button class="btn btn-search" (click)="searchFilters()">Search</button>
-      <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-.filters-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px; /* Adjusts the gap between the elements */
-  align-items: center; /* Vertically align dropdowns and buttons */
-}
-
-.filter-dropdown {
-  flex: 1;
-  min-width: 200px; /* Ensure dropdowns have a minimum width */
-}
-
-.filters-buttons {
-  display: flex;
-  gap: 10px; /* Gap between the buttons */
-}
-
-.btn {
-  padding: 8px 16px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  cursor: pointer;
-}
-
-.btn-search {
-  background-color: #28a745;
-}
-
-.btn-reset {
-  background-color: #dc3545;
-}
-
-.btn:hover {
-  opacity: 0.9;
+  // Toggle individual option selection
+  toggleSelection(option: MultiSelectOption): void {
+    option.selected = !option.selected;
+    this.onOptionChange();
+  }
 }
