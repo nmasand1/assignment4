@@ -10,24 +10,26 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_node_data(node):
-    """Extract all text and attributes from the node and its children."""
-    node_data = {}
+def extract_associated_data(node):
+    """Extracts text and attributes from a node and its associated elements."""
+    extracted_data = {}
 
-    # Extract the node's own text and attributes
+    # Extract the target node's text and attributes
     if node.text and node.text.strip():
-        node_data[node.tag] = node.text.strip()
+        extracted_data[node.tag] = node.text.strip()
+
     for attr_name, attr_value in node.attrib.items():
-        node_data[f"{node.tag}_{attr_name}"] = attr_value
+        extracted_data[f"{node.tag}_{attr_name}"] = attr_value
 
-    # Extract data from the node's children, if any
-    for child in node:
-        if child.text and child.text.strip():
-            node_data[child.tag] = child.text.strip()
-        for attr_name, attr_value in child.attrib.items():
-            node_data[f"{child.tag}_{attr_name}"] = attr_value
+    # Extract from sibling elements (e.g., alternateId or others)
+    for sibling in node.getparent().getchildren():
+        if sibling is not node:  # Avoid re-extracting the same node
+            if sibling.text and sibling.text.strip():
+                extracted_data[sibling.tag] = sibling.text.strip()
+            for attr_name, attr_value in sibling.attrib.items():
+                extracted_data[f"{sibling.tag}_{attr_name}"] = attr_value
 
-    return node_data
+    return extracted_data
 
 def extract_data(xml_string, xpath):
     """Extract node data and related information dynamically based on the provided XPath."""
@@ -41,9 +43,9 @@ def extract_data(xml_string, xpath):
         # List to store extracted data
         extracted_data = []
 
-        # Iterate over nodes to extract data from each node and its relevant children
+        # Iterate over nodes to extract data from each node and its relevant siblings
         for node in nodes:
-            data = extract_node_data(node)
+            data = extract_associated_data(node)
             extracted_data.append(data)
 
         return extracted_data
@@ -58,7 +60,7 @@ def main():
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
     # Dynamic XPath provided by the user
-    xpath = input("Enter the XPath to extract (e.g., .//trade): ")  # Example: ".//trade"
+    xpath = input("Enter the XPath to extract (e.g., .//tradeHeader/tradeId): ")
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
