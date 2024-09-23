@@ -10,38 +10,48 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_ids(xml_string, xpath):
-    """Extract 'id', 'alternateId' elements and their versions from the specified path."""
+def extract_sibling_data(node):
+    """Extract all sibling nodes and their attributes."""
+    sibling_data = {}
+
+    # Extract the node itself (its text and attributes)
+    if node.text and node.text.strip():
+        sibling_data[node.tag] = node.text.strip()
+
+    # Extract the attributes of the node
+    for attr_name, attr_value in node.attrib.items():
+        sibling_data[f"{node.tag}_{attr_name}"] = attr_value
+
+    # Extract siblings (other child nodes under the same parent)
+    parent = node.getparent()
+    if parent is not None:
+        for sibling in parent:
+            if sibling != node:  # Avoid extracting the current node twice
+                if sibling.text and sibling.text.strip():
+                    sibling_data[sibling.tag] = sibling.text.strip()
+
+                # Extract attributes for sibling nodes
+                for attr_name, attr_value in sibling.attrib.items():
+                    sibling_data[f"{sibling.tag}_{attr_name}"] = attr_value
+
+    return sibling_data
+
+def extract_data(xml_string, xpath):
+    """Extract all attributes and sibling values based on the given XPath."""
     try:
-        # Remove namespaces for easier XPath processing
+        # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
 
         # Find the nodes based on the provided XPath
-        id_nodes = root.xpath(xpath)
+        nodes = root.xpath(xpath)
 
-        # Initialize a list to store extracted data
+        # List to store extracted data
         extracted_data = []
 
-        # Iterate over each node to extract id, alternateId, and version values
-        for id_node in id_nodes:
-            id_type = id_node.xpath("./id/@type")
-            id_version = id_node.xpath("./id/@version")
-            alternate_id_type = id_node.xpath("./alternateId/@type")
-            alternate_id_version = id_node.xpath("./alternateId/@version")
-
-            # Extract values, handle cases where they may not exist
-            id_value = id_node.xpath("./id/text()")
-            alternate_id_value = id_node.xpath("./alternateId/text()")
-
-            # Append to the extracted data list
-            extracted_data.append({
-                "id_type": id_type[0] if id_type else None,
-                "id_value": id_value[0].strip() if id_value else None,
-                "id_version": id_version[0] if id_version else None,
-                "alternate_id_type": alternate_id_type[0] if alternate_id_type else None,
-                "alternate_id_value": alternate_id_value[0].strip() if alternate_id_value else None,
-                "alternate_id_version": alternate_id_version[0] if alternate_id_version else None,
-            })
+        # Iterate over nodes to extract all related data
+        for node in nodes:
+            data = extract_sibling_data(node)
+            extracted_data.append(data)
 
         return extracted_data
 
@@ -50,30 +60,39 @@ def extract_ids(xml_string, xpath):
         return []
 
 def main():
-    # Read the CSV file containing the BCML XML data
-    csv_file_path = "bcml_data.csv"  # Change this to your actual CSV file path
+    # Path to the CSV file containing XML data
+    csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
+    # Column in the CSV file that contains the XML strings
+    xml_column = 'bcml'  # Change this to the name of your XML column
+    # Dynamic XPath provided by the user
+    xpath = input("Enter the XPath to extract: ")  # e.g., ".//trade/tradeHeader/tradeId"
+
+    # Read the CSV file
     df = pd.read_csv(csv_file_path)
 
-    # Assuming the column containing XML data is named 'bcml'
-    xml_column = 'bcml'  # Change this to the name of your XML column
-    xpath = ".//trade/tradeHeader/tradeId"
-
-    # Initialize a list to store all extracted data
+    # List to store all extracted data from the entire file
     all_extracted_data = []
 
-    # Iterate over each row in the DataFrame to process the XML
+    # Process each row and extract data based on the provided XPath
     for index, row in df.iterrows():
         xml_string = row[xml_column]
-        extracted_ids = extract_ids(xml_string, xpath)
-        
-        # Append extracted IDs to the master list
-        all_extracted_data.extend(extracted_ids)
+        extracted_values = extract_data(xml_string, xpath)
 
-    # Convert all extracted data to DataFrame
-    results_df = pd.DataFrame(all_extracted_data)
+        # Add additional context like row index for reference (optional)
+        for value in extracted_values:
+            value['row_index'] = index
+
+        # Append extracted values to the main list
+        all_extracted_data.extend(extracted_values)
+
+    # Convert extracted data into a DataFrame
+    if all_extracted_data:
+        results_df = pd.DataFrame(all_extracted_data)
+    else:
+        results_df = pd.DataFrame(columns=["No Data Found"])
 
     # Output the results to a CSV file
-    output_file = "extracted_ids_output.csv"
+    output_file = "extracted_values_output.csv"
     results_df.to_csv(output_file, index=False)
     print(f"Extracted data saved to {output_file}")
 
