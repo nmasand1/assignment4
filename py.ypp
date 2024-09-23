@@ -10,34 +10,28 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_sibling_data(node):
-    """Extract all sibling nodes and their attributes."""
-    sibling_data = {}
+def extract_trade_data(node):
+    """Extract tradeId and alternateId along with their attributes."""
+    trade_data = {}
 
-    # Extract the node itself (its text and attributes)
-    if node.text and node.text.strip():
-        sibling_data[node.tag] = node.text.strip()
+    # Extract the tradeId, its text and attributes
+    trade_id = node.find(".//tradeId")
+    if trade_id is not None:
+        trade_data['tradeId'] = trade_id.text.strip() if trade_id.text else None
+        for attr_name, attr_value in trade_id.attrib.items():
+            trade_data[f"tradeId_{attr_name}"] = attr_value
 
-    # Extract the attributes of the node
-    for attr_name, attr_value in node.attrib.items():
-        sibling_data[f"{node.tag}_{attr_name}"] = attr_value
+    # Extract the alternateId, its text and attributes
+    alternate_id = node.find(".//alternateId")
+    if alternate_id is not None:
+        trade_data['alternateId'] = alternate_id.text.strip() if alternate_id.text else None
+        for attr_name, attr_value in alternate_id.attrib.items():
+            trade_data[f"alternateId_{attr_name}"] = attr_value
 
-    # Extract siblings (other child nodes under the same parent)
-    parent = node.getparent()
-    if parent is not None:
-        for sibling in parent:
-            if sibling != node:  # Avoid extracting the current node twice
-                if sibling.text and sibling.text.strip():
-                    sibling_data[sibling.tag] = sibling.text.strip()
-
-                # Extract attributes for sibling nodes
-                for attr_name, attr_value in sibling.attrib.items():
-                    sibling_data[f"{sibling.tag}_{attr_name}"] = attr_value
-
-    return sibling_data
+    return trade_data
 
 def extract_data(xml_string, xpath):
-    """Extract all attributes and sibling values based on the given XPath."""
+    """Extract tradeId and alternateId with attributes based on the given XPath."""
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
@@ -48,9 +42,9 @@ def extract_data(xml_string, xpath):
         # List to store extracted data
         extracted_data = []
 
-        # Iterate over nodes to extract all related data
+        # Iterate over nodes to extract trade-related data
         for node in nodes:
-            data = extract_sibling_data(node)
+            data = extract_trade_data(node)
             extracted_data.append(data)
 
         return extracted_data
@@ -65,7 +59,7 @@ def main():
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
     # Dynamic XPath provided by the user
-    xpath = input("Enter the XPath to extract: ")  # e.g., ".//trade/tradeHeader/tradeId"
+    xpath = input("Enter the XPath to extract (e.g., .//trade): ")  # Example: ".//trade"
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
@@ -78,7 +72,7 @@ def main():
         xml_string = row[xml_column]
         extracted_values = extract_data(xml_string, xpath)
 
-        # Add additional context like row index for reference (optional)
+        # Add the row index for reference
         for value in extracted_values:
             value['row_index'] = index
 
