@@ -1,0 +1,81 @@
+import pandas as pd
+from lxml import etree
+
+def strip_namespaces(xml_string):
+    """Remove namespaces from the XML string."""
+    parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
+    tree = etree.fromstring(xml_string.encode('utf-8'), parser=parser)
+    for elem in tree.iter():
+        if elem.tag.startswith('{'):
+            elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
+    return tree
+
+def extract_ids(xml_string, xpath):
+    """Extract 'id', 'alternateId' elements and their versions from the specified path."""
+    try:
+        # Remove namespaces for easier XPath processing
+        root = strip_namespaces(xml_string)
+
+        # Find the nodes based on the provided XPath
+        id_nodes = root.xpath(xpath)
+
+        # Initialize a list to store extracted data
+        extracted_data = []
+
+        # Iterate over each node to extract id, alternateId, and version values
+        for id_node in id_nodes:
+            id_type = id_node.xpath("./id/@type")
+            id_version = id_node.xpath("./id/@version")
+            alternate_id_type = id_node.xpath("./alternateId/@type")
+            alternate_id_version = id_node.xpath("./alternateId/@version")
+
+            # Extract values, handle cases where they may not exist
+            id_value = id_node.xpath("./id/text()")
+            alternate_id_value = id_node.xpath("./alternateId/text()")
+
+            # Append to the extracted data list
+            extracted_data.append({
+                "id_type": id_type[0] if id_type else None,
+                "id_value": id_value[0].strip() if id_value else None,
+                "id_version": id_version[0] if id_version else None,
+                "alternate_id_type": alternate_id_type[0] if alternate_id_type else None,
+                "alternate_id_value": alternate_id_value[0].strip() if alternate_id_value else None,
+                "alternate_id_version": alternate_id_version[0] if alternate_id_version else None,
+            })
+
+        return extracted_data
+
+    except Exception as e:
+        print(f"Error processing XML: {e}")
+        return []
+
+def main():
+    # Read the CSV file containing the BCML XML data
+    csv_file_path = "bcml_data.csv"  # Change this to your actual CSV file path
+    df = pd.read_csv(csv_file_path)
+
+    # Assuming the column containing XML data is named 'bcml'
+    xml_column = 'bcml'  # Change this to the name of your XML column
+    xpath = ".//trade/tradeHeader/tradeId"
+
+    # Initialize a list to store all extracted data
+    all_extracted_data = []
+
+    # Iterate over each row in the DataFrame to process the XML
+    for index, row in df.iterrows():
+        xml_string = row[xml_column]
+        extracted_ids = extract_ids(xml_string, xpath)
+        
+        # Append extracted IDs to the master list
+        all_extracted_data.extend(extracted_ids)
+
+    # Convert all extracted data to DataFrame
+    results_df = pd.DataFrame(all_extracted_data)
+
+    # Output the results to a CSV file
+    output_file = "extracted_ids_output.csv"
+    results_df.to_csv(output_file, index=False)
+    print(f"Extracted data saved to {output_file}")
+
+if __name__ == "__main__":
+    main()
