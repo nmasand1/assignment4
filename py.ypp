@@ -10,28 +10,27 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_trade_data(node):
-    """Extract tradeId and alternateId along with their attributes."""
-    trade_data = {}
+def extract_node_data(node):
+    """Extract all text and attributes from the node and its children."""
+    node_data = {}
 
-    # Extract the tradeId, its text and attributes
-    trade_id = node.find(".//tradeId")
-    if trade_id is not None:
-        trade_data['tradeId'] = trade_id.text.strip() if trade_id.text else None
-        for attr_name, attr_value in trade_id.attrib.items():
-            trade_data[f"tradeId_{attr_name}"] = attr_value
+    # Extract the node's own text and attributes
+    if node.text and node.text.strip():
+        node_data[node.tag] = node.text.strip()
+    for attr_name, attr_value in node.attrib.items():
+        node_data[f"{node.tag}_{attr_name}"] = attr_value
 
-    # Extract the alternateId, its text and attributes
-    alternate_id = node.find(".//alternateId")
-    if alternate_id is not None:
-        trade_data['alternateId'] = alternate_id.text.strip() if alternate_id.text else None
-        for attr_name, attr_value in alternate_id.attrib.items():
-            trade_data[f"alternateId_{attr_name}"] = attr_value
+    # Extract data from the node's children, if any
+    for child in node:
+        if child.text and child.text.strip():
+            node_data[child.tag] = child.text.strip()
+        for attr_name, attr_value in child.attrib.items():
+            node_data[f"{child.tag}_{attr_name}"] = attr_value
 
-    return trade_data
+    return node_data
 
 def extract_data(xml_string, xpath):
-    """Extract tradeId and alternateId with attributes based on the given XPath."""
+    """Extract node data and related information dynamically based on the provided XPath."""
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
@@ -42,9 +41,9 @@ def extract_data(xml_string, xpath):
         # List to store extracted data
         extracted_data = []
 
-        # Iterate over nodes to extract trade-related data
+        # Iterate over nodes to extract data from each node and its relevant children
         for node in nodes:
-            data = extract_trade_data(node)
+            data = extract_node_data(node)
             extracted_data.append(data)
 
         return extracted_data
