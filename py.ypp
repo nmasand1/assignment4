@@ -39,14 +39,11 @@ def extract_data(xml_string, xpath):
         # Iterate over the matching nodes to extract their data
         for node in nodes:
             data = extract_node_data(node)
-            
-            # Get sibling nodes if they are in the same parent element
-            parent = node.getparent()
-            if parent is not None:
-                for sibling in parent:
-                    if sibling is not node:  # Avoid re-extracting the same node
-                        sibling_data = extract_node_data(sibling)
-                        data.update(sibling_data)  # Add sibling data to the main node's data
+
+            # Extract children nodes, but not siblings of the matched node
+            for child in node:
+                child_data = extract_node_data(child)
+                data.update(child_data)  # Include the child node's data
 
             extracted_data_list.append(data)
 
