@@ -1,14 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MultiSelectOption } from './models/multi-select-options';
-import { FormsModule } from '@angular/forms';
+import { MultiSelectOption } from 'src/app/models/multi-select-options';
 
 @Component({
   selector: 'app-filters-panel',
-  standalone: true,
   templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.css'],
-  imports: [FormsModule]
+  styleUrls: ['./filters-panel.component.css']
 })
 export class FiltersPanelComponent implements OnInit {
   regulations: MultiSelectOption[] = [];
@@ -16,95 +13,85 @@ export class FiltersPanelComponent implements OnInit {
   reportableFields: MultiSelectOption[] = [];
   assetClasses: MultiSelectOption[] = [];
   productType: MultiSelectOption[] = [];
-
+  
   selectedRegulations: MultiSelectOption[] = [];
   selectedReportableDatasets: MultiSelectOption[] = [];
   selectedReportableFields: MultiSelectOption[] = [];
   selectedAssetClasses: MultiSelectOption[] = [];
   selectedProductType: MultiSelectOption[] = [];
 
-  selectedDate: string = ''; // Date selected by user
+  private filtersJsonUrl = 'assets/mock-data/response/json1_filters.json';
+  private resultsJsonUrl = 'assets/mock-data/response/results.json'; // URL to fetch the results based on the filters
 
-  private jsonUrl = 'assets/mock-data/response/json1_filters.json'; // Your JSON data path
-
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
     this.loadFiltersData();
   }
 
+  // Load filter options data from JSON
   loadFiltersData(): void {
-    this.http.get<any>(this.jsonUrl).subscribe(data => {
+    this.http.get<any>(this.filtersJsonUrl).subscribe(data => {
       this.regulations = data.data.regulations.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false
+        id: item.id, name: item.name, displayName: item.displayName, selected: false
       }));
-      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false
+      this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
+        id: item.id, name: item.name, displayName: item.displayName, selected: false
       }));
-      this.reportableFields = data.data.reportableFields.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false
+      this.reportableFields = data.data.reportableField.map((item: any) => ({
+        id: item.id, name: item.name, displayName: item.displayName, selected: false
       }));
       this.assetClasses = data.data.assetClasses.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false
+        id: item.id, name: item.name, displayName: item.displayName, selected: false
       }));
       this.productType = data.data.productType.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false
+        id: item.id, name: item.name, displayName: item.displayName, selected: false
       }));
     });
   }
 
-  // Search functionality: logs selected filters
-  searchFilters(): void {
-    console.log('Selected Regulations:', this.selectedRegulations);
-    console.log('Selected Reportable Datasets:', this.selectedReportableDatasets);
-    console.log('Selected Reportable Fields:', this.selectedReportableFields);
-    console.log('Selected Asset Classes:', this.selectedAssetClasses);
-    console.log('Selected Product Types:', this.selectedProductType);
-    console.log('Selected Date:', this.selectedDate);
+  // Handle the search button click
+  onSearch(): void {
+    const selectedFilters = {
+      regulations: this.selectedRegulations.map(option => option.name),
+      reportableDatasets: this.selectedReportableDatasets.map(option => option.name),
+      reportableFields: this.selectedReportableFields.map(option => option.name),
+      assetClasses: this.selectedAssetClasses.map(option => option.name),
+      productType: this.selectedProductType.map(option => option.name)
+    };
+
+    console.log('Selected Filters:', selectedFilters); // Testing: Print selected filters
+
+    // Make an HTTP call to fetch the results based on the selected filters
+    this.http.get<any>(this.resultsJsonUrl).subscribe(response => {
+      console.log('Response from server:', response);
+
+      // Filter the results based on selected filters
+      const filteredResults = response.data.filter((item: any) => 
+        selectedFilters.regulations.includes(item.regulationName) &&
+        selectedFilters.assetClasses.includes(item.assetClass) &&
+        selectedFilters.productType.includes(item.productType)
+      );
+
+      console.log('Filtered Results:', filteredResults); // Output the filtered results
+    });
   }
 
-  // Reset functionality: clears all filters and date
-  resetFilters(): void {
+  // Handle the reset button click
+  onReset(): void {
     this.selectedRegulations = [];
     this.selectedReportableDatasets = [];
     this.selectedReportableFields = [];
     this.selectedAssetClasses = [];
     this.selectedProductType = [];
-    this.selectedDate = '';
 
-    // Reset the selected property in each option
-    this.regulations.forEach(option => (option.selected = false));
-    this.reportableDatasets.forEach(option => (option.selected = false));
-    this.reportableFields.forEach(option => (option.selected = false));
-    this.assetClasses.forEach(option => (option.selected = false));
-    this.productType.forEach(option => (option.selected = false));
+    console.log('Filters reset!');
   }
 }
 
 
 
-
-<div class="filter-container">
-  <!-- Date Picker -->
-  <label for="date">Select Date:</label>
-  <input type="date" id="date" [(ngModel)]="selectedDate" />
-
-  <!-- Dropdowns for filters -->
+<div class="filters-panel">
   <app-multi-select
     [options]="regulations"
     [(ngModel)]="selectedRegulations"
@@ -135,10 +122,15 @@ export class FiltersPanelComponent implements OnInit {
     label="Product Type">
   </app-multi-select>
 
+  <!-- Add a date picker -->
+  <div class="date-picker">
+    <label for="date">Date:</label>
+    <input type="date" id="date" [(ngModel)]="selectedDate">
+  </div>
+
   <!-- Search and Reset Buttons -->
-  <div class="actions-container">
-    <button (click)="searchFilters()">Search</button>
-    <button (click)="resetFilters()">Reset</button>
+  <div class="button-group">
+    <button (click)="onSearch()">Search</button>
+    <button (click)="onReset()">Reset</button>
   </div>
 </div>
-
