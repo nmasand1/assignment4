@@ -95,3 +95,50 @@ export class FiltersPanelComponent implements OnInit {
     this.productType.forEach(option => (option.selected = false));
   }
 }
+
+
+
+
+<div class="filter-container">
+  <!-- Date Picker -->
+  <label for="date">Select Date:</label>
+  <input type="date" id="date" [(ngModel)]="selectedDate" />
+
+  <!-- Dropdowns for filters -->
+  <app-multi-select
+    [options]="regulations"
+    [(ngModel)]="selectedRegulations"
+    label="Regulations">
+  </app-multi-select>
+
+  <app-multi-select
+    [options]="reportableDatasets"
+    [(ngModel)]="selectedReportableDatasets"
+    label="Reportable Datasets">
+  </app-multi-select>
+
+  <app-multi-select
+    [options]="reportableFields"
+    [(ngModel)]="selectedReportableFields"
+    label="Reportable Fields">
+  </app-multi-select>
+
+  <app-multi-select
+    [options]="assetClasses"
+    [(ngModel)]="selectedAssetClasses"
+    label="Asset Classes">
+  </app-multi-select>
+
+  <app-multi-select
+    [options]="productType"
+    [(ngModel)]="selectedProductType"
+    label="Product Type">
+  </app-multi-select>
+
+  <!-- Search and Reset Buttons -->
+  <div class="actions-container">
+    <button (click)="searchFilters()">Search</button>
+    <button (click)="resetFilters()">Reset</button>
+  </div>
+</div>
+
