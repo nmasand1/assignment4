@@ -1,0 +1,185 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { MultiSelectOption } from './multi-select-option.interface';
+
+@Component({
+  selector: 'app-multi-select',
+  templateUrl: './multi-select.component.html',
+  styleUrls: ['./multi-select.component.css']
+})
+export class MultiSelectComponent {
+  @Input() options: MultiSelectOption[] = [];
+  @Input() label: string = '';
+  @Output() selectionChanged = new EventEmitter<MultiSelectOption[]>(); // Emit changes to parent component
+
+  selectAllChecked = false;
+
+  // Toggle individual selection
+  toggleSelection(option: MultiSelectOption): void {
+    option.selected = !option.selected;
+    this.emitSelection();
+  }
+
+  // Select/Deselect all
+  selectAll(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.options.forEach(option => option.selected = checked);
+    this.emitSelection();
+  }
+
+  // Emit the current selection state to the parent component
+  emitSelection(): void {
+    const selectedOptions = this.options.filter(option => option.selected);
+    this.selectionChanged.emit(selectedOptions);
+  }
+}
+
+
+<div class="multi-select-container">
+  <label>{{ label }}</label>
+  <div>
+    <input type="checkbox" (change)="selectAll($event)" [checked]="selectAllChecked" /> Select All
+  </div>
+  <div *ngFor="let option of options">
+    <input type="checkbox" [(ngModel)]="option.selected" (change)="toggleSelection(option)" /> {{ option.displayName }}
+  </div>
+</div>
+
+
+
+
+import { Component, OnInit } from '@angular/core';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { MultiSelectOption } from './multi-select-option.interface';
+
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+  standalone: true,
+  imports: [HttpClientModule]
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+
+  selectedDate: string = ''; // For date input
+
+  // Stores selected filters
+  selectedFilters = {
+    regulations: [] as MultiSelectOption[],
+    reportableDatasets: [] as MultiSelectOption[],
+    assetClasses: [] as MultiSelectOption[]
+  };
+
+  private jsonUrl = 'assets/mock-data/response/json1_filters.json';
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
+
+  // Load filters data
+  loadFiltersData(): void {
+    this.http.get<any>(this.jsonUrl).subscribe(data => {
+      this.regulations = data.data.regulations.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+
+      this.reportableDatasets = data.data.reportableDataset.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false
+      }));
+    });
+  }
+
+  // Handle selection change for regulations
+  onRegulationSelectionChanged(selectedOptions: MultiSelectOption[]): void {
+    this.selectedFilters.regulations = selectedOptions;
+  }
+
+  // Handle selection change for reportable datasets
+  onReportableDatasetSelectionChanged(selectedOptions: MultiSelectOption[]): void {
+    this.selectedFilters.reportableDatasets = selectedOptions;
+  }
+
+  // Handle selection change for asset classes
+  onAssetClassSelectionChanged(selectedOptions: MultiSelectOption[]): void {
+    this.selectedFilters.assetClasses = selectedOptions;
+  }
+
+  // Search button logic
+  searchFilters(): void {
+    console.log('Selected Date:', this.selectedDate);
+    console.log('Selected Regulations:', this.selectedFilters.regulations);
+    console.log('Selected Reportable Datasets:', this.selectedFilters.reportableDatasets);
+    console.log('Selected Asset Classes:', this.selectedFilters.assetClasses);
+  }
+
+  // Reset button logic
+  resetFilters(): void {
+    this.selectedFilters = {
+      regulations: [],
+      reportableDatasets: [],
+      assetClasses: []
+    };
+
+    // Reset selections
+    this.regulations.forEach(option => option.selected = false);
+    this.reportableDatasets.forEach(option => option.selected = false);
+    this.assetClasses.forEach(option => option.selected = false);
+    this.selectedDate = ''; // Reset date
+  }
+}
+
+
+
+<div class="filters-container">
+  <div class="dropdown-container">
+    <app-multi-select
+      [options]="regulations"
+      label="Regulations"
+      (selectionChanged)="onRegulationSelectionChanged($event)">
+    </app-multi-select>
+  </div>
+  
+  <div class="dropdown-container">
+    <app-multi-select
+      [options]="reportableDatasets"
+      label="Reportable Datasets"
+      (selectionChanged)="onReportableDatasetSelectionChanged($event)">
+    </app-multi-select>
+  </div>
+  
+  <div class="dropdown-container">
+    <app-multi-select
+      [options]="assetClasses"
+      label="Asset Classes"
+      (selectionChanged)="onAssetClassSelectionChanged($event)">
+    </app-multi-select>
+  </div>
+</div>
+
+<!-- Date input and buttons -->
+<div class="actions-container">
+  <div class="date-input">
+    <label for="selectedDate">Select Date:</label>
+    <input type="date" [(ngModel)]="selectedDate" id="selectedDate" />
+  </div>
+
+  <button (click)="searchFilters()">Search</button>
+  <button (click)="resetFilters()">Reset</button>
+</div>
