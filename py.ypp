@@ -24,8 +24,23 @@ def extract_node_data(node):
 
     return extracted_data
 
+def extract_related_nodes(node):
+    """Extracts data from related sibling nodes under the same parent."""
+    related_data = {}
+    
+    # Get the parent node of the target node
+    parent = node.getparent()
+    
+    if parent is not None:
+        # Collect data from all child nodes of the parent, i.e., siblings of the original node
+        for sibling in parent:
+            sibling_data = extract_node_data(sibling)
+            related_data.update(sibling_data)
+    
+    return related_data
+
 def extract_data(xml_string, xpath):
-    """Extract node data dynamically based on the provided XPath."""
+    """Extract node data dynamically based on the provided XPath and include related nodes."""
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
@@ -36,14 +51,13 @@ def extract_data(xml_string, xpath):
         # List to store extracted data
         extracted_data_list = []
 
-        # Iterate over the matching nodes to extract their data
+        # Iterate over the matching nodes to extract their data and related nodes
         for node in nodes:
             data = extract_node_data(node)
 
-            # Extract children nodes, but not siblings of the matched node
-            for child in node:
-                child_data = extract_node_data(child)
-                data.update(child_data)  # Include the child node's data
+            # Extract related sibling nodes under the same parent
+            related_data = extract_related_nodes(node)
+            data.update(related_data)  # Include related nodes' data
 
             extracted_data_list.append(data)
 
