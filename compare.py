@@ -1,21 +1,21 @@
 import pandas as pd
 
 def validate_csv_data(csv1_path, csv2_path):
-    # Load the first CSV
-    df1 = pd.read_csv(csv1_path)
+    # Load the first CSV with tab as delimiter
+    df1 = pd.read_csv(csv1_path, delimiter='\t')
 
     # Debug: Print the columns in the first CSV
     print("Columns in first CSV:", df1.columns.tolist())
 
-    # Load the second CSV
-    df2 = pd.read_csv(csv2_path)
+    # Load the second CSV with tab as delimiter
+    df2 = pd.read_csv(csv2_path, delimiter='\t')
 
     # Debug: Print the columns in the second CSV
     print("Columns in second CSV:", df2.columns.tolist())
 
     # Ensure the necessary columns exist in both DataFrames
-    required_columns_df1 = ['BusinessDate', 'RowsExtracted', 'filename']
-    required_columns_df2 = ['TableName', 'BusinessDate', 'UpstreamCount', 'ProcessedCount', 'recordtype']
+    required_columns_df1 = ['businessdate', 'rowsextracted', 'filename']
+    required_columns_df2 = ['tablename', 'businessdate', 'upstreamcount', 'processedcount', 'recordtype']
 
     # Check for missing columns in the first CSV
     for col in required_columns_df1:
@@ -34,22 +34,22 @@ def validate_csv_data(csv1_path, csv2_path):
 
     # Iterate through each unique BusinessDate in df1
     for _, row in df1.iterrows():
-        business_date = row['BusinessDate']
-        rows_extracted = row['RowsExtracted']
+        business_date = row['businessdate']
+        rows_extracted = row['rowsextracted']
 
         # Filter df2 for the matching BusinessDate
-        df2_filtered = df2[df2['BusinessDate'] == business_date]
+        df2_filtered = df2[df2['businessdate'] == business_date]
 
         if df2_filtered.empty:
             print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
         # Calculate total UpstreamCount for recordtypes 0, 1, and 2
-        upstream_counts = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['UpstreamCount']
+        upstream_counts = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['upstreamcount']
         total_upstream_count = upstream_counts.sum()
 
         # Calculate total ProcessedCount for recordtypes 0, 1, and 2
-        processed_count = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['ProcessedCount'].sum()
+        processed_count = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['processedcount'].sum()
 
         # Check if total upstream count equals processed count
         if total_upstream_count == processed_count:
@@ -68,8 +68,8 @@ def validate_csv_data(csv1_path, csv2_path):
         print(f"{business_date}: {result}")
 
 # Specify the paths to your CSV files
-csv1_path = 'path_to_first_csv.csv'  # Update with the actual path
-csv2_path = 'path_to_second_csv.csv'  # Update with the actual path
+csv1_path = 'path_to_first_csv.tsv'  # Update with the actual path
+csv2_path = 'path_to_second_csv.tsv'  # Update with the actual path
 
 # Run the validation
 validate_csv_data(csv1_path, csv2_path)
