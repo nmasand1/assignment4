@@ -49,17 +49,14 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         upstream_count_1 = df2_filtered[df2_filtered['recordtype'] == 1]['upstreamcount'].sum()
         upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
 
-        # Total UpstreamCount for all relevant record types
+        # Total UpstreamCount for record types 0, 1, and 2
         total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
-        # Validate if UpstreamCount equals ProcessedCount for record types 0, 1, and 2
-        # Collect the processed counts for validity check
-        processed_counts = df2_filtered['processedcount'].unique()
-        is_valid_upstream = all(
-            df2_filtered[df2_filtered['recordtype'] == rt]['upstreamcount'].sum() == 
-            df2_filtered[df2_filtered['recordtype'] == rt]['processedcount'].sum()
-            for rt in [0, 1, 2]
-        )
+        # Extract the unique processed counts for matching BusinessDate
+        processed_count = df2_filtered['processedcount'].unique()
+
+        # Check if the total UpstreamCount equals any of the ProcessedCounts for the record types 0, 1, and 2
+        is_valid_upstream = total_upstream_count in processed_count
 
         # Check if total UpstreamCount matches RowsExtracted
         is_valid_rows_extracted = (total_upstream_count == rows_extracted)
@@ -69,7 +66,7 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'UpstreamCount': total_upstream_count,
-            'ProcessedCount': processed_counts,  # Use unique processed counts without summation
+            'ProcessedCount': processed_count,  # Keep it as a unique value
             'ValidUpstream': is_valid_upstream,
             'ValidRowsExtracted': is_valid_rows_extracted
         })
