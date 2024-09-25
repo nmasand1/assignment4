@@ -3,19 +3,27 @@ import pandas as pd
 def validate_csv_data(csv1_path, csv2_path):
     # Load the first CSV
     df1 = pd.read_csv(csv1_path)
-    
+
+    # Debug: Print the columns in the first CSV
+    print("Columns in first CSV:", df1.columns.tolist())
+
     # Load the second CSV
     df2 = pd.read_csv(csv2_path)
-    
+
+    # Debug: Print the columns in the second CSV
+    print("Columns in second CSV:", df2.columns.tolist())
+
     # Ensure the necessary columns exist in both DataFrames
     required_columns_df1 = ['BusinessDate', 'RowsExtracted', 'filename']
     required_columns_df2 = ['TableName', 'BusinessDate', 'UpstreamCount', 'ProcessedCount', 'recordtype']
 
+    # Check for missing columns in the first CSV
     for col in required_columns_df1:
         if col not in df1.columns:
             print(f"Missing column in first CSV: {col}")
             return
 
+    # Check for missing columns in the second CSV
     for col in required_columns_df2:
         if col not in df2.columns:
             print(f"Missing column in second CSV: {col}")
