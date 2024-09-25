@@ -44,19 +44,20 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
             print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
-        # Calculate total UpstreamCount for recordtypes 0 and 2
+        # Calculate UpstreamCount for recordtypes 0, 1, and 2
         upstream_count_0 = df2_filtered[df2_filtered['recordtype'] == 0]['upstreamcount'].sum()
+        upstream_count_1 = df2_filtered[df2_filtered['recordtype'] == 1]['upstreamcount'].sum()
         upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
-        
-        # Calculate the sum of upstream counts for 0 and 2
-        total_upstream_count = upstream_count_0 + upstream_count_2
+
+        # Total UpstreamCount for all three record types
+        total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
         # Calculate total ProcessedCount for recordtypes 0, 1, and 2
         processed_count = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['processedcount'].sum()
 
         # Validate and append results
         is_valid_upstream = (total_upstream_count == processed_count)
-        is_valid_extracted = (total_upstream_count == rows_extracted)
+        is_valid_extracted = (upstream_count_0 + upstream_count_2 == rows_extracted)
 
         results.append({
             'BusinessDate': business_date,
@@ -77,8 +78,8 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     print(f"Validation results saved to {output_csv_path}")
 
 # Specify the paths to your CSV files and output CSV file
-csv1_path = 'path_to_first_csv.tsv'  # Update with the actual path
-csv2_path = 'path_to_second_csv.tsv'  # Update with the actual path
+csv1_path = 'file1.csv'  # Update with the actual path
+csv2_path = 'file2.csv'  # Update with the actual path
 output_csv_path = 'validation_results.csv'  # Specify output path
 
 # Run the validation
