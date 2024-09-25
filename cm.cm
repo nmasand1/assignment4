@@ -291,3 +291,119 @@ export class FiltersPanelComponent implements OnInit {
     this.selectedProductType = selected;
   }
 }
+
+
+
+
+<div class="filters-panel">
+  <h2>Filters Panel</h2>
+
+  <div class="filter-container">
+    <div class="filter-section">
+      <label for="regulations">Regulations</label>
+      <app-multi-select
+        [options]="regulations"
+        [label]="'Select Regulations'"
+        [isOpen]="true"
+        (selectionChange)="onRegulationsChange($event)"
+      ></app-multi-select>
+    </div>
+
+    <div class="filter-section">
+      <label for="reportableDatasets">Reportable Datasets</label>
+      <app-multi-select
+        [options]="reportableDatasets"
+        [label]="'Select Reportable Datasets'"
+        [isOpen]="true"
+        (selectionChange)="onReportableDatasetsChange($event)"
+      ></app-multi-select>
+    </div>
+
+    <div class="filter-section">
+      <label for="reportableFields">Reportable Fields</label>
+      <app-multi-select
+        [options]="reportableFields"
+        [label]="'Select Reportable Fields'"
+        [isOpen]="true"
+        (selectionChange)="onReportableFieldsChange($event)"
+      ></app-multi-select>
+    </div>
+
+    <div class="filter-section">
+      <label for="assetClasses">Asset Classes</label>
+      <app-multi-select
+        [options]="assetClasses"
+        [label]="'Select Asset Classes'"
+        [isOpen]="true"
+        (selectionChange)="onAssetClassesChange($event)"
+      ></app-multi-select>
+    </div>
+
+    <div class="filter-section">
+      <label for="productType">Product Types</label>
+      <app-multi-select
+        [options]="productType"
+        [label]="'Select Product Types'"
+        [isOpen]="true"
+        (selectionChange)="onProductTypeChange($event)"
+      ></app-multi-select>
+    </div>
+
+    <div class="filter-section">
+      <label for="date">Date</label>
+      <input type="date" [(ngModel)]="selectedDate" />
+    </div>
+  </div>
+
+  <div class="filter-actions">
+    <button (click)="searchFilters()">Search</button>
+    <button (click)="resetFilters()">Reset</button>
+  </div>
+
+  <div *ngIf="searchResults.length > 0">
+    <h3>Search Results</h3>
+    <ul>
+      <li *ngFor="let result of searchResults">
+        {{ result.fieldName }} - {{ result.regulationName }} - {{ result.assetClass }}
+      </li>
+    </ul>
+  </div>
+
+  <div *ngIf="searchResults.length === 0 && selectedRegulations.length > 0">
+    <p>No results found for the selected filters.</p>
+  </div>
+</div>
+
+<!-- Styles (optional) -->
+<style>
+  .filters-panel {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-width: 1000px;
+    margin: auto;
+  }
+
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Reduce gap between sections */
+  }
+
+  .filter-section {
+    flex: 1 1 150px; /* Flex-grow, flex-shrink, flex-basis */
+  }
+
+  .filter-actions {
+    margin-top: 20px;
+  }
+
+  button {
+    margin-right: 10px;
+  }
+
+  h3 {
+    margin-top: 20px;
+  }
+</style>
+
