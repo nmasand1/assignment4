@@ -49,33 +49,23 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         upstream_count_1 = df2_filtered[df2_filtered['recordtype'] == 1]['upstreamcount'].sum()
         upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
 
-        # Total UpstreamCount for available record types
+        # Total UpstreamCount for all relevant record types
         total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
-        # Initialize a flag for overall validation
-        is_valid_extracted = (upstream_count_0 + upstream_count_1 + upstream_count_2 == rows_extracted)
+        # Check if UpstreamCount equals ProcessedCount for record types 0, 1, and 2
+        is_valid_upstream = all(df2_filtered['upstreamcount'] == df2_filtered['processedcount'])
 
-        # Validate each individual record
-        for _, record in df2_filtered.iterrows():
-            is_valid_upstream = (record['upstreamcount'] == record['processedcount'])
+        # Check if total UpstreamCount matches RowsExtracted
+        is_valid_rows_extracted = (total_upstream_count == rows_extracted)
 
-            # Append results for each record
-            results.append({
-                'BusinessDate': business_date,
-                'RowsExtracted': rows_extracted,
-                'RecordType': record['recordtype'],
-                'UpstreamCount': record['upstreamcount'],
-                'ProcessedCount': record['processedcount'],
-                'ValidUpstreamCount': is_valid_upstream
-            })
-
-        # Append a summary for RowsExtracted validity
+        # Append the result to the list
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
-            'TotalUpstreamCount': total_upstream_count,
-            'ValidRowsExtracted': is_valid_extracted,
-            'Summary': 'Rows Extracted Check'
+            'UpstreamCount': total_upstream_count,
+            'ProcessedCount': df2_filtered['processedcount'].sum(),  # Assume sum of processed counts from all records
+            'ValidUpstream': is_valid_upstream,
+            'ValidRowsExtracted': is_valid_rows_extracted
         })
 
     # Create a DataFrame from the results
