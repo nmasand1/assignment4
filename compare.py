@@ -44,28 +44,38 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
             print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
-        # Calculate UpstreamCount for recordtypes 0, 1, and 2
+        # Initialize sums for UpstreamCount for record types 0, 1, and 2
         upstream_count_0 = df2_filtered[df2_filtered['recordtype'] == 0]['upstreamcount'].sum()
         upstream_count_1 = df2_filtered[df2_filtered['recordtype'] == 1]['upstreamcount'].sum()
         upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
 
-        # Total UpstreamCount for all three record types
+        # Total UpstreamCount for available record types
         total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
-        # Calculate total ProcessedCount for recordtypes 0, 1, and 2
-        processed_count = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['processedcount'].sum()
+        # Initialize a flag for overall validation
+        is_valid_extracted = (upstream_count_0 + upstream_count_1 + upstream_count_2 == rows_extracted)
 
-        # Validate and append results
-        is_valid_upstream = (total_upstream_count == processed_count)
-        is_valid_extracted = (upstream_count_0 + upstream_count_2 == rows_extracted)
+        # Validate each individual record
+        for _, record in df2_filtered.iterrows():
+            is_valid_upstream = (record['upstreamcount'] == record['processedcount'])
 
+            # Append results for each record
+            results.append({
+                'BusinessDate': business_date,
+                'RowsExtracted': rows_extracted,
+                'RecordType': record['recordtype'],
+                'UpstreamCount': record['upstreamcount'],
+                'ProcessedCount': record['processedcount'],
+                'ValidUpstreamCount': is_valid_upstream
+            })
+
+        # Append a summary for RowsExtracted validity
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'TotalUpstreamCount': total_upstream_count,
-            'ProcessedCount': processed_count,
-            'ValidUpstreamCount': is_valid_upstream,
-            'ValidRowsExtracted': is_valid_extracted
+            'ValidRowsExtracted': is_valid_extracted,
+            'Summary': 'Rows Extracted Check'
         })
 
     # Create a DataFrame from the results
