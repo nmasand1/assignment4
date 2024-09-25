@@ -128,3 +128,32 @@ export class FiltersPanelComponent implements OnInit {
   <button (click)="searchFilters()">Search</button>
   <button (click)="resetFilters()">Reset</button>
 </div>
+
+
+
+
+
+<div class="multi-select-container">
+  <div class="select-all-toggle">
+    <label>
+      <input type="checkbox" (change)="selectAll()" /> Select All
+    </label>
+    <label>
+      <input type="checkbox" (change)="deselectAll()" /> Deselect All
+    </label>
+  </div>
+
+  <div class="options-list">
+    <div *ngFor="let option of options" class="option-item">
+      <label>
+        <input
+          type="checkbox"
+          [checked]="option.selected"
+          (change)="toggleSelection(option)"
+        />
+        {{ option.displayName }}
+      </label>
+    </div>
+  </div>
+</div>
+
