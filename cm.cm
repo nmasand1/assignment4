@@ -157,3 +157,262 @@ export class FiltersPanelComponent implements OnInit {
   </div>
 </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Assuming you have this interface
+
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  reportableFields: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productType: MultiSelectOption[] = [];
+
+  selectedRegulations: MultiSelectOption[] = [];
+  selectedReportableDatasets: MultiSelectOption[] = [];
+  selectedReportableFields: MultiSelectOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+  selectedProductType: MultiSelectOption[] = [];
+
+  private filtersJsonUrl = 'assets/mock-data/response/json1_filters.json';
+  private dataJsonUrl = 'assets/mock-data/response/json2_fieldFlattenData.json';
+
+  searchResults: any[] = []; // To hold the search results
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
+
+  loadFiltersData(): void {
+    this.http.get<any>(this.filtersJsonUrl).subscribe((data) => {
+      this.regulations = data.data.regulations.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.reportableFields = data.data.reportableFields.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.productType = data.data.productType.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+    });
+  }
+
+  // Search functionality: Print the selected filters and fetch search results
+  searchFilters(): void {
+    // Log the selected filters for debugging
+    console.log('Selected Regulations:', this.selectedRegulations);
+    console.log('Selected Reportable Datasets:', this.selectedReportableDatasets);
+    console.log('Selected Reportable Fields:', this.selectedReportableFields);
+    console.log('Selected Asset Classes:', this.selectedAssetClasses);
+    console.log('Selected Product Types:', this.selectedProductType);
+
+    // Load the data for the search results
+    this.http.get<any>(this.dataJsonUrl).subscribe((data) => {
+      this.filterSearchResults(data.data); // Assuming your JSON structure has a "data" field
+    });
+  }
+
+  // Filter the search results based on selected filters
+  private filterSearchResults(data: any[]): void {
+    this.searchResults = data.filter(item => {
+      return (
+        this.selectedRegulations.some(reg => reg.id === item.regulationId) && // Adjust based on actual field names
+        this.selectedReportableDatasets.some(ds => ds.id === item.datasetId) && // Adjust based on actual field names
+        this.selectedReportableFields.some(field => field.id === item.fieldId) && // Adjust based on actual field names
+        this.selectedAssetClasses.some(asset => asset.id === item.assetClassId) && // Adjust based on actual field names
+        this.selectedProductType.some(product => product.id === item.productTypeId) // Adjust based on actual field names
+      );
+    });
+  }
+
+  // Reset functionality: Clear all selected filters
+  resetFilters(): void {
+    this.selectedRegulations = [];
+    this.selectedReportableDatasets = [];
+    this.selectedReportableFields = [];
+    this.selectedAssetClasses = [];
+    this.selectedProductType = [];
+    // Reset the selected state in the options array too
+    this.regulations.forEach((option) => (option.selected = false));
+    this.reportableDatasets.forEach((option) => (option.selected = false));
+    this.reportableFields.forEach((option) => (option.selected = false));
+    this.assetClasses.forEach((option) => (option.selected = false));
+    this.productType.forEach((option) => (option.selected = false));
+  }
+
+  // Event handlers for when selections change in the MultiSelect components
+  onRegulationsChange(selected: MultiSelectOption[]): void {
+    this.selectedRegulations = selected;
+  }
+
+  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableDatasets = selected;
+  }
+
+  onReportableFieldsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableFields = selected;
+  }
+
+  onAssetClassesChange(selected: MultiSelectOption[]): void {
+    this.selectedAssetClasses = selected;
+  }
+
+  onProductTypeChange(selected: MultiSelectOption[]): void {
+    this.selectedProductType = selected;
+  }
+}
+
+
+
+
+
+
+
+<div class="filters-panel">
+  <h2>Filters Panel</h2>
+
+  <div class="filter-section">
+    <label for="regulations">Regulations</label>
+    <app-multi-select
+      [options]="regulations"
+      [label]="'Select Regulations'"
+      [isOpen]="true"
+      (selectionChange)="onRegulationsChange($event)"
+    ></app-multi-select>
+  </div>
+
+  <div class="filter-section">
+    <label for="reportableDatasets">Reportable Datasets</label>
+    <app-multi-select
+      [options]="reportableDatasets"
+      [label]="'Select Reportable Datasets'"
+      [isOpen]="true"
+      (selectionChange)="onReportableDatasetsChange($event)"
+    ></app-multi-select>
+  </div>
+
+  <div class="filter-section">
+    <label for="reportableFields">Reportable Fields</label>
+    <app-multi-select
+      [options]="reportableFields"
+      [label]="'Select Reportable Fields'"
+      [isOpen]="true"
+      (selectionChange)="onReportableFieldsChange($event)"
+    ></app-multi-select>
+  </div>
+
+  <div class="filter-section">
+    <label for="assetClasses">Asset Classes</label>
+    <app-multi-select
+      [options]="assetClasses"
+      [label]="'Select Asset Classes'"
+      [isOpen]="true"
+      (selectionChange)="onAssetClassesChange($event)"
+    ></app-multi-select>
+  </div>
+
+  <div class="filter-section">
+    <label for="productType">Product Types</label>
+    <app-multi-select
+      [options]="productType"
+      [label]="'Select Product Types'"
+      [isOpen]="true"
+      (selectionChange)="onProductTypeChange($event)"
+    ></app-multi-select>
+  </div>
+
+  <div class="filter-actions">
+    <button (click)="searchFilters()">Search</button>
+    <button (click)="resetFilters()">Reset</button>
+  </div>
+
+  <div *ngIf="searchResults.length > 0">
+    <h3>Search Results</h3>
+    <ul>
+      <li *ngFor="let result of searchResults">
+        <!-- Adjust the following fields according to the structure of your data -->
+        {{ result.name }} - {{ result.description }} 
+      </li>
+    </ul>
+  </div>
+
+  <div *ngIf="searchResults.length === 0 && selectedRegulations.length > 0">
+    <p>No results found for the selected filters.</p>
+  </div>
+</div>
+
+<!-- Styles (optional) -->
+<style>
+  .filters-panel {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  .filter-section {
+    margin-bottom: 20px;
+  }
+
+  .filter-actions {
+    margin-top: 20px;
+  }
+
+  button {
+    margin-right: 10px;
+  }
+
+  h3 {
+    margin-top: 20px;
+  }
+</style>
+
+
