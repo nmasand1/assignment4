@@ -1,17 +1,33 @@
 import pandas as pd
 
 def validate_csv_data(csv1_path, csv2_path, output_csv_path):
-    # Load the first CSV with tab as delimiter
-    df1 = pd.read_csv(csv1_path, delimiter='\t')
+    # Try different delimiters if necessary
+    try:
+        df1 = pd.read_csv(csv1_path, delimiter='\t')
+    except Exception as e:
+        print(f"Error reading first CSV with tab delimiter: {e}")
+        print("Trying to read with other common delimiters...")
+        df1 = pd.read_csv(csv1_path)  # Fall back to default comma delimiter if needed
 
-    # Load the second CSV with tab as delimiter
-    df2 = pd.read_csv(csv2_path, delimiter='\t')
+    try:
+        df2 = pd.read_csv(csv2_path, delimiter='\t')
+    except Exception as e:
+        print(f"Error reading second CSV with tab delimiter: {e}")
+        print("Trying to read with other common delimiters...")
+        df2 = pd.read_csv(csv2_path)  # Fall back to default comma delimiter if needed
 
     # Strip any extra spaces or invisible characters from column names and make them lowercase
     df1.columns = df1.columns.str.strip().str.lower()
     df2.columns = df2.columns.str.strip().str.lower()
 
-    # Debug: Print the cleaned columns in both CSVs
+    # Debugging: print the first few rows to inspect data
+    print("First few rows of first CSV (df1):")
+    print(df1.head())
+    
+    print("First few rows of second CSV (df2):")
+    print(df2.head())
+
+    # Print cleaned columns for both CSVs to verify
     print("Columns in first CSV (cleaned and lowercase):", df1.columns.tolist())
     print("Columns in second CSV (cleaned and lowercase):", df2.columns.tolist())
 
