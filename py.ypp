@@ -24,42 +24,42 @@ def extract_node_data(node):
 
     return extracted_data
 
-def extract_related_nodes(node):
-    """Extracts data from related sibling nodes under the same parent."""
-    related_data = {}
-    
-    # Get the parent node of the target node
-    parent = node.getparent()
-    
-    if parent is not None:
-        # Collect data from all child nodes of the parent, i.e., siblings of the original node
-        for sibling in parent:
-            sibling_data = extract_node_data(sibling)
-            related_data.update(sibling_data)
-    
-    return related_data
-
-def extract_data(xml_string, xpath):
-    """Extract node data dynamically based on the provided XPath and include related nodes."""
+def extract_data(xml_string, xpath=None):
+    """Extract node data dynamically based on provided XPath and default XPath."""
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
 
-        # Find the nodes based on the provided XPath
-        nodes = root.xpath(xpath)
+        # Default XPath that always extracts tradeId and its attributes
+        default_xpath = './/tradeHeader/tradeId'
+        nodes = root.xpath(default_xpath)
 
-        # List to store extracted data
+        # List to store extracted data (starting with tradeId)
         extracted_data_list = []
 
-        # Iterate over the matching nodes to extract their data and related nodes
+        # Extract data for default tradeId node
         for node in nodes:
             data = extract_node_data(node)
-
-            # Extract related sibling nodes under the same parent
-            related_data = extract_related_nodes(node)
-            data.update(related_data)  # Include related nodes' data
+            
+            # Extract any children of tradeId (e.g., alternateId if nested)
+            for child in node:
+                child_data = extract_node_data(child)
+                data.update(child_data)
 
             extracted_data_list.append(data)
+
+        # If custom XPath is provided, extract from that as well
+        if xpath:
+            custom_nodes = root.xpath(xpath)
+            for node in custom_nodes:
+                custom_data = extract_node_data(node)
+
+                # Extract children if they exist under custom node
+                for child in node:
+                    custom_child_data = extract_node_data(child)
+                    custom_data.update(custom_child_data)
+
+                extracted_data_list.append(custom_data)
 
         return extracted_data_list
 
@@ -72,8 +72,9 @@ def main():
     csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
-    # Dynamic XPath provided by the user
-    xpath = input("Enter the XPath to extract (e.g., .//tradeHeader/tradeId): ")
+
+    # Input from the user for custom XPath (optional)
+    xpath = input("Enter the XPath to extract (leave blank for just default tradeId): ")
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
@@ -84,7 +85,7 @@ def main():
     # Process each row and extract data based on the provided XPath
     for index, row in df.iterrows():
         xml_string = row[xml_column]
-        extracted_values = extract_data(xml_string, xpath)
+        extracted_values = extract_data(xml_string, xpath if xpath else None)
 
         # Add the row index for reference
         for value in extracted_values:
