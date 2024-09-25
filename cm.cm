@@ -138,6 +138,7 @@ export class FiltersPanelComponent implements OnInit {
 
 
 
+
 <!-- filters-panel.component.html -->
 <div class="filters-container">
   <div class="filter-group">
@@ -206,9 +207,10 @@ export class FiltersPanelComponent implements OnInit {
 /* filters-panel.component.css */
 .filters-container {
   display: flex;
-  flex-wrap: wrap; /* Allows wrapping if the screen is too small */
+  flex-wrap: nowrap; /* Prevents wrapping to keep everything in a single row */
   gap: 10px; /* Adjusts space between the items */
   align-items: center; /* Centers items vertically */
+  overflow-x: auto; /* Adds horizontal scrolling if needed */
 }
 
 .filter-group {
