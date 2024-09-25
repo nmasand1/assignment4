@@ -1,6 +1,6 @@
 import pandas as pd
 
-def validate_csv_data(csv1_path, csv2_path):
+def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     # Load the first CSV with tab as delimiter
     df1 = pd.read_csv(csv1_path, delimiter='\t')
 
@@ -29,7 +29,7 @@ def validate_csv_data(csv1_path, csv2_path):
             print(f"Missing column in second CSV: {col}")
             return
 
-    # Initialize lists to store validation results
+    # Initialize a list to store validation results
     results = []
 
     # Iterate through each unique BusinessDate in df1
@@ -44,32 +44,42 @@ def validate_csv_data(csv1_path, csv2_path):
             print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
-        # Calculate total UpstreamCount for recordtypes 0, 1, and 2
-        upstream_counts = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['upstreamcount']
-        total_upstream_count = upstream_counts.sum()
+        # Calculate total UpstreamCount for recordtypes 0 and 2
+        upstream_count_0 = df2_filtered[df2_filtered['recordtype'] == 0]['upstreamcount'].sum()
+        upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
+        
+        # Calculate the sum of upstream counts for 0 and 2
+        total_upstream_count = upstream_count_0 + upstream_count_2
 
         # Calculate total ProcessedCount for recordtypes 0, 1, and 2
         processed_count = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['processedcount'].sum()
 
-        # Check if total upstream count equals processed count
-        if total_upstream_count == processed_count:
-            results.append((business_date, 'Valid: UpstreamCount equals ProcessedCount'))
-        else:
-            results.append((business_date, 'Invalid: UpstreamCount does not equal ProcessedCount'))
+        # Validate and append results
+        is_valid_upstream = (total_upstream_count == processed_count)
+        is_valid_extracted = (total_upstream_count == rows_extracted)
 
-        # Check if sum of upstream counts matches RowsExtracted
-        if total_upstream_count == rows_extracted:
-            results.append((business_date, 'Valid: UpstreamCount matches RowsExtracted'))
-        else:
-            results.append((business_date, 'Invalid: UpstreamCount does not match RowsExtracted'))
+        results.append({
+            'BusinessDate': business_date,
+            'RowsExtracted': rows_extracted,
+            'TotalUpstreamCount': total_upstream_count,
+            'ProcessedCount': processed_count,
+            'ValidUpstreamCount': is_valid_upstream,
+            'ValidRowsExtracted': is_valid_extracted
+        })
 
-    # Print results
-    for business_date, result in results:
-        print(f"{business_date}: {result}")
+    # Create a DataFrame from the results
+    results_df = pd.DataFrame(results)
 
-# Specify the paths to your CSV files
+    # Save results to CSV
+    results_df.to_csv(output_csv_path, index=False)
+
+    # Print results for confirmation
+    print(f"Validation results saved to {output_csv_path}")
+
+# Specify the paths to your CSV files and output CSV file
 csv1_path = 'path_to_first_csv.tsv'  # Update with the actual path
 csv2_path = 'path_to_second_csv.tsv'  # Update with the actual path
+output_csv_path = 'validation_results.csv'  # Specify output path
 
 # Run the validation
-validate_csv_data(csv1_path, csv2_path)
+validate_csv_data(csv1_path, csv2_path, output_csv_path)
