@@ -1,20 +1,22 @@
 import pandas as pd
 
 def validate_csv_data(csv1_path, csv2_path, output_csv_path):
-    # Try different delimiters if necessary
+    # Try reading with different delimiters
     try:
-        df1 = pd.read_csv(csv1_path, delimiter='\t')
+        # Attempt to read with a comma delimiter
+        df1 = pd.read_csv(csv1_path, delimiter=',')
     except Exception as e:
-        print(f"Error reading first CSV with tab delimiter: {e}")
-        print("Trying to read with other common delimiters...")
-        df1 = pd.read_csv(csv1_path)  # Fall back to default comma delimiter if needed
+        print(f"Error reading first CSV with comma delimiter: {e}")
+        # If it fails, try tab delimiter
+        df1 = pd.read_csv(csv1_path, delimiter='\t')
 
     try:
-        df2 = pd.read_csv(csv2_path, delimiter='\t')
+        # Attempt to read with a comma delimiter
+        df2 = pd.read_csv(csv2_path, delimiter=',')
     except Exception as e:
-        print(f"Error reading second CSV with tab delimiter: {e}")
-        print("Trying to read with other common delimiters...")
-        df2 = pd.read_csv(csv2_path)  # Fall back to default comma delimiter if needed
+        print(f"Error reading second CSV with comma delimiter: {e}")
+        # If it fails, try tab delimiter
+        df2 = pd.read_csv(csv2_path, delimiter='\t')
 
     # Strip any extra spaces or invisible characters from column names and make them lowercase
     df1.columns = df1.columns.str.strip().str.lower()
@@ -23,7 +25,7 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     # Debugging: print the first few rows to inspect data
     print("First few rows of first CSV (df1):")
     print(df1.head())
-    
+
     print("First few rows of second CSV (df2):")
     print(df2.head())
 
@@ -108,8 +110,8 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     print(f"Validation results saved to {output_csv_path}")
 
 # Specify the paths to your CSV files and output CSV file
-csv1_path = 'path_to_first_csv.tsv'  # Update with the actual path
-csv2_path = 'path_to_second_csv.tsv'  # Update with the actual path
+csv1_path = 'path_to_first_csv.csv'  # Update with the actual path
+csv2_path = 'path_to_second_csv.csv'  # Update with the actual path
 output_csv_path = 'validation_results.csv'  # Specify output path
 
 # Run the validation
