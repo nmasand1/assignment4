@@ -48,27 +48,30 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         upstream_count_0 = df2_filtered[df2_filtered['recordtype'] == 0]['upstreamcount'].sum()
         upstream_count_1 = df2_filtered[df2_filtered['recordtype'] == 1]['upstreamcount'].sum()
         upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
-        
-        # Total UpstreamCount for record types 0, 1, and 2
+
+        # Total UpstreamCount for all relevant record types
         total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
-        # Check if UpstreamCount equals ProcessedCount for record types 0, 1, and 2
-        valid_upstream = all(
-            df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['upstreamcount'] == 
-            df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['processedcount']
+        # Validate if UpstreamCount equals ProcessedCount for record types 0, 1, and 2
+        # Collect the processed counts for validity check
+        processed_counts = df2_filtered['processedcount'].unique()
+        is_valid_upstream = all(
+            df2_filtered[df2_filtered['recordtype'] == rt]['upstreamcount'].sum() == 
+            df2_filtered[df2_filtered['recordtype'] == rt]['processedcount'].sum()
+            for rt in [0, 1, 2]
         )
 
         # Check if total UpstreamCount matches RowsExtracted
-        valid_rows_extracted = (total_upstream_count == rows_extracted)
+        is_valid_rows_extracted = (total_upstream_count == rows_extracted)
 
         # Append the result to the list
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'UpstreamCount': total_upstream_count,
-            'ProcessedCount': df2_filtered['processedcount'].sum(),  # Assume sum of processed counts from all records
-            'ValidUpstream': valid_upstream,
-            'ValidRowsExtracted': valid_rows_extracted
+            'ProcessedCount': processed_counts,  # Use unique processed counts without summation
+            'ValidUpstream': is_valid_upstream,
+            'ValidRowsExtracted': is_valid_rows_extracted
         })
 
     # Create a DataFrame from the results
@@ -81,8 +84,8 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     print(f"Validation results saved to {output_csv_path}")
 
 # Specify the paths to your CSV files and output CSV file
-csv1_path = 'file1.csv'  # Update with the actual path
-csv2_path = 'file2.csv'  # Update with the actual path
+csv1_path = 'path_to_first_csv.tsv'  # Update with the actual path
+csv2_path = 'path_to_second_csv.tsv'  # Update with the actual path
 output_csv_path = 'validation_results.csv'  # Specify output path
 
 # Run the validation
