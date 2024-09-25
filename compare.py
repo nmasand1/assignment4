@@ -7,13 +7,13 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     # Load the second CSV with tab as delimiter
     df2 = pd.read_csv(csv2_path, delimiter='\t')
 
-    # Convert all column names to lowercase to handle case insensitivity
-    df1.columns = df1.columns.str.lower()
-    df2.columns = df2.columns.str.lower()
+    # Strip any extra spaces or invisible characters from column names and make them lowercase
+    df1.columns = df1.columns.str.strip().str.lower()
+    df2.columns = df2.columns.str.strip().str.lower()
 
-    # Debug: Print the columns in both CSVs
-    print("Columns in first CSV (lowercase):", df1.columns.tolist())
-    print("Columns in second CSV (lowercase):", df2.columns.tolist())
+    # Debug: Print the cleaned columns in both CSVs
+    print("Columns in first CSV (cleaned and lowercase):", df1.columns.tolist())
+    print("Columns in second CSV (cleaned and lowercase):", df2.columns.tolist())
 
     # Define the required columns for both CSVs, all in lowercase
     required_columns_df1 = ['businessdate', 'rowsextracted', 'filename']
