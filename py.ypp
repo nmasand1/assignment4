@@ -11,20 +11,20 @@ def strip_namespaces(xml_string):
     return tree
 
 def extract_node_data(node, relevant_tags=None):
-    """Extract text and attributes from a node with filtering."""
+    """Extract text and attributes from a node."""
     extracted_data = {}
 
     # Extract node's text (if any) and attributes
     if node.text and node.text.strip():
         extracted_data[node.tag] = node.text.strip()
 
-    # Extract attributes like type, version, etc.
+    # Extract attributes
     for attr_name, attr_value in node.attrib.items():
         extracted_data[f"{node.tag}_{attr_name}"] = attr_value
 
     # Only return relevant tags
     if relevant_tags is None or node.tag in relevant_tags:
-        # Extract child nodes recursively only if relevant
+        # Extract child nodes recursively
         for child in node:
             child_data = extract_node_data(child, relevant_tags)
             extracted_data.update(child_data)
@@ -41,7 +41,7 @@ def extract_data(xml_string, custom_xpath=None):
         default_xpath = './/tradeHeader/tradeId'
         default_nodes = root.xpath(default_xpath)
 
-        # Prepare the data dictionary for this row (initially with tradeId values)
+        # Prepare the data dictionary for this row
         row_data = {}
 
         # Extract tradeId-related data
@@ -61,15 +61,16 @@ def extract_data(xml_string, custom_xpath=None):
             custom_nodes = root.xpath(custom_xpath)
             if custom_nodes:
                 for node in custom_nodes:
-                    # Check for 'swapStream' to handle streamIndex specifically
-                    if node.tag == 'swapStream':
-                        # Only extract streamIndex
-                        if 'streamIndex' in node.attrib:
-                            row_data['swapStream_index'] = node.attrib['streamIndex']
-                    else:
-                        # Extract any other relevant data for the provided path
-                        custom_data = extract_node_data(node)
-                        row_data.update(custom_data)
+                    # Extract any relevant data for the provided path
+                    custom_data = extract_node_data(node)
+                    row_data.update(custom_data)
+
+        # Check if the custom XPath is for swapStream, if so, handle streamIndex
+        if custom_xpath and 'swapStream' in custom_xpath:
+            swap_stream_nodes = root.xpath('.//swapStream')
+            for node in swap_stream_nodes:
+                if 'streamIndex' in node.attrib:
+                    row_data['swapStream_index'] = node.attrib['streamIndex']
 
         return row_data
 
