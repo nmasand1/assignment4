@@ -10,69 +10,57 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_node_data(node, relevant_tags=None):
-    """Extract text and attributes from a node."""
-    extracted_data = {}
-
-    # Extract node's text (if any) and attributes
-    if node.text and node.text.strip():
-        extracted_data[node.tag] = node.text.strip()
-
-    # Extract attributes
-    for attr_name, attr_value in node.attrib.items():
-        extracted_data[f"{node.tag}_{attr_name}"] = attr_value
-
-    # Only return relevant tags
-    if relevant_tags is None or node.tag in relevant_tags:
-        # Extract child nodes recursively
+def extract_trade_data(node):
+    """Extract tradeId and its related data."""
+    trade_data = {}
+    
+    # Extract tradeId and its attributes
+    if node.tag == 'tradeHeader':
         for child in node:
-            child_data = extract_node_data(child, relevant_tags)
-            extracted_data.update(child_data)
+            if child.tag == 'tradeId':
+                trade_data['tradeId'] = child.text.strip() if child.text else ''
+                for attr_name, attr_value in child.attrib.items():
+                    trade_data[f'tradeId_{attr_name}'] = attr_value
 
-    return extracted_data
+            # Extract alternateId if available
+            elif child.tag == 'alternateId':
+                trade_data['alternateId'] = child.text.strip() if child.text else ''
+                for attr_name, attr_value in child.attrib.items():
+                    trade_data[f'alternateId_{attr_name}'] = attr_value
+    
+    return trade_data
 
-def extract_data(xml_string, custom_xpath=None):
-    """Extract node data dynamically based on default and custom XPath."""
+def extract_swap_data(root):
+    """Extract swapStream and its streamIndex."""
+    swap_data = {}
+
+    swap_stream_nodes = root.xpath('.//swapStream')
+    for swap_stream in swap_stream_nodes:
+        if 'streamIndex' in swap_stream.attrib:
+            swap_data['swapStream_index'] = swap_stream.attrib['streamIndex']
+
+    return swap_data
+
+def extract_data(xml_string):
+    """Extract node data from the XML string."""
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
 
-        # Default XPath to extract tradeId and related information
-        default_xpath = './/tradeHeader/tradeId'
-        default_nodes = root.xpath(default_xpath)
-
-        # Prepare the data dictionary for this row
-        row_data = {}
+        # Prepare the data dictionary
+        data = {}
 
         # Extract tradeId-related data
-        if default_nodes:
-            for idx, node in enumerate(default_nodes, start=1):
-                trade_id_data = extract_node_data(node)
-                row_data.update(trade_id_data)
+        trade_header = root.xpath('.//tradeHeader')
+        if trade_header:
+            trade_data = extract_trade_data(trade_header[0])
+            data.update(trade_data)
 
-                # Extract alternateId if available
-                for child in node:
-                    if child.tag == 'alternateId':
-                        child_data = extract_node_data(child)
-                        row_data.update(child_data)
+        # Extract swapStream-related data
+        swap_data = extract_swap_data(root)
+        data.update(swap_data)
 
-        # If a custom XPath is provided, extract that data too
-        if custom_xpath:
-            custom_nodes = root.xpath(custom_xpath)
-            if custom_nodes:
-                for node in custom_nodes:
-                    # Extract any relevant data for the provided path
-                    custom_data = extract_node_data(node)
-                    row_data.update(custom_data)
-
-        # Check if the custom XPath is for swapStream, if so, handle streamIndex
-        if custom_xpath and 'swapStream' in custom_xpath:
-            swap_stream_nodes = root.xpath('.//swapStream')
-            for node in swap_stream_nodes:
-                if 'streamIndex' in node.attrib:
-                    row_data['swapStream_index'] = node.attrib['streamIndex']
-
-        return row_data
+        return data
 
     except Exception as e:
         print(f"Error processing XML: {e}")
@@ -84,19 +72,16 @@ def main():
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
 
-    # Input from the user for custom XPath (optional)
-    xpath = input("Enter the XPath to extract (leave blank for just default tradeId): ")
-
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
 
     # List to store all extracted data from the entire file
     all_extracted_data = []
 
-    # Process each row and extract data based on the provided XPath
+    # Process each row and extract data
     for index, row in df.iterrows():
         xml_string = row[xml_column]
-        extracted_values = extract_data(xml_string, xpath if xpath else None)
+        extracted_values = extract_data(xml_string)
 
         # Add the row index for reference
         extracted_values['row_index'] = index
