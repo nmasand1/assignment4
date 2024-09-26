@@ -32,12 +32,10 @@ def extract_data(xml_string, custom_xpath=None):
 
         # Default XPath to extract tradeHeader and related information
         default_xpath = './/tradeHeader'
-        default_nodes = root.xpath(default_xpath)
-
-        # Prepare the data dictionary for this row
         row_data = {}
 
         # Extract tradeHeader-related data
+        default_nodes = root.xpath(default_xpath)
         if default_nodes:
             for node in default_nodes:
                 trade_header_data = extract_node_data(node)
@@ -63,6 +61,9 @@ def extract_data(xml_string, custom_xpath=None):
 
                     # Merge custom XPath data with tradeHeader data in the same row
                     row_data.update(custom_data)
+        # If no custom XPath is provided, ensure default data is included
+        elif not custom_xpath and not default_nodes:
+            print("Warning: No data found with the default XPath.")
 
         return row_data
 
@@ -77,7 +78,9 @@ def main():
     xml_column = 'bcml'  # Change this to the name of your XML column
 
     # Input from the user for custom XPath (optional)
-    xpath = input("Enter the XPath to extract (leave blank for just default tradeHeader): ")
+    xpath = input("Enter the XPath to extract (leave blank for just default tradeHeader): ").strip()
+    # If user input is empty, set custom_xpath to None
+    custom_xpath = xpath if xpath else None
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
@@ -87,7 +90,7 @@ def main():
 
     for index, row in df.iterrows():
         xml_data = row[xml_column]
-        extracted_data = extract_data(xml_data, custom_xpath=xpath)
+        extracted_data = extract_data(xml_data, custom_xpath=custom_xpath)
         all_extracted_data.append(extracted_data)
 
     # Create a DataFrame from the extracted data
