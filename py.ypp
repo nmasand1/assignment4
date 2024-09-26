@@ -38,10 +38,15 @@ def extract_swap_data(root):
     for swap_stream in swap_stream_nodes:
         if 'streamIndex' in swap_stream.attrib:
             swap_data['swapStream_index'] = swap_stream.attrib['streamIndex']
+            # Extract any other relevant data inside swapStream
+            for child in swap_stream:
+                if child.tag == 'payOrReceive':
+                    swap_data['payOrReceive'] = child.text.strip() if child.text else ''
+                # Add other relevant child elements here if necessary
 
     return swap_data
 
-def extract_data(xml_string):
+def extract_data(xml_string, default_xpath):
     """Extract node data from the XML string."""
     try:
         # Parse XML and remove namespaces
@@ -50,10 +55,10 @@ def extract_data(xml_string):
         # Prepare the data dictionary
         data = {}
 
-        # Extract tradeId-related data
-        trade_header = root.xpath('.//tradeHeader')
-        if trade_header:
-            trade_data = extract_trade_data(trade_header[0])
+        # Extract default data using the provided default_xpath
+        default_node = root.xpath(default_xpath)
+        if default_node:
+            trade_data = extract_trade_data(default_node[0])
             data.update(trade_data)
 
         # Extract swapStream-related data
@@ -71,6 +76,8 @@ def main():
     csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
+    # Default XPath to use
+    default_xpath = './/tradeHeader'  # Change this as needed
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
@@ -81,7 +88,7 @@ def main():
     # Process each row and extract data
     for index, row in df.iterrows():
         xml_string = row[xml_column]
-        extracted_values = extract_data(xml_string)
+        extracted_values = extract_data(xml_string, default_xpath)
 
         # Add the row index for reference
         extracted_values['row_index'] = index
