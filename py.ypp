@@ -10,74 +10,61 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_trade_data(node):
-    """Extract tradeId and its related data."""
-    trade_data = {}
-    
-    if node.tag == 'tradeHeader':
-        for child in node:
-            if child.tag == 'tradeId':
-                trade_data['tradeId'] = child.text.strip() if child.text else ''
-                for attr_name, attr_value in child.attrib.items():
-                    trade_data[f'tradeId_{attr_name}'] = attr_value
+def extract_node_data(node):
+    """Extracts text and attributes from a node."""
+    extracted_data = {}
 
-            elif child.tag == 'alternateId':
-                trade_data['alternateId'] = child.text.strip() if child.text else ''
-                for attr_name, attr_value in child.attrib.items():
-                    trade_data[f'alternateId_{attr_name}'] = attr_value
-    
-    return trade_data
+    # Extract node's text (if any) and attributes
+    if node.text and node.text.strip():
+        extracted_data[node.tag] = node.text.strip()
 
-def extract_swap_data(root):
-    """Extract swapStream and its streamIndex."""
-    swap_data = {}
+    # Extract attributes like type, version, etc.
+    for attr_name, attr_value in node.attrib.items():
+        extracted_data[f"{node.tag}_{attr_name}"] = attr_value
 
-    swap_stream_nodes = root.xpath('.//swapStream')
-    for swap_stream in swap_stream_nodes:
-        if 'streamIndex' in swap_stream.attrib:
-            swap_data['swapStream_index'] = swap_stream.attrib['streamIndex']
-            for child in swap_stream:
-                if child.tag == 'payOrReceive':
-                    swap_data['payOrReceive'] = child.text.strip() if child.text else ''
+    return extracted_data
 
-    return swap_data
-
-def extract_additional_data(root, xpath):
-    """Extract additional data based on the provided XPath."""
-    additional_data = {}
-    additional_nodes = root.xpath(xpath)
-    for node in additional_nodes:
-        # For demonstration purposes, let's just extract all text data from the node
-        additional_data[node.tag] = node.text.strip() if node.text else ''
-        for attr_name, attr_value in node.attrib.items():
-            additional_data[f"{node.tag}_{attr_name}"] = attr_value
-    return additional_data
-
-def extract_data(xml_string, additional_xpath=None):
-    """Extract node data from the XML string."""
+def extract_data(xml_string, custom_xpath=None):
+    """Extract node data dynamically based on default and custom XPath."""
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
 
-        # Prepare the data dictionary
-        data = {}
+        # Default XPath to extract tradeHeader and related information
+        default_xpath = './/tradeHeader'
+        default_nodes = root.xpath(default_xpath)
 
-        # Extract default data using the default_xpath
-        default_node = root.xpath('.//tradeHeader')
-        if default_node:
-            trade_data = extract_trade_data(default_node[0])
-            data.update(trade_data)
+        # Prepare the data dictionary for this row
+        row_data = {}
 
-        # Extract swapStream-related data
-        swap_data = extract_swap_data(root)
-        data.update(swap_data)
+        # Extract tradeHeader-related data
+        if default_nodes:
+            for node in default_nodes:
+                trade_header_data = extract_node_data(node)
 
-        # If an additional XPath is provided, extract that data
-        if additional_xpath:
-            additional_data = extract_additional_data(root, additional_xpath)
-            data.update(additional_data)
+                # Extract children of tradeHeader (if any)
+                for child in node:
+                    child_data = extract_node_data(child)
+                    trade_header_data.update(child_data)
 
-        return data
+                row_data.update(trade_header_data)
+
+        # If a custom XPath is provided, extract that data too
+        if custom_xpath:
+            custom_nodes = root.xpath(custom_xpath)
+            if custom_nodes:
+                for node in custom_nodes:
+                    custom_data = extract_node_data(node)
+
+                    # Extract any children of the custom node
+                    for child in node:
+                        custom_child_data = extract_node_data(child)
+                        custom_data.update(custom_child_data)
+
+                    # Merge custom XPath data with tradeHeader data in the same row
+                    row_data.update(custom_data)
+
+        return row_data
 
     except Exception as e:
         print(f"Error processing XML: {e}")
@@ -88,8 +75,9 @@ def main():
     csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
-    # Example additional XPath to use; set to None for default behavior
-    additional_xpath = './/swapStream'  # Change this as needed or keep it None
+
+    # Input from the user for custom XPath (optional)
+    xpath = input("Enter the XPath to extract (leave blank for just default tradeHeader): ")
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
@@ -97,27 +85,16 @@ def main():
     # List to store all extracted data from the entire file
     all_extracted_data = []
 
-    # Process each row and extract data
     for index, row in df.iterrows():
-        xml_string = row[xml_column]
-        extracted_values = extract_data(xml_string, additional_xpath)
+        xml_data = row[xml_column]
+        extracted_data = extract_data(xml_data, custom_xpath=xpath)
+        all_extracted_data.append(extracted_data)
 
-        # Add the row index for reference
-        extracted_values['row_index'] = index
+    # Create a DataFrame from the extracted data
+    extracted_df = pd.DataFrame(all_extracted_data)
 
-        # Append extracted values to the main list
-        all_extracted_data.append(extracted_values)
-
-    # Convert extracted data into a DataFrame
-    if all_extracted_data:
-        results_df = pd.DataFrame(all_extracted_data)
-    else:
-        results_df = pd.DataFrame(columns=["No Data Found"])
-
-    # Output the results to a CSV file
-    output_file = "extracted_values_output.csv"
-    results_df.to_csv(output_file, index=False)
-    print(f"Extracted data saved to {output_file}")
+    # Save the extracted data to a new CSV file
+    extracted_df.to_csv('extracted_data.csv', index=False)
 
 if __name__ == "__main__":
     main()
