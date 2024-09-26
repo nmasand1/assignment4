@@ -26,6 +26,10 @@ def extract_node_data(node, node_index=None):
     if node_index is not None:
         extracted_data[f"{node.tag}_index"] = node_index
 
+    # Extract child nodes recursively
+    for child in node:
+        extracted_data.update(extract_node_data(child))
+
     return extracted_data
 
 def extract_data(xml_string, custom_xpath=None):
@@ -76,9 +80,9 @@ def extract_data(xml_string, custom_xpath=None):
 
 def main():
     # Path to the CSV file containing XML data
-    csv_file_path = "test_2.csv"  # Change to your actual CSV file path
+    csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
-    xml_column = 'xmlstring'  # Change this to the name of your XML column
+    xml_column = 'bcml'  # Change this to the name of your XML column
 
     # Input from the user for custom XPath (optional)
     xpath = input("Enter the XPath to extract (leave blank for just default tradeId): ")
