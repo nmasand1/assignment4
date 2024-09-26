@@ -31,13 +31,15 @@ INNER JOIN
     onereg_main.ISOsecondaryPayload (NOLOCK) isosec ON isosec.TradeMessageISOPayloadID = iso.ISOPrimaryPayloadID
 INNER JOIN 
     #Colldata cv ON cv.VmPortfolioCode = isosec.VMCollateralPortfolioCode
-LEFT JOIN -- Consider LEFT JOIN instead of INNER JOIN to prevent loss of records
+INNER JOIN 
     #Temp ON 
         #Temp.TransactionIdentificationUniqueTransactionIdentifier = iso.TransactionIdentificationUniqueTransactionIdentifier
-        AND #Temp.ReportingTimestamp = iso.ReportingTimestamp
+        AND TRY_CAST(#Temp.ReportingTimestamp AS DATETIME) = TRY_CAST(iso.ReportingTimestamp AS DATETIME)
 WHERE 
     trpt.jurisdiction = 'MAS' 
     AND isosec.VMCollateralPortfolioCode IS NOT NULL 
     AND ActionType <> 'TERM'
+    -- Exclude rows where the ReportingTimestamp cannot be converted to a valid DATETIME
+    AND TRY_CAST(iso.ReportingTimestamp AS DATETIME) IS NOT NULL
 ORDER BY 
     iso.ReportingTimestamp DESC;
