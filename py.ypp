@@ -14,7 +14,6 @@ def extract_trade_data(node):
     """Extract tradeId and its related data."""
     trade_data = {}
     
-    # Extract tradeId and its attributes
     if node.tag == 'tradeHeader':
         for child in node:
             if child.tag == 'tradeId':
@@ -22,7 +21,6 @@ def extract_trade_data(node):
                 for attr_name, attr_value in child.attrib.items():
                     trade_data[f'tradeId_{attr_name}'] = attr_value
 
-            # Extract alternateId if available
             elif child.tag == 'alternateId':
                 trade_data['alternateId'] = child.text.strip() if child.text else ''
                 for attr_name, attr_value in child.attrib.items():
@@ -38,15 +36,24 @@ def extract_swap_data(root):
     for swap_stream in swap_stream_nodes:
         if 'streamIndex' in swap_stream.attrib:
             swap_data['swapStream_index'] = swap_stream.attrib['streamIndex']
-            # Extract any other relevant data inside swapStream
             for child in swap_stream:
                 if child.tag == 'payOrReceive':
                     swap_data['payOrReceive'] = child.text.strip() if child.text else ''
-                # Add other relevant child elements here if necessary
 
     return swap_data
 
-def extract_data(xml_string, default_xpath):
+def extract_additional_data(root, xpath):
+    """Extract additional data based on the provided XPath."""
+    additional_data = {}
+    additional_nodes = root.xpath(xpath)
+    for node in additional_nodes:
+        # For demonstration purposes, let's just extract all text data from the node
+        additional_data[node.tag] = node.text.strip() if node.text else ''
+        for attr_name, attr_value in node.attrib.items():
+            additional_data[f"{node.tag}_{attr_name}"] = attr_value
+    return additional_data
+
+def extract_data(xml_string, additional_xpath=None):
     """Extract node data from the XML string."""
     try:
         # Parse XML and remove namespaces
@@ -55,8 +62,8 @@ def extract_data(xml_string, default_xpath):
         # Prepare the data dictionary
         data = {}
 
-        # Extract default data using the provided default_xpath
-        default_node = root.xpath(default_xpath)
+        # Extract default data using the default_xpath
+        default_node = root.xpath('.//tradeHeader')
         if default_node:
             trade_data = extract_trade_data(default_node[0])
             data.update(trade_data)
@@ -64,6 +71,11 @@ def extract_data(xml_string, default_xpath):
         # Extract swapStream-related data
         swap_data = extract_swap_data(root)
         data.update(swap_data)
+
+        # If an additional XPath is provided, extract that data
+        if additional_xpath:
+            additional_data = extract_additional_data(root, additional_xpath)
+            data.update(additional_data)
 
         return data
 
@@ -76,8 +88,8 @@ def main():
     csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
     xml_column = 'bcml'  # Change this to the name of your XML column
-    # Default XPath to use
-    default_xpath = './/tradeHeader'  # Change this as needed
+    # Example additional XPath to use; set to None for default behavior
+    additional_xpath = './/swapStream'  # Change this as needed or keep it None
 
     # Read the CSV file
     df = pd.read_csv(csv_file_path)
@@ -88,7 +100,7 @@ def main():
     # Process each row and extract data
     for index, row in df.iterrows():
         xml_string = row[xml_column]
-        extracted_values = extract_data(xml_string, default_xpath)
+        extracted_values = extract_data(xml_string, additional_xpath)
 
         # Add the row index for reference
         extracted_values['row_index'] = index
