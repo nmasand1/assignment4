@@ -2,13 +2,15 @@ SELECT
     TransactionIdentificationUniqueTransactionIdentifier, 
     MAX(TRY_CONVERT(DATETIME, 
         CASE 
-            -- If the timestamp ends with 'T08', pad it with ':00:00Z' (for hours, minutes, and seconds)
+            -- For the length 13 timestamp (e.g., '2024-09-19T08'), pad with ':00:00Z'
             WHEN LEN(ReportingTimestamp) = 13 THEN LEFT(ReportingTimestamp, 13) + ':00:00Z'
             
-            -- If the timestamp is more complete but missing seconds (e.g., '2024-09-19T08:10'), pad it with ':00Z'
-            WHEN LEN(ReportingTimestamp) = 16 THEN LEFT(ReportingTimestamp, 16) + ':00Z'
+            -- For valid timestamps, keep them as is
+            WHEN LEN(ReportingTimestamp) = 20 THEN ReportingTimestamp
             
-            -- If it is already valid (has full time), use as is
+            -- Handle NULL timestamps (you can decide to replace them or exclude them)
+            WHEN ReportingTimestamp IS NULL THEN NULL
+            
             ELSE ReportingTimestamp
         END, 127)
     ) AS ReportingTimestamp
@@ -28,8 +30,8 @@ WHERE
         CASE 
             -- Same padding logic for filtering
             WHEN LEN(ReportingTimestamp) = 13 THEN LEFT(ReportingTimestamp, 13) + ':00:00Z'
-            WHEN LEN(ReportingTimestamp) = 16 THEN LEFT(ReportingTimestamp, 16) + ':00Z'
-            ELSE ReportingTimestamp
+            WHEN LEN(ReportingTimestamp) = 20 THEN ReportingTimestamp
+            ELSE NULL
         END, 127
     ) <= '2024-08-08'
 GROUP BY 
