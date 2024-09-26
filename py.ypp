@@ -10,8 +10,8 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_node_data(node, node_index=None):
-    """Extracts text and attributes from a node."""
+def extract_node_data(node, relevant_tags=None, node_index=None):
+    """Extract text and attributes from a node with filtering."""
     extracted_data = {}
 
     # Extract node's text (if any) and attributes
@@ -26,9 +26,12 @@ def extract_node_data(node, node_index=None):
     if node_index is not None:
         extracted_data[f"{node.tag}_index"] = node_index
 
-    # Extract child nodes recursively
-    for child in node:
-        extracted_data.update(extract_node_data(child))
+    # Only return relevant tags
+    if relevant_tags is None or node.tag in relevant_tags:
+        # Extract child nodes recursively only if relevant
+        for child in node:
+            child_data = extract_node_data(child, relevant_tags)
+            extracted_data.update(child_data)
 
     return extracted_data
 
@@ -49,27 +52,21 @@ def extract_data(xml_string, custom_xpath=None):
         if default_nodes:
             for idx, node in enumerate(default_nodes, start=1):
                 trade_id_data = extract_node_data(node, node_index=idx)
-
-                # Extract children of tradeId (if any, e.g., alternateId)
-                for child in node:
-                    child_data = extract_node_data(child)
-                    trade_id_data.update(child_data)
-
                 row_data.update(trade_id_data)
+
+                # Extract alternateId if available
+                for child in node:
+                    if child.tag == 'alternateId':
+                        child_data = extract_node_data(child)
+                        row_data.update(child_data)
 
         # If a custom XPath is provided, extract that data too
         if custom_xpath:
             custom_nodes = root.xpath(custom_xpath)
             if custom_nodes:
                 for idx, node in enumerate(custom_nodes, start=1):
-                    custom_data = extract_node_data(node, node_index=idx)
-
-                    # Extract any children of the custom node
-                    for child in node:
-                        custom_child_data = extract_node_data(child)
-                        custom_data.update(custom_child_data)
-
-                    # Merge custom XPath data with tradeId data in the same row
+                    # Extract custom node data (e.g., streamIndex, payOrReceive)
+                    custom_data = extract_node_data(node, relevant_tags=['swapStream', 'payOrReceive', 'streamIndex'], node_index=idx)
                     row_data.update(custom_data)
 
         return row_data
@@ -80,9 +77,9 @@ def extract_data(xml_string, custom_xpath=None):
 
 def main():
     # Path to the CSV file containing XML data
-    csv_file_path = "test_2.csv"  # Change to your actual CSV file path
+    csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
-    xml_column = 'xmlstring'  # Change this to the name of your XML column
+    xml_column = 'bcml'  # Change this to the name of your XML column
 
     # Input from the user for custom XPath (optional)
     xpath = input("Enter the XPath to extract (leave blank for just default tradeId): ")
