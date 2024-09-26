@@ -61,15 +61,15 @@ def extract_data(xml_string, custom_xpath=None):
             custom_nodes = root.xpath(custom_xpath)
             if custom_nodes:
                 for node in custom_nodes:
-                    # Extract streamIndex and other data based on relevant tags
-                    custom_data = extract_node_data(node, relevant_tags=['swapStream', 'payOrReceive'])
-                    
-                    # Now ensure streamIndex is pulled directly from node attributes
-                    if 'swapStream_streamIndex' in custom_data:
-                        custom_data['swapStream_index'] = custom_data['swapStream_streamIndex']
-                        del custom_data['swapStream_streamIndex']  # Remove the incorrect attribute key
-                    
-                    row_data.update(custom_data)
+                    # Special handling for 'swapStream'
+                    if node.tag == 'swapStream' and 'streamIndex' in node.attrib:
+                        # StreamIndex should come from the node's attribute, not its iteration
+                        stream_index = node.attrib['streamIndex']
+                        row_data['swapStream_index'] = stream_index
+                    else:
+                        # Extract any other relevant data for the provided path
+                        custom_data = extract_node_data(node)
+                        row_data.update(custom_data)
 
         return row_data
 
