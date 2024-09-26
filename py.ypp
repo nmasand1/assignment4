@@ -10,7 +10,7 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_node_data(node):
+def extract_node_data(node, node_index=None):
     """Extracts text and attributes from a node."""
     extracted_data = {}
 
@@ -21,6 +21,10 @@ def extract_node_data(node):
     # Extract attributes like type, version, etc.
     for attr_name, attr_value in node.attrib.items():
         extracted_data[f"{node.tag}_{attr_name}"] = attr_value
+
+    # Add index if node_index is provided (for multiple occurrences of the same node)
+    if node_index is not None:
+        extracted_data[f"{node.tag}_index"] = node_index
 
     return extracted_data
 
@@ -37,10 +41,10 @@ def extract_data(xml_string, custom_xpath=None):
         # Prepare the data dictionary for this row (initially with tradeId values)
         row_data = {}
 
-        # Extract tradeId-related data
+        # Extract tradeId-related data (with proper indexing)
         if default_nodes:
-            for node in default_nodes:
-                trade_id_data = extract_node_data(node)
+            for idx, node in enumerate(default_nodes, start=1):
+                trade_id_data = extract_node_data(node, node_index=idx)
 
                 # Extract children of tradeId (if any, e.g., alternateId)
                 for child in node:
@@ -53,8 +57,8 @@ def extract_data(xml_string, custom_xpath=None):
         if custom_xpath:
             custom_nodes = root.xpath(custom_xpath)
             if custom_nodes:
-                for node in custom_nodes:
-                    custom_data = extract_node_data(node)
+                for idx, node in enumerate(custom_nodes, start=1):
+                    custom_data = extract_node_data(node, node_index=idx)
 
                     # Extract any children of the custom node
                     for child in node:
@@ -72,9 +76,9 @@ def extract_data(xml_string, custom_xpath=None):
 
 def main():
     # Path to the CSV file containing XML data
-    csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
+    csv_file_path = "test_2.csv"  # Change to your actual CSV file path
     # Column in the CSV file that contains the XML strings
-    xml_column = 'bcml'  # Change this to the name of your XML column
+    xml_column = 'xmlstring'  # Change this to the name of your XML column
 
     # Input from the user for custom XPath (optional)
     xpath = input("Enter the XPath to extract (leave blank for just default tradeId): ")
