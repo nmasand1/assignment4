@@ -10,7 +10,7 @@ def strip_namespaces(xml_string):
             elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
     return tree
 
-def extract_node_data(node, relevant_tags=None, node_index=None):
+def extract_node_data(node, relevant_tags=None):
     """Extract text and attributes from a node with filtering."""
     extracted_data = {}
 
@@ -21,10 +21,6 @@ def extract_node_data(node, relevant_tags=None, node_index=None):
     # Extract attributes like type, version, etc.
     for attr_name, attr_value in node.attrib.items():
         extracted_data[f"{node.tag}_{attr_name}"] = attr_value
-
-    # Add index if node_index is provided (for multiple occurrences of the same node)
-    if node_index is not None:
-        extracted_data[f"{node.tag}_index"] = node_index
 
     # Only return relevant tags
     if relevant_tags is None or node.tag in relevant_tags:
@@ -48,10 +44,10 @@ def extract_data(xml_string, custom_xpath=None):
         # Prepare the data dictionary for this row (initially with tradeId values)
         row_data = {}
 
-        # Extract tradeId-related data (with proper indexing)
+        # Extract tradeId-related data
         if default_nodes:
             for idx, node in enumerate(default_nodes, start=1):
-                trade_id_data = extract_node_data(node, node_index=idx)
+                trade_id_data = extract_node_data(node)
                 row_data.update(trade_id_data)
 
                 # Extract alternateId if available
@@ -64,9 +60,15 @@ def extract_data(xml_string, custom_xpath=None):
         if custom_xpath:
             custom_nodes = root.xpath(custom_xpath)
             if custom_nodes:
-                for idx, node in enumerate(custom_nodes, start=1):
-                    # Extract custom node data (e.g., streamIndex, payOrReceive)
-                    custom_data = extract_node_data(node, relevant_tags=['swapStream', 'payOrReceive', 'streamIndex'], node_index=idx)
+                for node in custom_nodes:
+                    # Extract streamIndex and other data based on relevant tags
+                    custom_data = extract_node_data(node, relevant_tags=['swapStream', 'payOrReceive'])
+                    
+                    # Now ensure streamIndex is pulled directly from node attributes
+                    if 'swapStream_streamIndex' in custom_data:
+                        custom_data['swapStream_index'] = custom_data['swapStream_streamIndex']
+                        del custom_data['swapStream_streamIndex']  # Remove the incorrect attribute key
+                    
                     row_data.update(custom_data)
 
         return row_data
