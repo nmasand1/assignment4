@@ -1,20 +1,28 @@
 SELECT 
-    TransactionIdentificationUniqueTransactionIdentifier, 
-    MAX(TRY_CONVERT(DATETIME, 
-        CASE 
-            -- For the length 13 timestamp (e.g., '2024-09-19T08'), pad with ':00:00Z'
-            WHEN LEN(ReportingTimestamp) = 13 THEN LEFT(ReportingTimestamp, 13) + ':00:00Z'
-            
-            -- For valid timestamps, keep them as is
-            WHEN LEN(ReportingTimestamp) = 20 THEN ReportingTimestamp
-            
-            -- Handle NULL timestamps (you can decide to replace them or exclude them)
-            WHEN ReportingTimestamp IS NULL THEN NULL
-            
-            ELSE ReportingTimestamp
-        END, 127)
-    ) AS ReportingTimestamp
-INTO #Temp
+    iso.Tradeid, 
+    iso.AssetClass, 
+    cv.CobDate, 
+    iso.ReportingCounterPartyLEI, 
+    iso.OtherCounterpartyLEI, 
+    iso.TransactionIdentificationUniqueTransactionIdentifier, 
+    trpt.jurisdiction,
+    iso.ReportingTimestamp, 
+    cv.State,
+    cv.Value, 
+    cv.Currency, 
+    cv.ValuationDateTime, 
+    cv.Status, 
+    cv.VmPortfolioCode, 
+    cv.ExcessCollateralPosted,
+    cv.ExcessCollateralReceived, 
+    cv.InitialMarginPosted, 
+    cv.InitialMarginReceived, 
+    cv.VariationMarginPosted, 
+    cv.VariationMarginReceived, 
+    cv.Collateralized, 
+    ActionType
+INTO 
+    #Finaldata
 FROM 
     onereg_main.ISOPrimaryPayload (NOLOCK) iso
 INNER JOIN 
@@ -22,17 +30,14 @@ INNER JOIN
 INNER JOIN 
     onereg_main.ISOsecondaryPayload (NOLOCK) isosec ON isosec.TradeMessageISOPayloadID = iso.ISOPrimaryPayloadID
 INNER JOIN 
-    #Colldata ON #Colldata.VmPortfolioCode = isosec.VMCollateralPortfolioCode 
+    #Colldata cv ON cv.VmPortfolioCode = isosec.VMCollateralPortfolioCode
+LEFT JOIN -- Consider LEFT JOIN instead of INNER JOIN to prevent loss of records
+    #Temp ON 
+        #Temp.TransactionIdentificationUniqueTransactionIdentifier = iso.TransactionIdentificationUniqueTransactionIdentifier
+        AND #Temp.ReportingTimestamp = iso.ReportingTimestamp
 WHERE 
-    trpt.jurisdiction = 'MAS'
-    AND isosec.VMCollateralPortfolioCode IS NOT NULL
-    AND TRY_CONVERT(DATETIME, 
-        CASE 
-            -- Same padding logic for filtering
-            WHEN LEN(ReportingTimestamp) = 13 THEN LEFT(ReportingTimestamp, 13) + ':00:00Z'
-            WHEN LEN(ReportingTimestamp) = 20 THEN ReportingTimestamp
-            ELSE NULL
-        END, 127
-    ) <= '2024-08-08'
-GROUP BY 
-    TransactionIdentificationUniqueTransactionIdentifier;
+    trpt.jurisdiction = 'MAS' 
+    AND isosec.VMCollateralPortfolioCode IS NOT NULL 
+    AND ActionType <> 'TERM'
+ORDER BY 
+    iso.ReportingTimestamp DESC;
