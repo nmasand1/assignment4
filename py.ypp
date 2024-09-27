@@ -5,23 +5,22 @@ def strip_namespaces(xml_string):
     """Remove namespaces from the XML string."""
     parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
     tree = etree.fromstring(xml_string.encode('utf-8'), parser=parser)
+    
+    # Strip namespace prefixes from all elements
     for elem in tree.iter():
-        if elem.tag.startswith('{'):
-            elem.tag = elem.tag.split('}', 1)[1]  # Strip namespace
+        if '}' in elem.tag:
+            elem.tag = elem.tag.split('}', 1)[1]  # Remove namespace
     return tree
 
 def extract_node_data(node):
-    """Extracts text and attributes from a node."""
+    """Extract text and attributes from a node."""
     extracted_data = {}
-    
-    # Extract node's text (if any) and attributes
     if node.text and node.text.strip():
-        extracted_data[node.tag] = node.text.strip()
+        extracted_data[node.tag] = node.text.strip()  # Extract node's text
     
-    # Extract attributes like type, version, etc.
+    # Extract attributes (like type, version, etc.)
     for attr_name, attr_value in node.attrib.items():
         extracted_data[f"{node.tag}_{attr_name}"] = attr_value
-    
     return extracted_data
 
 def extract_data(xml_string, custom_xpath=None):
@@ -29,55 +28,44 @@ def extract_data(xml_string, custom_xpath=None):
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
-        
+
         # Default XPath to extract tradeId and related information
         default_xpath = './/tradeHeader/tradeId'
         default_nodes = root.xpath(default_xpath)
-        
-        # Prepare the data dictionary for this row (initially with tradeId values)
-        all_row_data = []
-        
+
+        # Prepare the data dictionary for this row
+        row_data = {}
+
         # Extract tradeId-related data
         if default_nodes:
             for node in default_nodes:
                 trade_id_data = extract_node_data(node)
-                
                 # Extract children of tradeId (if any, e.g., alternateId)
                 for child in node:
                     child_data = extract_node_data(child)
                     trade_id_data.update(child_data)
-                
-                # Initialize custom data to empty, in case custom XPath is provided
-                custom_data = {}
-                
-                # If a custom XPath is provided, extract that data too
-                if custom_xpath:
-                    custom_nodes = node.xpath(custom_xpath)  # Restrict XPath within this tradeId
-                    if custom_nodes:
-                        for custom_node in custom_nodes:
-                            custom_data = extract_node_data(custom_node)
-                            
-                            # Extract children of custom node
-                            for custom_child in custom_node:
-                                custom_child_data = extract_node_data(custom_child)
-                                custom_data.update(custom_child_data)
-                
-                # Merge custom XPath data with tradeId data in the same row
-                trade_id_data.update(custom_data)
-                
-                # Append this row's data to the list
-                all_row_data.append(trade_id_data)
-        
-        return all_row_data
-    
+                row_data.update(trade_id_data)
+
+        # If a custom XPath is provided, extract that data too
+        if custom_xpath:
+            custom_nodes = root.xpath(custom_xpath)
+            if custom_nodes:
+                for node in custom_nodes:
+                    custom_data = extract_node_data(node)
+                    # Extract any children of the custom node
+                    for child in node:
+                        custom_child_data = extract_node_data(child)
+                        custom_data.update(custom_child_data)
+                    # Merge custom XPath data with tradeId data in the same row
+                    row_data.update(custom_data)
+
+        return row_data
     except Exception as e:
         print(f"Error processing XML: {e}")
         return {}
 
 # Path to the CSV file containing XML data
-csv_file_path = "test_aug4.csv"  # Change to your actual CSV file path
-
-# Column in the CSV file that contains the XML strings
+csv_file_path = "test_aug4.csv"  # Adjust your actual CSV file path
 xml_column = 'xmlstring'  # Change this to the name of your XML column
 
 # Input from the user for custom XPath (optional)
@@ -93,11 +81,10 @@ all_extracted_data = []
 for index, row in df.iterrows():
     xml_string = row[xml_column]
     extracted_values = extract_data(xml_string, xpath if xpath else None)
-    
-    # Add the row index for reference and merge extracted data
-    for extracted_row in extracted_values:
-        extracted_row['row_index'] = index
-        all_extracted_data.append(extracted_row)
+    # Add the row index for reference
+    extracted_values['row_index'] = index
+    # Append extracted values to the main list
+    all_extracted_data.append(extracted_values)
 
 # Convert extracted data into a DataFrame
 if all_extracted_data:
@@ -109,6 +96,3 @@ else:
 output_file = "extracted.csv"
 results_df.to_csv(output_file, index=False)
 print(f"Extracted data saved to {output_file}")
-
-if __name__ == "__main__":
-    pass
