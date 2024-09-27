@@ -13,15 +13,15 @@ def strip_namespaces(xml_string):
 def extract_node_data(node):
     """Extracts text and attributes from a node."""
     extracted_data = {}
-
+    
     # Extract node's text (if any) and attributes
     if node.text and node.text.strip():
         extracted_data[node.tag] = node.text.strip()
-
+    
     # Extract attributes like type, version, etc.
     for attr_name, attr_value in node.attrib.items():
         extracted_data[f"{node.tag}_{attr_name}"] = attr_value
-
+    
     return extracted_data
 
 def extract_data(xml_string, custom_xpath=None):
@@ -29,87 +29,86 @@ def extract_data(xml_string, custom_xpath=None):
     try:
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
-
-        # Default XPath to extract tradeHeader and related information
-        default_xpath = './/tradeHeader'
-        row_data = {}
-
-        # Extract tradeHeader-related data
+        
+        # Default XPath to extract tradeId and related information
+        default_xpath = './/tradeHeader/tradeId'
         default_nodes = root.xpath(default_xpath)
+        
+        # Prepare the data dictionary for this row (initially with tradeId values)
+        all_row_data = []
+        
+        # Extract tradeId-related data
         if default_nodes:
             for node in default_nodes:
-                # Extracting main components from tradeHeader
-                trade_id = node.xpath('./tradeId/text()')
-                trade_id_type = node.xpath('./tradeIdType/text()')
-                alternate_trade_id = node.xpath('./alternateTradeId/text()')
-                alternate_trade_id_type = node.xpath('./alternateTradeIdType/text()')
-                trade_id_version = node.xpath('./tradeIdVersion/text()')
-                alternate_id_version = node.xpath('./alternateIdVersion/text()')
-
-                # Update row_data with the extracted values (handle cases where they may not exist)
-                row_data['tradeId'] = trade_id[0] if trade_id else None
-                row_data['tradeIdType'] = trade_id_type[0] if trade_id_type else None
-                row_data['alternateTradeId'] = alternate_trade_id[0] if alternate_trade_id else None
-                row_data['alternateTradeIdType'] = alternate_trade_id_type[0] if alternate_trade_id_type else None
-                row_data['tradeIdVersion'] = trade_id_version[0] if trade_id_version else None
-                row_data['alternateIdVersion'] = alternate_id_version[0] if alternate_id_version else None
-
-                # Extract children of tradeHeader (if any)
+                trade_id_data = extract_node_data(node)
+                
+                # Extract children of tradeId (if any, e.g., alternateId)
                 for child in node:
                     child_data = extract_node_data(child)
-                    row_data.update(child_data)
-
-        # If a custom XPath is provided, extract that data too
-        if custom_xpath:
-            custom_nodes = root.xpath(custom_xpath)
-            if custom_nodes:
-                for node in custom_nodes:
-                    custom_data = extract_node_data(node)
-
-                    # Extract any children of the custom node
-                    for child in node:
-                        custom_child_data = extract_node_data(child)
-                        custom_data.update(custom_child_data)
-
-                    # Merge custom XPath data with tradeHeader data in the same row
-                    row_data.update(custom_data)
-        # If no custom XPath is provided, ensure default data is included
-        elif not custom_xpath and not default_nodes:
-            print("Warning: No data found with the default XPath.")
-
-        return row_data
-
+                    trade_id_data.update(child_data)
+                
+                # Initialize custom data to empty, in case custom XPath is provided
+                custom_data = {}
+                
+                # If a custom XPath is provided, extract that data too
+                if custom_xpath:
+                    custom_nodes = node.xpath(custom_xpath)  # Restrict XPath within this tradeId
+                    if custom_nodes:
+                        for custom_node in custom_nodes:
+                            custom_data = extract_node_data(custom_node)
+                            
+                            # Extract children of custom node
+                            for custom_child in custom_node:
+                                custom_child_data = extract_node_data(custom_child)
+                                custom_data.update(custom_child_data)
+                
+                # Merge custom XPath data with tradeId data in the same row
+                trade_id_data.update(custom_data)
+                
+                # Append this row's data to the list
+                all_row_data.append(trade_id_data)
+        
+        return all_row_data
+    
     except Exception as e:
         print(f"Error processing XML: {e}")
         return {}
 
-def main():
-    # Path to the CSV file containing XML data
-    csv_file_path = "bcml_data.csv"  # Change to your actual CSV file path
-    # Column in the CSV file that contains the XML strings
-    xml_column = 'bcml'  # Change this to the name of your XML column
+# Path to the CSV file containing XML data
+csv_file_path = "test_aug4.csv"  # Change to your actual CSV file path
 
-    # Input from the user for custom XPath (optional)
-    xpath = input("Enter the XPath to extract (leave blank for just default tradeHeader): ").strip()
-    # If user input is empty, set custom_xpath to None
-    custom_xpath = xpath if xpath else None
+# Column in the CSV file that contains the XML strings
+xml_column = 'xmlstring'  # Change this to the name of your XML column
 
-    # Read the CSV file
-    df = pd.read_csv(csv_file_path)
+# Input from the user for custom XPath (optional)
+xpath = input("Enter the XPath to extract (leave blank for just default tradeId): ")
 
-    # List to store all extracted data from the entire file
-    all_extracted_data = []
+# Read the CSV file
+df = pd.read_csv(csv_file_path)
 
-    for index, row in df.iterrows():
-        xml_data = row[xml_column]
-        extracted_data = extract_data(xml_data, custom_xpath=custom_xpath)
-        all_extracted_data.append(extracted_data)
+# List to store all extracted data from the entire file
+all_extracted_data = []
 
-    # Create a DataFrame from the extracted data
-    extracted_df = pd.DataFrame(all_extracted_data)
+# Process each row and extract data based on the provided XPath
+for index, row in df.iterrows():
+    xml_string = row[xml_column]
+    extracted_values = extract_data(xml_string, xpath if xpath else None)
+    
+    # Add the row index for reference and merge extracted data
+    for extracted_row in extracted_values:
+        extracted_row['row_index'] = index
+        all_extracted_data.append(extracted_row)
 
-    # Save the extracted data to a new CSV file
-    extracted_df.to_csv('extracted_data.csv', index=False)
+# Convert extracted data into a DataFrame
+if all_extracted_data:
+    results_df = pd.DataFrame(all_extracted_data)
+else:
+    results_df = pd.DataFrame(columns=["No Data Found"])
+
+# Output the results to a CSV file
+output_file = "extracted.csv"
+results_df.to_csv(output_file, index=False)
+print(f"Extracted data saved to {output_file}")
 
 if __name__ == "__main__":
-    main()
+    pass
