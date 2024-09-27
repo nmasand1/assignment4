@@ -38,14 +38,26 @@ def extract_data(xml_string, custom_xpath=None):
         default_nodes = root.xpath(default_xpath)
         if default_nodes:
             for node in default_nodes:
-                trade_header_data = extract_node_data(node)
+                # Extracting main components from tradeHeader
+                trade_id = node.xpath('./tradeId/text()')
+                trade_id_type = node.xpath('./tradeIdType/text()')
+                alternate_trade_id = node.xpath('./alternateTradeId/text()')
+                alternate_trade_id_type = node.xpath('./alternateTradeIdType/text()')
+                trade_id_version = node.xpath('./tradeIdVersion/text()')
+                alternate_id_version = node.xpath('./alternateIdVersion/text()')
+
+                # Update row_data with the extracted values (handle cases where they may not exist)
+                row_data['tradeId'] = trade_id[0] if trade_id else None
+                row_data['tradeIdType'] = trade_id_type[0] if trade_id_type else None
+                row_data['alternateTradeId'] = alternate_trade_id[0] if alternate_trade_id else None
+                row_data['alternateTradeIdType'] = alternate_trade_id_type[0] if alternate_trade_id_type else None
+                row_data['tradeIdVersion'] = trade_id_version[0] if trade_id_version else None
+                row_data['alternateIdVersion'] = alternate_id_version[0] if alternate_id_version else None
 
                 # Extract children of tradeHeader (if any)
                 for child in node:
                     child_data = extract_node_data(child)
-                    trade_header_data.update(child_data)
-
-                row_data.update(trade_header_data)
+                    row_data.update(child_data)
 
         # If a custom XPath is provided, extract that data too
         if custom_xpath:
