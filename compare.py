@@ -1,49 +1,40 @@
 import pandas as pd
 
 def validate_csv_data(csv1_path, csv2_path, output_csv_path):
-    # Try reading with different delimiters
+    # Read the CSV files, assuming comma delimiter for now
     try:
-        # Attempt to read with a comma delimiter
-        df1 = pd.read_csv(csv1_path, delimiter=',')
+        df1 = pd.read_csv(csv1_path)
+        df2 = pd.read_csv(csv2_path)
     except Exception as e:
-        print(f"Error reading first CSV with comma delimiter: {e}")
-        # If it fails, try tab delimiter
-        df1 = pd.read_csv(csv1_path, delimiter='\t')
+        print(f"Error reading the CSV files: {e}")
+        return
 
-    try:
-        # Attempt to read with a comma delimiter
-        df2 = pd.read_csv(csv2_path, delimiter=',')
-    except Exception as e:
-        print(f"Error reading second CSV with comma delimiter: {e}")
-        # If it fails, try tab delimiter
-        df2 = pd.read_csv(csv2_path, delimiter='\t')
-
-    # Strip any extra spaces or invisible characters from column names and make them lowercase
+    # Clean column names: make lowercase, strip any extra spaces, and remove case sensitivity
     df1.columns = df1.columns.str.strip().str.lower()
     df2.columns = df2.columns.str.strip().str.lower()
 
-    # Debugging: print the first few rows to inspect data
+    # Print the first few rows for inspection
     print("First few rows of first CSV (df1):")
     print(df1.head())
 
     print("First few rows of second CSV (df2):")
     print(df2.head())
 
-    # Print cleaned columns for both CSVs to verify
+    # Print columns for inspection
     print("Columns in first CSV (cleaned and lowercase):", df1.columns.tolist())
     print("Columns in second CSV (cleaned and lowercase):", df2.columns.tolist())
 
-    # Define the required columns for both CSVs, all in lowercase
+    # Define the required columns for both CSVs
     required_columns_df1 = ['businessdate', 'rowsextracted', 'filename']
     required_columns_df2 = ['tablename', 'businessdate', 'upstreamcount', 'processedcount', 'recordtype']
 
-    # Check for missing columns in the first CSV
+    # Check if all required columns are present in the first CSV
     for col in required_columns_df1:
         if col not in df1.columns:
             print(f"Missing column in first CSV: {col}")
             return
 
-    # Check for missing columns in the second CSV
+    # Check if all required columns are present in the second CSV
     for col in required_columns_df2:
         if col not in df2.columns:
             print(f"Missing column in second CSV: {col}")
@@ -67,6 +58,7 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
                 'RowsExtracted': rows_extracted,
                 'UpstreamCount': 'N/A',
                 'ProcessedCount': 'N/A',
+                'RecordType': 'N/A',
                 'ValidUpstream': 'N/A',
                 'ValidRowsExtracted': f"No matching data in second CSV for BusinessDate: {business_date}"
             })
@@ -90,12 +82,13 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         # Check if total UpstreamCount matches RowsExtracted
         is_valid_rows_extracted = (total_upstream_count == rows_extracted)
 
-        # Append the result to the list
+        # Append the result to the list with `recordtype` included
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'UpstreamCount': total_upstream_count,
-            'ProcessedCount': processed_count,  # Keep it as a unique value
+            'ProcessedCount': ', '.join(map(str, processed_count)),  # Combine multiple processed counts
+            'RecordType': '0, 1, 2',  # Indicate that the sum was made using record types 0, 1, and 2
             'ValidUpstream': is_valid_upstream,
             'ValidRowsExtracted': is_valid_rows_extracted
         })
