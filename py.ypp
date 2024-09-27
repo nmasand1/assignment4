@@ -45,6 +45,8 @@ def extract_data(xml_string, custom_xpath=None):
                     child_data = extract_node_data(child)
                     trade_id_data.update(child_data)
                 row_data.update(trade_id_data)
+        else:
+            print("No default nodes found for tradeId in XML.")  # Debug info
 
         # If a custom XPath is provided, extract that data too
         if custom_xpath:
@@ -59,6 +61,12 @@ def extract_data(xml_string, custom_xpath=None):
                     custom_data.update(custom_child_data)
                 # Merge custom XPath data with tradeId data in the same row
                 row_data.update(custom_data)
+            else:
+                print(f"No nodes found for custom XPath: {custom_xpath}")  # Debug info
+
+        # Log data for debugging
+        if not row_data:
+            print("Row data is empty for the current XML.")  # Debug info
 
         return row_data
     except Exception as e:
