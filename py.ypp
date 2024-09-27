@@ -29,12 +29,12 @@ def extract_data(xml_string, custom_xpath=None):
         # Parse XML and remove namespaces
         root = strip_namespaces(xml_string)
 
+        # Prepare the data dictionary for this row
+        row_data = {}
+
         # Default XPath to extract tradeId and related information
         default_xpath = './/tradeHeader/tradeId'
         default_nodes = root.xpath(default_xpath)
-
-        # Prepare the data dictionary for this row
-        row_data = {}
 
         # Extract tradeId-related data
         if default_nodes:
@@ -50,14 +50,15 @@ def extract_data(xml_string, custom_xpath=None):
         if custom_xpath:
             custom_nodes = root.xpath(custom_xpath)
             if custom_nodes:
-                for node in custom_nodes:
-                    custom_data = extract_node_data(node)
-                    # Extract any children of the custom node
-                    for child in node:
-                        custom_child_data = extract_node_data(child)
-                        custom_data.update(custom_child_data)
-                    # Merge custom XPath data with tradeId data in the same row
-                    row_data.update(custom_data)
+                # Only take the first node from the custom_xpath results
+                node = custom_nodes[0]
+                custom_data = extract_node_data(node)
+                # Extract any children of the custom node
+                for child in node:
+                    custom_child_data = extract_node_data(child)
+                    custom_data.update(custom_child_data)
+                # Merge custom XPath data with tradeId data in the same row
+                row_data.update(custom_data)
 
         return row_data
     except Exception as e:
