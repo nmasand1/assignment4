@@ -1,143 +1,131 @@
-<div class="filter-panel-container">
-  <!-- Regulations MultiSelect -->
-  <div class="filter-group">
-    <label for="regulations">Regulations</label>
-    <app-multi-select
-      [options]="regulations"
-      [(ngModel)]="selectedRegulations"
-      (selectionChange)="onRegulationsChange($event)">
-    </app-multi-select>
-  </div>
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Assuming you have this interface
 
-  <!-- Reportable Datasets MultiSelect -->
-  <div class="filter-group">
-    <label for="reportableDatasets">Reportable Datasets</label>
-    <app-multi-select
-      [options]="reportableDatasets"
-      [(ngModel)]="selectedReportableDatasets"
-      (selectionChange)="onReportableDatasetsChange($event)">
-    </app-multi-select>
-  </div>
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  reportableFields: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productType: MultiSelectOption[] = [];
 
-  <!-- Reportable Fields MultiSelect -->
-  <div class="filter-group">
-    <label for="reportableFields">Reportable Fields</label>
-    <app-multi-select
-      [options]="reportableFields"
-      [(ngModel)]="selectedReportableFields"
-      (selectionChange)="onReportableFieldsChange($event)">
-    </app-multi-select>
-  </div>
+  selectedRegulations: MultiSelectOption[] = [];
+  selectedReportableDatasets: MultiSelectOption[] = [];
+  selectedReportableFields: MultiSelectOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+  selectedProductType: MultiSelectOption[] = [];
 
-  <!-- Asset Classes MultiSelect -->
-  <div class="filter-group">
-    <label for="assetClasses">Asset Classes</label>
-    <app-multi-select
-      [options]="assetClasses"
-      [(ngModel)]="selectedAssetClasses"
-      (selectionChange)="onAssetClassesChange($event)">
-    </app-multi-select>
-  </div>
+  private jsonUrl = 'assets/mock-data/response/json1_filters.json';
+  private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with correct API URL
 
-  <!-- Product Type MultiSelect -->
-  <div class="filter-group">
-    <label for="productType">Product Type</label>
-    <app-multi-select
-      [options]="productType"
-      [(ngModel)]="selectedProductType"
-      (selectionChange)="onProductTypeChange($event)">
-    </app-multi-select>
-  </div>
+  constructor(private http: HttpClient) {}
 
-  <!-- Date Selection -->
-  <div class="filter-group">
-    <label for="date">Date</label>
-    <input type="date" id="date" (change)="onDateChange($event)" class="date-picker" />
-  </div>
-
-  <!-- Search and Reset Buttons -->
-  <div class="filter-actions">
-    <button (click)="searchFilters()" class="btn search-btn">Search</button>
-    <button (click)="resetFilters()" class="btn reset-btn">Reset</button>
-  </div>
-</div>
-
-
-
-/* Flexbox container to align filters in a horizontal layout */
-.filter-panel-container {
-  display: flex;
-  flex-wrap: nowrap; /* Ensure no wrapping of items */
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px; /* Reduced gap between items */
-  padding: 10px;
-  background-color: #f9f9f9; /* Light background for the filter panel */
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  min-width: 150px; /* A consistent min-width for all dropdowns */
-}
-
-.filter-group label {
-  font-size: 12px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
-}
-
-.date-picker {
-  padding: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  width: 100%;
-}
-
-.filter-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Consistent spacing between buttons */
-}
-
-.btn {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.search-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.reset-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn:hover {
-  opacity: 0.9;
-}
-
-@media (max-width: 1024px) {
-  .filter-panel-container {
-    flex-wrap: wrap;
+  ngOnInit(): void {
+    this.loadFiltersData();
   }
 
-  .filter-group {
-    width: 100%; /* Make dropdowns full width on smaller screens */
+  // Load the filter data from json1_filters.json
+  loadFiltersData(): void {
+    this.http.get<any>(this.jsonUrl).subscribe((data) => {
+      this.regulations = data.data.regulations.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.reportableFields = data.data.reportableFields.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.productType = data.data.productType.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+    });
   }
 
-  .filter-actions {
-    justify-content: space-around;
-    width: 100%;
+  // Search functionality: Call API and apply filters
+  searchFilters(): void {
+    // Fetch data from the external API
+    this.http.get<any[]>(this.apiUrl).subscribe((apiData) => {
+      // Filter the data based on selected filters
+      const filteredData = apiData.filter((item) => {
+        return (
+          this.matchFilter(item.assetclass, this.selectedAssetClasses) &&
+          this.matchFilter(item.producttype, this.selectedProductType)
+        );
+      });
+
+      // Output the filtered data to the console (you can modify this to display it in the UI)
+      console.log('Filtered Data:', filteredData);
+    });
+  }
+
+  // Helper function to match selected filters
+  matchFilter(value: string, selectedOptions: MultiSelectOption[]): boolean {
+    if (selectedOptions.length === 0) return true; // No filter selected, match all
+    return selectedOptions.some((option) => option.name === value);
+  }
+
+  // Reset functionality: Clear all selected filters
+  resetFilters(): void {
+    this.selectedRegulations = [];
+    this.selectedReportableDatasets = [];
+    this.selectedReportableFields = [];
+    this.selectedAssetClasses = [];
+    this.selectedProductType = [];
+
+    // Reset the selected state in the options array too
+    this.regulations.forEach((option) => (option.selected = false));
+    this.reportableDatasets.forEach((option) => (option.selected = false));
+    this.reportableFields.forEach((option) => (option.selected = false));
+    this.assetClasses.forEach((option) => (option.selected = false));
+    this.productType.forEach((option) => (option.selected = false));
+  }
+
+  // Event handlers for when selections change in the MultiSelect components
+  onRegulationsChange(selected: MultiSelectOption[]): void {
+    this.selectedRegulations = selected;
+  }
+
+  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableDatasets = selected;
+  }
+
+  onReportableFieldsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableFields = selected;
+  }
+
+  onAssetClassesChange(selected: MultiSelectOption[]): void {
+    this.selectedAssetClasses = selected;
+  }
+
+  onProductTypeChange(selected: MultiSelectOption[]): void {
+    this.selectedProductType = selected;
   }
 }
-
