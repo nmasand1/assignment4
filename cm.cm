@@ -1,14 +1,14 @@
 <div class="filters-panel">
   <h2>Filters Panel</h2>
-  
-  <div class="filter-row">
+
+  <div class="filters-row">
     <div class="filter-item">
       <app-multi-select
         [options]="regulations"
         label="Regulations"
         [(ngModel)]="selectedRegulations"
         (selectionChange)="onRegulationsChange($event)"
-        [isOpen]="false"
+        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -18,7 +18,7 @@
         label="Reportable Datasets"
         [(ngModel)]="selectedReportableDatasets"
         (selectionChange)="onReportableDatasetsChange($event)"
-        [isOpen]="false"
+        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -28,7 +28,7 @@
         label="Reportable Fields"
         [(ngModel)]="selectedReportableFields"
         (selectionChange)="onReportableFieldsChange($event)"
-        [isOpen]="false"
+        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -38,7 +38,7 @@
         label="Asset Classes"
         [(ngModel)]="selectedAssetClasses"
         (selectionChange)="onAssetClassesChange($event)"
-        [isOpen]="false"
+        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -48,7 +48,7 @@
         label="Product Type"
         [(ngModel)]="selectedProductType"
         (selectionChange)="onProductTypeChange($event)"
-        [isOpen]="false"
+        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -62,17 +62,11 @@
       />
     </div>
 
-    <div class="filter-item button-group">
+    <div class="button-group">
       <button (click)="searchFilters()">Search</button>
       <button (click)="resetFilters()">Reset</button>
     </div>
   </div>
-
-  <div class="filtered-data">
-    <h3>Filtered Data:</h3>
-    <pre>{{ filteredData | json }}</pre>
-  </div>
-</div>
 
 
 
@@ -83,22 +77,21 @@
   background-color: #f9f9f9;
 }
 
-.filter-row {
+.filters-row {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 20px; /* Space between items */
+  flex-wrap: wrap; /* Allow wrapping if there are too many filters */
+  gap: 15px; /* Space between filter items */
+  align-items: center; /* Center vertically */
 }
 
 .filter-item {
-  flex: 1; /* Allow flexibility in width */
+  flex: 1; /* Allow filters to grow */
   min-width: 150px; /* Minimum width for each filter item */
 }
 
 .button-group {
   display: flex;
   gap: 10px;
-  margin-left: 20px; /* Space from the date picker */
 }
 
 .filtered-data {
