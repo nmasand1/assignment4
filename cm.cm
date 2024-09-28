@@ -129,3 +129,59 @@ export class FiltersPanelComponent implements OnInit {
     this.selectedProductType = selected;
   }
 }
+
+
+
+<div class="filters-panel">
+  <!-- Dropdown for Regulations -->
+  <div class="filter-group">
+    <label for="regulations">Regulations:</label>
+    <select multiple [(ngModel)]="selectedRegulations" (change)="onRegulationsChange($event.target.selectedOptions)">
+      <option *ngFor="let regulation of regulations" [value]="regulation">{{ regulation.displayName }}</option>
+    </select>
+  </div>
+
+  <!-- Dropdown for Reportable Datasets -->
+  <div class="filter-group">
+    <label for="reportableDatasets">Reportable Datasets:</label>
+    <select multiple [(ngModel)]="selectedReportableDatasets" (change)="onReportableDatasetsChange($event.target.selectedOptions)">
+      <option *ngFor="let dataset of reportableDatasets" [value]="dataset">{{ dataset.displayName }}</option>
+    </select>
+  </div>
+
+  <!-- Dropdown for Reportable Fields -->
+  <div class="filter-group">
+    <label for="reportableFields">Reportable Fields:</label>
+    <select multiple [(ngModel)]="selectedReportableFields" (change)="onReportableFieldsChange($event.target.selectedOptions)">
+      <option *ngFor="let field of reportableFields" [value]="field">{{ field.displayName }}</option>
+    </select>
+  </div>
+
+  <!-- Dropdown for Asset Classes -->
+  <div class="filter-group">
+    <label for="assetClasses">Asset Classes:</label>
+    <select multiple [(ngModel)]="selectedAssetClasses" (change)="onAssetClassesChange($event.target.selectedOptions)">
+      <option *ngFor="let assetClass of assetClasses" [value]="assetClass">{{ assetClass.displayName }}</option>
+    </select>
+  </div>
+
+  <!-- Dropdown for Product Type -->
+  <div class="filter-group">
+    <label for="productType">Product Type:</label>
+    <select multiple [(ngModel)]="selectedProductType" (change)="onProductTypeChange($event.target.selectedOptions)">
+      <option *ngFor="let product of productType" [value]="product">{{ product.displayName }}</option>
+    </select>
+  </div>
+
+  <!-- Date Input Field -->
+  <div class="filter-group">
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date" [(ngModel)]="selectedDate">
+  </div>
+
+  <!-- Buttons for Search and Reset -->
+  <div class="button-group">
+    <button (click)="searchFilters()">Search</button>
+    <button (click)="resetFilters()">Reset</button>
+  </div>
+</div>
