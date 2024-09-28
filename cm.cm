@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust the path as necessary
+import { MultiSelectOption } from 'src/app/models/multi-select-options';
 
 @Component({
   selector: 'app-filters-panel',
@@ -20,10 +20,10 @@ export class FiltersPanelComponent implements OnInit {
   selectedAssetClasses: MultiSelectOption[] = [];
   selectedProductType: MultiSelectOption[] = [];
 
-  selectedDate: string = '';
+  filteredData: any[] = [];
 
   private jsonUrl = 'assets/mock-data/response/json1_filters.json';
-  private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct API URL
+  private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData';
 
   constructor(private http: HttpClient) {}
 
@@ -39,6 +39,8 @@ export class FiltersPanelComponent implements OnInit {
         displayName: item.displayName,
         selected: false,
       }));
+
+      // ... similar mapping for other filters
 
       this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
         id: item.id,
@@ -67,137 +69,121 @@ export class FiltersPanelComponent implements OnInit {
         displayName: item.displayName,
         selected: false,
       }));
+
+      // Additional logic to fetch filtered data from API after initial load
+      this.fetchFilteredData();
     });
   }
 
-  searchFilters(): void {
-    // Add search logic
+  fetchFilteredData(): void {
+    const selectedFilters = {
+      // Build the filter object based on selected options
+      regulationIds: this.selectedRegulations.map((option) => option.id),
+      reportableDatasetIds: this.selectedReportableDatasets.map((option) => option.id),
+      reportableFieldIds: this.selectedReportableFields.map((option) => option.id),
+      assetClassIds: this.selectedAssetClasses.map((option) => option.id),
+      productTypeIds: this.selectedProductType.map((option) => option.id),
+    };
+
+    this.http.post<any>(this.apiUrl, selectedFilters).subscribe((apiData) => {
+      this.filteredData = apiData; // Store the filtered data in the component
+    });
   }
 
+  // Search functionality: Print the selected filters (optional)
+  searchFilters(): void {
+    console.log('Selected Regulations:', this.selectedRegulations);
+    // ... similar for other filters
+  }
+
+  // Reset functionality: Clear all selected filters
   resetFilters(): void {
     this.selectedRegulations = [];
     this.selectedReportableDatasets = [];
     this.selectedReportableFields = [];
     this.selectedAssetClasses = [];
     this.selectedProductType = [];
+    this.regulations.forEach((option) => (option.selected = false));
+    this.reportableDatasets.forEach((option) => (option.selected = false));
+    this.reportableFields.forEach((option) => (option.selected = false));
+    this.assetClasses.forEach((option) => (option.selected = false));
+    this.productType.forEach((option) => (option.selected = false));
+    this.filteredData = [];
   }
 
+  // Event handlers for when selections change in the MultiSelect components
   onRegulationsChange(selected: MultiSelectOption[]): void {
     this.selectedRegulations = selected;
+    this.fetchFilteredData(); // Call to update data based on new selection
   }
 
   onReportableDatasetsChange(selected: MultiSelectOption[]): void {
     this.selectedReportableDatasets = selected;
+    this.fetchFilteredData();
   }
 
   onReportableFieldsChange(selected: MultiSelectOption[]): void {
     this.selectedReportableFields = selected;
+    this.fetchFilteredData();
   }
 
   onAssetClassesChange(selected: MultiSelectOption[]): void {
     this.selectedAssetClasses = selected;
+    this.fetchFilteredData();
   }
 
   onProductTypeChange(selected: MultiSelectOption[]): void {
     this.selectedProductType = selected;
+    this.fetchFilteredData();
   }
 }
-
 
 
 
 
 <div class="filters-panel">
-  <h2>Filters Panel</h2>
+  <h2>Filters</h2>
 
-  <div class="filters-row">
-    <div class="filter-item">
-      <app-multi-select
-        [options]="regulations"
-        label="Regulations"
-        (selectionChange)="onRegulationsChange($event)"
-      ></app-multi-select>
-    </div>
+  <app-multi-select
+    [label]="'Regulations'"
+    [options]="regulations"
+    (selectionChange)="onRegulationsChange($event)"
+  ></app-multi-select>
+  <app-multi-select
+    [label]="'Reportable Datasets'"
+    [options]="reportableDatasets"
+    (selectionChange)="onReportableDatasetsChange($event)"
+  ></app-multi-select>
+  <app-multi-select
+    [label]="'Reportable Fields'"
+    [options]="reportableFields"
+    (selectionChange)="onReportableFieldsChange($event)"
+  ></app-multi-select>
+  <app-multi-select
+    [label]="'Asset Classes'"
+    [options]="assetClasses"
+    (selectionChange)="onAssetClassesChange($event)"
+  ></app-multi-select>
+  <app-multi-select
+    [label]="'Product Type'"
+    [options]="productType"
+    (selectionChange)="onProductTypeChange($event)"
+  ></app-multi-select>
 
-    <div class="filter-item">
-      <app-multi-select
-        [options]="reportableDatasets"
-        label="Reportable Datasets"
-        (selectionChange)="onReportableDatasetsChange($event)"
-      ></app-multi-select>
-    </div>
+  <button (click)="searchFilters()">Search (Optional)</button>
+  <button (click)="resetFilters()">Reset Filters</button>
 
-    <div class="filter-item">
-      <app-multi-select
-        [options]="reportableFields"
-        label="Reportable Fields"
-        (selectionChange)="onReportableFieldsChange($event)"
-      ></app-multi-select>
-    </div>
-
-    <div class="filter-item">
-      <app-multi-select
-        [options]="assetClasses"
-        label="Asset Classes"
-        (selectionChange)="onAssetClassesChange($event)"
-      ></app-multi-select>
-    </div>
-
-    <div class="filter-item">
-      <app-multi-select
-        [options]="productType"
-        label="Product Type"
-        (selectionChange)="onProductTypeChange($event)"
-      ></app-multi-select>
-    </div>
-
-    <div class="filter-item">
-      <label for="datePicker">Select Date:</label>
-      <input
-        type="date"
-        id="datePicker"
-        [(ngModel)]="selectedDate"
-      />
-    </div>
-
-    <div class="button-group">
-      <button (click)="searchFilters()">Search</button>
-      <button (click)="resetFilters()">Reset</button>
-    </div>
+  <div *ngIf="filteredData.length > 0">
+    <h2>Filtered Results</h2>
+    <ul>
+      <li *ngFor="let item of filteredData">
+        <p>fieldLinkid: {{ item.fieldLinkid }}</p>
+        <p>reportingReq: {{ item.reportingReq }}</p>
+        <p>transformationType: {{ item.transformationType }}</p>
+        <p>producttype: {{ item.producttype }}</p>
+        <p>assetclass: {{ item.assetclass }}</p>
+        <p>transformationID: {{ item.transformationID }}</p>
+      </li>
+    </ul>
   </div>
 </div>
-
-
-
-
-.filters-panel {
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-.filters-row {
-  display: flex;
-  flex-wrap: wrap; /* Allow wrapping if there are too many filters */
-  gap: 15px; /* Space between filter items */
-  align-items: center; /* Center vertically */
-}
-
-.filter-item {
-  flex: 1; /* Allow filters to grow */
-  min-width: 150px; /* Minimum width for each filter item */
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-}
-
-.filtered-data {
-  margin-top: 20px;
-  background-color: #fff;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
