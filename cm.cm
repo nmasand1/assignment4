@@ -1,3 +1,112 @@
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust the path as necessary
+
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  reportableFields: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productType: MultiSelectOption[] = [];
+
+  selectedRegulations: MultiSelectOption[] = [];
+  selectedReportableDatasets: MultiSelectOption[] = [];
+  selectedReportableFields: MultiSelectOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+  selectedProductType: MultiSelectOption[] = [];
+
+  selectedDate: string = '';
+
+  private jsonUrl = 'assets/mock-data/response/json1_filters.json';
+  private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct API URL
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
+
+  loadFiltersData(): void {
+    this.http.get<any>(this.jsonUrl).subscribe((data) => {
+      this.regulations = data.data.regulations.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.reportableFields = data.data.reportableFields.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+
+      this.productType = data.data.productType.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
+    });
+  }
+
+  searchFilters(): void {
+    // Add search logic
+  }
+
+  resetFilters(): void {
+    this.selectedRegulations = [];
+    this.selectedReportableDatasets = [];
+    this.selectedReportableFields = [];
+    this.selectedAssetClasses = [];
+    this.selectedProductType = [];
+  }
+
+  onRegulationsChange(selected: MultiSelectOption[]): void {
+    this.selectedRegulations = selected;
+  }
+
+  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableDatasets = selected;
+  }
+
+  onReportableFieldsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableFields = selected;
+  }
+
+  onAssetClassesChange(selected: MultiSelectOption[]): void {
+    this.selectedAssetClasses = selected;
+  }
+
+  onProductTypeChange(selected: MultiSelectOption[]): void {
+    this.selectedProductType = selected;
+  }
+}
+
+
+
+
+
 <div class="filters-panel">
   <h2>Filters Panel</h2>
 
@@ -6,9 +115,7 @@
       <app-multi-select
         [options]="regulations"
         label="Regulations"
-        [(ngModel)]="selectedRegulations"
         (selectionChange)="onRegulationsChange($event)"
-        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -16,9 +123,7 @@
       <app-multi-select
         [options]="reportableDatasets"
         label="Reportable Datasets"
-        [(ngModel)]="selectedReportableDatasets"
         (selectionChange)="onReportableDatasetsChange($event)"
-        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -26,9 +131,7 @@
       <app-multi-select
         [options]="reportableFields"
         label="Reportable Fields"
-        [(ngModel)]="selectedReportableFields"
         (selectionChange)="onReportableFieldsChange($event)"
-        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -36,9 +139,7 @@
       <app-multi-select
         [options]="assetClasses"
         label="Asset Classes"
-        [(ngModel)]="selectedAssetClasses"
         (selectionChange)="onAssetClassesChange($event)"
-        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -46,9 +147,7 @@
       <app-multi-select
         [options]="productType"
         label="Product Type"
-        [(ngModel)]="selectedProductType"
         (selectionChange)="onProductTypeChange($event)"
-        [isOpen]="true"
       ></app-multi-select>
     </div>
 
@@ -58,7 +157,6 @@
         type="date"
         id="datePicker"
         [(ngModel)]="selectedDate"
-        (change)="selectedDate = $event.target.value"
       />
     </div>
 
@@ -67,6 +165,8 @@
       <button (click)="resetFilters()">Reset</button>
     </div>
   </div>
+</div>
+
 
 
 
@@ -101,4 +201,3 @@
   border: 1px solid #ccc;
   border-radius: 5px;
 }
-
