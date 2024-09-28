@@ -13,9 +13,7 @@ export class FiltersPanelComponent implements OnInit {
   reportableFields: MultiSelectOption[] = [];
   assetClasses: MultiSelectOption[] = [];
   productType: MultiSelectOption[] = [];
-  filteredResults: any[] = []; // To hold the filtered results based on search
-  selectedDate: string = '';
-  
+
   selectedRegulations: MultiSelectOption[] = [];
   selectedReportableDatasets: MultiSelectOption[] = [];
   selectedReportableFields: MultiSelectOption[] = [];
@@ -23,7 +21,9 @@ export class FiltersPanelComponent implements OnInit {
   selectedProductType: MultiSelectOption[] = [];
 
   private jsonUrl = 'assets/mock-data/response/json1_filters.json';
-  private jsonDataUrl = 'assets/mock-data/response/json2_fieldFlattenData.json';
+  private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with actual URL
+
+  apiData: any[] = []; // Holds the data fetched from the API
 
   constructor(private http: HttpClient) {}
 
@@ -40,61 +40,53 @@ export class FiltersPanelComponent implements OnInit {
         selected: false,
       }));
 
-      this.http.get<any>(this.jsonDataUrl).subscribe((data2) => {
-        this.reportableDatasets = data2.data.reportableDatasets.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          displayName: item.displayName,
-          selected: false,
-        }));
+      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
 
-        this.reportableFields = data2.data.reportableFields.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          displayName: item.displayName,
-          selected: false,
-        }));
+      this.reportableFields = data.data.reportableFields.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
 
-        this.assetClasses = data2.data.assetClasses.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          displayName: item.displayName,
-          selected: false,
-        }));
+      this.assetClasses = data.data.assetClasses.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
 
-        this.productType = data2.data.productType.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          displayName: item.displayName,
-          selected: false,
-        }));
-      });
+      this.productType = data.data.productType.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+        selected: false,
+      }));
     });
   }
 
-  // Search functionality: Filter the results based on selected filters
+  // Fetch data from the API and apply filters
   searchFilters(): void {
-    this.filteredResults = []; // Reset filtered results
-    this.http.get<any>(this.jsonDataUrl).subscribe((data) => {
-      const allResults = data.data.fields; // Assuming the field data is under this structure
+    this.http.get<any[]>(this.apiUrl).subscribe((data) => {
+      this.apiData = data; // Store API data
 
-      this.filteredResults = allResults.filter((field: any) => {
-        const isRegulationMatched = this.selectedRegulations.length ? this.selectedRegulations.some(r => r.name === field.regulationName) : true;
-        const isDatasetMatched = this.selectedReportableDatasets.length ? this.selectedReportableDatasets.some(d => d.name === field.reportabledataset) : true;
-        const isFieldMatched = this.selectedReportableFields.length ? this.selectedReportableFields.some(f => f.name === field.fieldName) : true;
-        const isAssetClassMatched = this.selectedAssetClasses.length ? this.selectedAssetClasses.some(a => a.name === field.assetClass) : true;
-        const isProductTypeMatched = this.selectedProductType.length ? this.selectedProductType.some(p => p.name === field.productType) : true;
-        const isDateMatched = this.selectedDate ? true : true; // Implement date logic if needed
+      // Apply filters to the fetched data
+      const filteredData = this.apiData.filter(item => {
+        const isProductTypeMatch = this.selectedProductType.length === 0 || this.selectedProductType.some(p => p.name === item.producttype);
+        const isAssetClassMatch = this.selectedAssetClasses.length === 0 || this.selectedAssetClasses.some(a => a.name === item.assetclass);
 
-        return isRegulationMatched && isDatasetMatched && isFieldMatched && isAssetClassMatched && isProductTypeMatched && isDateMatched;
+        // You can add additional filters for reportableDatasets, reportableFields, etc.
+        
+        return isProductTypeMatch && isAssetClassMatch;
       });
 
-      // Log the results or process them as needed
-      if (this.filteredResults.length === 0) {
-        console.log('No results found');
-      } else {
-        console.log('Filtered Results:', this.filteredResults);
-      }
+      // Log the filtered data to the console (you can display it on the UI if required)
+      console.log('Filtered Data:', filteredData);
     });
   }
 
@@ -105,13 +97,15 @@ export class FiltersPanelComponent implements OnInit {
     this.selectedReportableFields = [];
     this.selectedAssetClasses = [];
     this.selectedProductType = [];
-    this.selectedDate = '';
     
+    // Reset the selected state in the options array too
     this.regulations.forEach((option) => (option.selected = false));
     this.reportableDatasets.forEach((option) => (option.selected = false));
     this.reportableFields.forEach((option) => (option.selected = false));
     this.assetClasses.forEach((option) => (option.selected = false));
     this.productType.forEach((option) => (option.selected = false));
+
+    console.log('Filters reset');
   }
 
   // Event handlers for when selections change in the MultiSelect components
@@ -134,87 +128,4 @@ export class FiltersPanelComponent implements OnInit {
   onProductTypeChange(selected: MultiSelectOption[]): void {
     this.selectedProductType = selected;
   }
-}
-
-
-
-
-<!-- filters-panel.component.html -->
-<div class="filters-container">
-  <div class="filter-group">
-    <app-multi-select
-      [options]="regulations"
-      label="Regulations"
-      (selectionChange)="onRegulationsChange($event)"
-    ></app-multi-select>
-  </div>
-
-  <div class="filter-group">
-    <app-multi-select
-      [options]="reportableDatasets"
-      label="Reportable Datasets"
-      (selectionChange)="onReportableDatasetsChange($event)"
-    ></app-multi-select>
-  </div>
-
-  <div class="filter-group">
-    <app-multi-select
-      [options]="reportableFields"
-      label="Reportable Fields"
-      (selectionChange)="onReportableFieldsChange($event)"
-    ></app-multi-select>
-  </div>
-
-  <div class="filter-group">
-    <app-multi-select
-      [options]="assetClasses"
-      label="Asset Classes"
-      (selectionChange)="onAssetClassesChange($event)"
-    ></app-multi-select>
-  </div>
-
-  <div class="filter-group">
-    <app-multi-select
-      [options]="productType"
-      label="Product Types"
-      (selectionChange)="onProductTypeChange($event)"
-    ></app-multi-select>
-  </div>
-
-  <div class="filter-group">
-    <input type="date" [(ngModel)]="selectedDate" />
-  </div>
-
-  <div class="filter-group">
-    <button (click)="searchFilters()">Search</button>
-    <button (click)="resetFilters()">Reset</button>
-  </div>
-</div>
-
-<!-- Displaying the filtered results -->
-<div *ngIf="filteredResults.length > 0">
-  <h3>Filtered Results:</h3>
-  <ul>
-    <li *ngFor="let result of filteredResults">
-      {{ result.fieldName }} - {{ result.regulationName }} - {{ result.assetClass }} - {{ result.messageType }}
-    </li>
-  </ul>
-</div>
-
-
-
-
-/* filters-panel.component.css */
-.filters-container {
-  display: flex;
-  flex-wrap: nowrap; /* Prevents wrapping to keep everything in a single row */
-  gap: 10px; /* Adjusts space between the items */
-  align-items: center; /* Centers items vertically */
-  overflow-x: auto; /* Adds horizontal scrolling if needed */
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column; /* Keeps the label above the select */
-  min-width: 150px; /* Set a minimum width for dropdowns */
 }
