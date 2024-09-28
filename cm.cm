@@ -129,3 +129,46 @@ export class FiltersPanelComponent implements OnInit {
     this.selectedProductType = selected;
   }
 }
+
+
+
+
+
+<div class="filters-panel">
+  <app-multi-select
+    [options]="regulations"
+    [label]="'Regulations'"
+    (selectionChange)="onRegulationsChange($event)"
+  ></app-multi-select>
+
+  <app-multi-select
+    [options]="reportableDatasets"
+    [label]="'Reportable Datasets'"
+    (selectionChange)="onReportableDatasetsChange($event)"
+  ></app-multi-select>
+
+  <app-multi-select
+    [options]="reportableFields"
+    [label]="'Reportable Fields'"
+    (selectionChange)="onReportableFieldsChange($event)"
+  ></app-multi-select>
+
+  <app-multi-select
+    [options]="assetClasses"
+    [label]="'Asset Classes'"
+    (selectionChange)="onAssetClassesChange($event)"
+  ></app-multi-select>
+
+  <app-multi-select
+    [options]="productType"
+    [label]="'Product Types'"
+    (selectionChange)="onProductTypeChange($event)"
+  ></app-multi-select>
+
+  <!-- Add date selection input -->
+  <input type="date" [(ngModel)]="selectedDate">
+
+  <button (click)="searchFilters()">Search</button>
+  <button (click)="resetFilters()">Reset</button>
+</div>
+
