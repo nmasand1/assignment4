@@ -1,4 +1,25 @@
 import pandas as pd
+import re
+
+def extract_date_from_filename(filename):
+    # Extracts the date (in YYYYMMDD format) from the filename
+    match = re.search(r'(\d{8})', filename)  # Looks for a pattern like 20221126
+    if match:
+        date_str = match.group(1)
+        # Return the date in YYYY-MM-DD format for easier comparison
+        return f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
+    return None
+
+def map_filename_to_recordtype(filename):
+    # Mapping the filenames to record types based on prefixes
+    if "Cash_TRADE_OnPrem" in filename:
+        return 1  # On-Prem Data
+    elif "Cash_TRADE_Original" in filename:
+        return 2  # Original Data
+    elif "Cash_TRADE_" in filename:
+        return 0  # Cloud Data
+    else:
+        return None  # Unknown type, not relevant for processing
 
 def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     # Read the CSV files
@@ -30,50 +51,83 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     # Initialize a list to store validation results
     results = []
 
-    # Iterate through each unique BusinessDate in df1
+    # Iterate through each row in the first CSV
     for _, row in df1.iterrows():
-        business_date = row['businessdate']
+        filename = row['filename']
         rows_extracted = row['rowsextracted']
-
-        # Filter df2 for the matching BusinessDate
-        df2_filtered = df2[df2['businessdate'] == business_date]
-
-        if df2_filtered.empty:
-            # No matching data, log this in results
+        
+        # Extract the business date from the filename
+        file_business_date = extract_date_from_filename(filename)
+        if file_business_date is None:
+            # Log if the filename doesn't have a valid date
             results.append({
-                'BusinessDate': business_date,
+                'Filename': filename,
                 'RowsExtracted': rows_extracted,
                 'UpstreamCount': 'N/A',
                 'ProcessedCount': 'N/A',
                 'RecordType': 'N/A',
+                'BusinessDate': 'N/A',
                 'ValidUpstream': 'N/A',
-                'ValidRowsExtracted': f"No matching data in second CSV for BusinessDate: {business_date}"
+                'ValidRowsExtracted': f"Invalid filename format: {filename}"
             })
-            print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
-        # Sum UpstreamCount for each record type 0, 1, and 2
-        total_upstream_count = df2_filtered[df2_filtered['recordtype'].isin([0, 1, 2])]['upstreamcount'].sum()
+        # Map the filename to the corresponding record type
+        mapped_recordtype = map_filename_to_recordtype(filename)
+        if mapped_recordtype is None:
+            # Log if the filename doesn't match the known types
+            results.append({
+                'Filename': filename,
+                'RowsExtracted': rows_extracted,
+                'UpstreamCount': 'N/A',
+                'ProcessedCount': 'N/A',
+                'RecordType': 'N/A',
+                'BusinessDate': file_business_date,
+                'ValidUpstream': 'N/A',
+                'ValidRowsExtracted': f"Unknown file type for {filename}"
+            })
+            continue
 
-        # Compare the sum of UpstreamCount (for record types 0, 1, 2) with RowsExtracted
+        # Filter df2 for matching businessdate and recordtype
+        df2_filtered = df2[(df2['businessdate'] == file_business_date) & (df2['recordtype'] == mapped_recordtype)]
+
+        if df2_filtered.empty:
+            # No matching data, log this in results
+            results.append({
+                'BusinessDate': file_business_date,
+                'RowsExtracted': rows_extracted,
+                'UpstreamCount': 'N/A',
+                'ProcessedCount': 'N/A',
+                'RecordType': mapped_recordtype,
+                'Filename': filename,
+                'ValidUpstream': 'N/A',
+                'ValidRowsExtracted': f"No matching data in second CSV for BusinessDate: {file_business_date}, RecordType: {mapped_recordtype}"
+            })
+            print(f"No matching data in second CSV for BusinessDate: {file_business_date}, RecordType: {mapped_recordtype}")
+            continue
+
+        # Iterate through the rows of df2_filtered and validate
+        total_upstream_count = df2_filtered['upstreamcount'].sum()
+
+        # Check if the total UpstreamCount for the recordtype matches RowsExtracted
         is_valid_rows_extracted = (total_upstream_count == rows_extracted)
 
-        # For each row in df2_filtered, include recordtype-specific data in the output
         for _, df2_row in df2_filtered.iterrows():
             recordtype = df2_row['recordtype']
             upstream_count = df2_row['upstreamcount']
             processed_count = df2_row['processedcount']
 
-            # Compare the upstream count for each record type with the corresponding processed count
+            # Compare upstream and processed counts
             is_valid_upstream = (upstream_count == processed_count)
 
             # Add the result row to the output
             results.append({
-                'BusinessDate': business_date,
+                'BusinessDate': file_business_date,
                 'RowsExtracted': rows_extracted,
                 'UpstreamCount': upstream_count,
                 'ProcessedCount': processed_count,
                 'RecordType': recordtype,
+                'Filename': filename,
                 'ValidUpstream': is_valid_upstream,
                 'ValidRowsExtracted': is_valid_rows_extracted
             })
@@ -88,8 +142,8 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     print(f"Validation results saved to {output_csv_path}")
 
 # Specify the paths to your CSV files and output CSV file
-csv1_path = 'file1_name.csv'  # Update with the actual path
-csv2_path = 'file2_name.csv'  # Update with the actual path
+csv1_path = 'path_to_first_csv.csv'  # Update with the actual path
+csv2_path = 'path_to_second_csv.csv'  # Update with the actual path
 output_csv_path = 'validation_results.csv'  # Specify output path
 
 # Run the validation
