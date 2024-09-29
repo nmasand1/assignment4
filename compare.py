@@ -2,6 +2,10 @@ import pandas as pd
 import re
 
 def extract_date_from_filename(filename):
+    # Ensure filename is a valid string, otherwise return None
+    if not isinstance(filename, str):
+        return None
+    
     # Extracts the date (in YYYYMMDD format) from the filename
     match = re.search(r'(\d{8})', filename)  # Looks for a pattern like 20221126
     if match:
@@ -12,6 +16,8 @@ def extract_date_from_filename(filename):
 
 def map_filename_to_recordtype(filename):
     # Mapping the filenames to record types based on prefixes
+    if not isinstance(filename, str):
+        return None
     if "Cash_TRADE_OnPrem" in filename:
         return 1  # On-Prem Data
     elif "Cash_TRADE_Original" in filename:
