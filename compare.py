@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+from datetime import datetime
 
 def extract_date_from_filename(filename):
     # Ensure filename is a valid string, otherwise return None
@@ -26,6 +27,20 @@ def map_filename_to_recordtype(filename):
         return 0  # Cloud Data
     else:
         return None  # Unknown type, not relevant for processing
+
+def normalize_date(date_str):
+    """Normalize the date to YYYY-MM-DD format regardless of the input format."""
+    if not isinstance(date_str, str):
+        return None
+    try:
+        # Attempt parsing in MM/DD/YYYY format
+        return datetime.strptime(date_str.strip(), "%m/%d/%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        try:
+            # Attempt parsing in YYYY-MM-DD format
+            return datetime.strptime(date_str.strip(), "%Y-%m-%d").strftime("%Y-%m-%d")
+        except ValueError:
+            return None
 
 def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     # Read the CSV files
@@ -56,6 +71,10 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
 
     # Initialize a list to store validation results
     results = []
+
+    # Normalize 'businessdate' columns in both dataframes
+    df1['businessdate'] = df1['businessdate'].apply(normalize_date)
+    df2['businessdate'] = df2['businessdate'].apply(normalize_date)
 
     # Iterate through each row in the first CSV
     for _, row in df1.iterrows():
