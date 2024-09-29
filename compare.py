@@ -1,32 +1,44 @@
 import pandas as pd
 
 def validate_csv_data(csv1_path, csv2_path, output_csv_path):
-    # Read the CSV files
+    # Attempt to read the CSV files with a comma delimiter
     try:
-        df1 = pd.read_csv(csv1_path)
-        df2 = pd.read_csv(csv2_path)
+        df1 = pd.read_csv(csv1_path, delimiter=',')
+        df2 = pd.read_csv(csv2_path, delimiter=',')
     except Exception as e:
-        print(f"Error reading the CSV files: {e}")
+        print(f"Error reading CSV files: {e}")
         return
 
-    # Clean column names: make lowercase, strip any extra spaces, and remove case sensitivity
+    # Strip whitespace from column names and convert to lowercase
     df1.columns = df1.columns.str.strip().str.lower()
     df2.columns = df2.columns.str.strip().str.lower()
 
-    # Define the required columns for both CSVs
+    # Debugging: print the first few rows to inspect data
+    print("First few rows of first CSV (df1):")
+    print(df1.head())
+
+    print("First few rows of second CSV (df2):")
+    print(df2.head())
+
+    # Print cleaned columns for both CSVs to verify
+    print("Columns in first CSV (cleaned and lowercase):", df1.columns.tolist())
+    print("Columns in second CSV (cleaned and lowercase):", df2.columns.tolist())
+
+    # Define the required columns for both CSVs, all in lowercase
     required_columns_df1 = ['businessdate', 'rowsextracted', 'filename']
     required_columns_df2 = ['tablename', 'businessdate', 'upstreamcount', 'processedcount', 'recordtype']
 
-    # Check if all required columns are present in both CSVs
-    missing_cols_df1 = [col for col in required_columns_df1 if col not in df1.columns]
-    missing_cols_df2 = [col for col in required_columns_df2 if col not in df2.columns]
+    # Check for missing columns in the first CSV
+    for col in required_columns_df1:
+        if col not in df1.columns:
+            print(f"Missing column in first CSV: {col}")
+            return
 
-    if missing_cols_df1:
-        print(f"Missing columns in first CSV: {missing_cols_df1}")
-        return
-    if missing_cols_df2:
-        print(f"Missing columns in second CSV: {missing_cols_df2}")
-        return
+    # Check for missing columns in the second CSV
+    for col in required_columns_df2:
+        if col not in df2.columns:
+            print(f"Missing column in second CSV: {col}")
+            return
 
     # Initialize a list to store validation results
     results = []
@@ -44,7 +56,6 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
             results.append({
                 'BusinessDate': business_date,
                 'RowsExtracted': rows_extracted,
-                'RecordType': 'N/A',
                 'UpstreamCount': 'N/A',
                 'ProcessedCount': 'N/A',
                 'ValidUpstream': 'N/A',
@@ -53,35 +64,32 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
             print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
-        # Process each record type (0, 1, 2) separately
-        for recordtype in [0, 1, 2]:
-            # Filter the rows based on the recordtype
-            df2_recordtype = df2_filtered[df2_filtered['recordtype'] == recordtype]
+        # Initialize sums for UpstreamCount for record types 0, 1, and 2
+        upstream_count_0 = df2_filtered[df2_filtered['recordtype'] == 0]['upstreamcount'].sum()
+        upstream_count_1 = df2_filtered[df2_filtered['recordtype'] == 1]['upstreamcount'].sum()
+        upstream_count_2 = df2_filtered[df2_filtered['recordtype'] == 2]['upstreamcount'].sum()
 
-            if df2_recordtype.empty:
-                # Skip if no data for this recordtype
-                continue
+        # Total UpstreamCount for record types 0, 1, and 2
+        total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
-            # Calculate the sum of UpstreamCount and get the unique ProcessedCount
-            upstream_count_sum = df2_recordtype['upstreamcount'].sum()
-            processed_count_sum = df2_recordtype['processedcount'].unique()
+        # Extract the unique processed counts for matching BusinessDate
+        processed_count = df2_filtered['processedcount'].unique()
 
-            # Check if the UpstreamCount equals ProcessedCount for this recordtype
-            is_valid_upstream = upstream_count_sum in processed_count_sum
+        # Check if the total UpstreamCount equals any of the ProcessedCounts for the record types 0, 1, and 2
+        is_valid_upstream = total_upstream_count in processed_count
 
-            # Check if the sum of UpstreamCount matches RowsExtracted
-            is_valid_rows_extracted = (upstream_count_sum == rows_extracted)
+        # Check if total UpstreamCount matches RowsExtracted
+        is_valid_rows_extracted = (total_upstream_count == rows_extracted)
 
-            # Append the result to the list
-            results.append({
-                'BusinessDate': business_date,
-                'RowsExtracted': rows_extracted,
-                'RecordType': recordtype,
-                'UpstreamCount': upstream_count_sum,
-                'ProcessedCount': ', '.join(map(str, processed_count_sum)),  # Combine multiple processed counts
-                'ValidUpstream': is_valid_upstream,
-                'ValidRowsExtracted': is_valid_rows_extracted
-            })
+        # Append the result to the list
+        results.append({
+            'BusinessDate': business_date,
+            'RowsExtracted': rows_extracted,
+            'UpstreamCount': total_upstream_count,
+            'ProcessedCount': processed_count,  # Keep it as a unique value
+            'ValidUpstream': is_valid_upstream,
+            'ValidRowsExtracted': is_valid_rows_extracted
+        })
 
     # Create a DataFrame from the results
     results_df = pd.DataFrame(results)
