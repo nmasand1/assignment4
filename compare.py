@@ -76,7 +76,7 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         processed_count = df2_filtered['processedcount'].unique()
 
         # Validate conditions
-        valid_upstream = total_upstream_count in processed_count
+        valid_upstream = total_upstream_count == processed_count
         valid_rows_extracted = (total_upstream_count == rows_extracted)
 
         # Append the result to the list
