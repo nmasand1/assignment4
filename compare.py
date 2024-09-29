@@ -24,7 +24,7 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
     print("Columns in first CSV (cleaned and lowercase):", df1.columns.tolist())
     print("Columns in second CSV (cleaned and lowercase):", df2.columns.tolist())
 
-    # Define the required columns for both CSVs, all in lowercase
+    # Define the required columns for both CSVs
     required_columns_df1 = ['businessdate', 'rowsextracted', 'filename']
     required_columns_df2 = ['tablename', 'businessdate', 'upstreamcount', 'processedcount', 'recordtype']
 
@@ -72,23 +72,21 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         # Total UpstreamCount for record types 0, 1, and 2
         total_upstream_count = upstream_count_0 + upstream_count_1 + upstream_count_2
 
-        # Extract the unique processed counts for matching BusinessDate
+        # Extract the unique processed count for the matching BusinessDate
         processed_count = df2_filtered['processedcount'].unique()
 
-        # Check if the total UpstreamCount equals any of the ProcessedCounts for the record types 0, 1, and 2
-        is_valid_upstream = total_upstream_count in processed_count
-
-        # Check if total UpstreamCount matches RowsExtracted
-        is_valid_rows_extracted = (total_upstream_count == rows_extracted)
+        # Validate conditions
+        valid_upstream = total_upstream_count in processed_count
+        valid_rows_extracted = (total_upstream_count == rows_extracted)
 
         # Append the result to the list
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'UpstreamCount': total_upstream_count,
-            'ProcessedCount': processed_count,  # Keep it as a unique value
-            'ValidUpstream': is_valid_upstream,
-            'ValidRowsExtracted': is_valid_rows_extracted
+            'ProcessedCount': processed_count,
+            'ValidUpstream': valid_upstream,
+            'ValidRowsExtracted': valid_rows_extracted
         })
 
     # Create a DataFrame from the results
