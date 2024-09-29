@@ -9,30 +9,24 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         print(f"Error reading the CSV files: {e}")
         return
 
-    # Clean column names: lowercase and strip spaces for both CSVs
+    # Clean column names: make lowercase, strip any extra spaces, and remove case sensitivity
     df1.columns = df1.columns.str.strip().str.lower()
     df2.columns = df2.columns.str.strip().str.lower()
 
-    # Print first few rows for inspection
-    print("First few rows of first CSV (df1):")
-    print(df1.head())
-
-    print("First few rows of second CSV (df2):")
-    print(df2.head())
-
-    # Check required columns
+    # Define the required columns for both CSVs
     required_columns_df1 = ['businessdate', 'rowsextracted', 'filename']
     required_columns_df2 = ['tablename', 'businessdate', 'upstreamcount', 'processedcount', 'recordtype']
 
-    for col in required_columns_df1:
-        if col not in df1.columns:
-            print(f"Missing column in first CSV: {col}")
-            return
+    # Check if all required columns are present in both CSVs
+    missing_cols_df1 = [col for col in required_columns_df1 if col not in df1.columns]
+    missing_cols_df2 = [col for col in required_columns_df2 if col not in df2.columns]
 
-    for col in required_columns_df2:
-        if col not in df2.columns:
-            print(f"Missing column in second CSV: {col}")
-            return
+    if missing_cols_df1:
+        print(f"Missing columns in first CSV: {missing_cols_df1}")
+        return
+    if missing_cols_df2:
+        print(f"Missing columns in second CSV: {missing_cols_df2}")
+        return
 
     # Initialize a list to store validation results
     results = []
@@ -46,55 +40,48 @@ def validate_csv_data(csv1_path, csv2_path, output_csv_path):
         df2_filtered = df2[df2['businessdate'] == business_date]
 
         if df2_filtered.empty:
-            # Log this as a result if no matching data is found
+            # If no matching data, log this as a result
             results.append({
                 'BusinessDate': business_date,
                 'RowsExtracted': rows_extracted,
+                'RecordType': 'N/A',
                 'UpstreamCount': 'N/A',
                 'ProcessedCount': 'N/A',
-                'RecordType': 'N/A',
                 'ValidUpstream': 'N/A',
                 'ValidRowsExtracted': f"No matching data in second CSV for BusinessDate: {business_date}"
             })
             print(f"No matching data in second CSV for BusinessDate: {business_date}")
             continue
 
-        # Process each recordtype (0, 1, 2) separately and create rows for each
-        for record_type in [0, 1, 2]:
-            recordtype_filtered = df2_filtered[df2_filtered['recordtype'] == record_type]
+        # Process each record type (0, 1, 2) separately
+        for recordtype in [0, 1, 2]:
+            # Filter the rows based on the recordtype
+            df2_recordtype = df2_filtered[df2_filtered['recordtype'] == recordtype]
 
-            if not recordtype_filtered.empty:
-                upstream_count = recordtype_filtered['upstreamcount'].sum()
-                processed_count = recordtype_filtered['processedcount'].sum()
+            if df2_recordtype.empty:
+                # Skip if no data for this recordtype
+                continue
 
-                # Check if upstream count equals processed count
-                is_valid_upstream = (upstream_count == processed_count)
+            # Calculate the sum of UpstreamCount and get the unique ProcessedCount
+            upstream_count_sum = df2_recordtype['upstreamcount'].sum()
+            processed_count_sum = df2_recordtype['processedcount'].unique()
 
-                # Check if upstream count matches RowsExtracted
-                is_valid_rows_extracted = (upstream_count == rows_extracted)
+            # Check if the UpstreamCount equals ProcessedCount for this recordtype
+            is_valid_upstream = upstream_count_sum in processed_count_sum
 
-                # Append the result for this specific recordtype
-                results.append({
-                    'BusinessDate': business_date,
-                    'RowsExtracted': rows_extracted,
-                    'UpstreamCount': upstream_count,
-                    'ProcessedCount': processed_count,
-                    'RecordType': record_type,
-                    'ValidUpstream': is_valid_upstream,
-                    'ValidRowsExtracted': is_valid_rows_extracted
-                })
+            # Check if the sum of UpstreamCount matches RowsExtracted
+            is_valid_rows_extracted = (upstream_count_sum == rows_extracted)
 
-            else:
-                # If the recordtype is not present, add a row with N/A
-                results.append({
-                    'BusinessDate': business_date,
-                    'RowsExtracted': rows_extracted,
-                    'UpstreamCount': 'N/A',
-                    'ProcessedCount': 'N/A',
-                    'RecordType': record_type,
-                    'ValidUpstream': 'N/A',
-                    'ValidRowsExtracted': 'N/A'
-                })
+            # Append the result to the list
+            results.append({
+                'BusinessDate': business_date,
+                'RowsExtracted': rows_extracted,
+                'RecordType': recordtype,
+                'UpstreamCount': upstream_count_sum,
+                'ProcessedCount': ', '.join(map(str, processed_count_sum)),  # Combine multiple processed counts
+                'ValidUpstream': is_valid_upstream,
+                'ValidRowsExtracted': is_valid_rows_extracted
+            })
 
     # Create a DataFrame from the results
     results_df = pd.DataFrame(results)
