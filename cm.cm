@@ -22,8 +22,8 @@ export class FiltersPanelComponent implements OnInit {
 
   selectedDate: string = '';
 
+  // Add a property to hold the filtered results for the grid
   filteredResults: any[] = []; // To hold the filtered data results
-
   private jsonUrl = 'assets/mock-data/response/json1_filters.json';
   private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct API URL
 
@@ -195,39 +195,6 @@ export class FiltersPanelComponent implements OnInit {
 
   <div class="results-container" *ngIf="filteredResults.length > 0">
     <h3>Filtered Results</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Field Link ID</th>
-          <th>Field Name</th>
-          <th>Regulation Name</th>
-          <th>Asset Class</th>
-          <th>Message Type</th>
-          <th>Product Type</th>
-          <th>Reg Text Value</th>
-          <th>Condition</th>
-          <th>Data Type</th>
-          <th>Valid Values</th>
-          <th>Mandatory/Optional</th>
-          <th>RAG Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let result of filteredResults">
-          <td>{{ result.fieldLinkId }}</td>
-          <td>{{ result.fieldName }}</td>
-          <td>{{ result.regulationName }}</td>
-          <td>{{ result.assetclass }}</td>
-          <td>{{ result.messageType }}</td>
-          <td>{{ result.productType }}</td>
-          <td>{{ result.regTextvalue }}</td>
-          <td>{{ result.condition }}</td>
-          <td>{{ result.dataType }}</td>
-          <td>{{ result.validvalues }}</td>
-          <td>{{ result.mandatoryOroptional }}</td>
-          <td>{{ result.ragstatus }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <app-data-grid [data]="filteredResults"></app-data-grid> <!-- Replace 'app-data-grid' with your actual grid component -->
   </div>
 </div>
