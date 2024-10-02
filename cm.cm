@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust the path as necessary
 
@@ -8,6 +8,8 @@ import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adju
   styleUrls: ['./filters-panel.component.css'],
 })
 export class FiltersPanelComponent implements OnInit {
+  @Output() filteredDataEmitter = new EventEmitter<any[]>(); // EventEmitter to emit filtered data
+
   regulations: MultiSelectOption[] = [];
   reportableDatasets: MultiSelectOption[] = [];
   reportableFields: MultiSelectOption[] = [];
@@ -22,8 +24,8 @@ export class FiltersPanelComponent implements OnInit {
 
   selectedDate: string = '';
 
-  // Add a property to hold the filtered results for the grid
   filteredResults: any[] = []; // To hold the filtered data results
+
   private jsonUrl = 'assets/mock-data/response/json1_filters.json';
   private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct API URL
 
@@ -35,40 +37,7 @@ export class FiltersPanelComponent implements OnInit {
 
   loadFiltersData(): void {
     this.http.get<any>(this.jsonUrl).subscribe((data) => {
-      this.regulations = data.data.regulations.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-
-      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-
-      this.reportableFields = data.data.reportableFields.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-
-      this.assetClasses = data.data.assetClasses.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
-
-      this.productType = data.data.productType.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
+      // Your existing code to map the data
     });
   }
 
@@ -87,30 +56,27 @@ export class FiltersPanelComponent implements OnInit {
     // API call with search filters
     this.http.post<any[]>(this.apiUrl, payload).subscribe(
       (response) => {
-        // Filter the response data based on selected filters
         let filteredData = response;
-
-        // Apply filtering logic for each filter
+        
+        // Apply filtering logic
         if (this.selectedRegulations.length > 0 && this.selectedRegulations[0].name !== 'All') {
           filteredData = filteredData.filter(item => this.selectedRegulations.some(reg => reg.name === item.regulationName));
         }
-
         if (this.selectedAssetClasses.length > 0 && this.selectedAssetClasses[0].name !== 'All') {
           filteredData = filteredData.filter(item => this.selectedAssetClasses.some(ac => ac.name === item.assetclass));
         }
-
         if (this.selectedProductType.length > 0 && this.selectedProductType[0].name !== 'All') {
           filteredData = filteredData.filter(item => this.selectedProductType.some(pt => pt.name === item.productType));
         }
-
         if (this.selectedReportableDatasets.length > 0 && this.selectedReportableDatasets[0].name !== 'All') {
           filteredData = filteredData.filter(item => this.selectedReportableDatasets.some(ds => ds.name === item.messageType));
         }
 
-        // Update the filtered results
         this.filteredResults = filteredData;
 
-        // Log the filtered results for debugging
+        // Emit the filtered data to the parent component (Dashboard)
+        this.filteredDataEmitter.emit(this.filteredResults);
+
         console.log('Filtered Data:', this.filteredResults);
       },
       (error) => {
@@ -118,83 +84,50 @@ export class FiltersPanelComponent implements OnInit {
       }
     );
   }
+}
 
-  resetFilters(): void {
-    this.selectedRegulations = [];
-    this.selectedReportableDatasets = [];
-    this.selectedReportableFields = [];
-    this.selectedAssetClasses = [];
-    this.selectedProductType = [];
-    this.selectedDate = ''; // Reset selected date as well
-    this.filteredResults = []; // Clear filtered results
+
+
+import { Component, inject, OnInit } from '@angular/core';
+import { GridComponent } from '../../../common/components/grid/grid.component';
+import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
+import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
+
+@Component({
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css'],
+})
+export class DashboardComponent implements OnInit {
+  private readonly dashboardStaticData = inject(DashboardStaticDataService);
+  private readonly transformationStaticData = inject(TransformationsStaticDataService);
+
+  public dashboardGridColumns = []; // Define the grid columns
+  public dashboardGridVisibleColumns: string[] = [];
+  public dashboardGridData: any[] = [];
+
+  constructor() {}
+
+  ngOnInit(): void {
+    this.initializeGridData(); // Load initial grid data
   }
 
-  onRegulationsChange(selected: MultiSelectOption[]): void {
-    this.selectedRegulations = selected;
+  initializeGridData(): void {
+    // Populate with initial static data
+    this.dashboardGridData = this.dashboardStaticData.dashboardGridStaticData;
   }
 
-  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
-    this.selectedReportableDatasets = selected;
-  }
-
-  onReportableFieldsChange(selected: MultiSelectOption[]): void {
-    this.selectedReportableFields = selected;
-  }
-
-  onAssetClassesChange(selected: MultiSelectOption[]): void {
-    this.selectedAssetClasses = selected;
-  }
-
-  onProductTypeChange(selected: MultiSelectOption[]): void {
-    this.selectedProductType = selected;
+  // Method to handle the filtered data from FiltersPanelComponent
+  onFilteredDataReceived(filteredData: any[]): void {
+    this.dashboardGridData = filteredData; // Update grid data with filtered results
+    console.log('Updated Grid Data:', this.dashboardGridData);
   }
 }
 
 
 
-<div class="filters-container">
-  <div class="filter-dropdowns">
-    <!-- Regulation Dropdown -->
-    <multi-select
-      [options]="regulations"
-      (selectionChange)="onRegulationsChange($event)"
-      placeholder="Select Regulations"
-    ></multi-select>
+<app-filters-panel (filteredDataEmitter)="onFilteredDataReceived($event)"></app-filters-panel>
 
-    <!-- Reportable Datasets Dropdown -->
-    <multi-select
-      [options]="reportableDatasets"
-      (selectionChange)="onReportableDatasetsChange($event)"
-      placeholder="Select Reportable Datasets"
-    ></multi-select>
-
-    <!-- Reportable Fields Dropdown -->
-    <multi-select
-      [options]="reportableFields"
-      (selectionChange)="onReportableFieldsChange($event)"
-      placeholder="Select Reportable Fields"
-    ></multi-select>
-
-    <!-- Asset Classes Dropdown -->
-    <multi-select
-      [options]="assetClasses"
-      (selectionChange)="onAssetClassesChange($event)"
-      placeholder="Select Asset Classes"
-    ></multi-select>
-
-    <!-- Product Type Dropdown -->
-    <multi-select
-      [options]="productType"
-      (selectionChange)="onProductTypeChange($event)"
-      placeholder="Select Product Type"
-    ></multi-select>
-  </div>
-
-  <button (click)="searchFilters()">Search</button>
-  <button (click)="resetFilters()">Reset</button>
-
-  <div class="results-container" *ngIf="filteredResults.length > 0">
-    <h3>Filtered Results</h3>
-    <app-data-grid [data]="filteredResults"></app-data-grid> <!-- Replace 'app-data-grid' with your actual grid component -->
-  </div>
-</div>
+<!-- Grid to display the data -->
+<app-grid [columns]="dashboardGridColumns" [data]="dashboardGridData">
+</app-grid>
