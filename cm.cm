@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust the path as necessary
+import { LightHouseApiService } from 'src/app/services/lighthouse-api.service'; // Adjust the path as necessary
 
 @Component({
   selector: 'app-filters-panel',
@@ -25,51 +26,53 @@ export class FiltersPanelComponent implements OnInit {
   filteredResults: any[] = []; // To hold the filtered data results
 
   private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct API URL
-  private filtersApiUrl = 'http://1234.234:8080/fightfox/getFiltersMetaData'; // Replace with the correct API URL for filters
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private lightHouseApi: LightHouseApiService) {}
 
   ngOnInit(): void {
     this.loadFiltersData();
   }
 
   loadFiltersData(): void {
-    // Fetch the filter data from the API
-    this.http.get<any>(this.filtersApiUrl).subscribe((data) => {
-      this.regulations = data.data.regulations.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
+    this.lightHouseApi.getFiltersMetaData().subscribe((data) => {
+      if (data && data.data) {
+        this.regulations = data.data.regulations.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          displayName: item.displayName,
+          selected: false,
+        }));
 
-      this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
+        this.reportableDatasets = data.data.reportableDatasets.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          displayName: item.displayName,
+          selected: false,
+        }));
 
-      this.reportableFields = data.data.reportableFields.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.displayName,
-        selected: false,
-      }));
+        this.reportableFields = data.data.reportableFields.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          displayName: item.displayName,
+          selected: false,
+        }));
 
-      this.assetClasses = data.data.assetClasses.map((item: any) => ({
-        id: item.id,
-        name: item.assetclass, // Make sure to match the API response structure
-        displayName: item.assetclass, // Ensure it displays correctly
-        selected: false,
-      }));
+        this.assetClasses = data.data.assetClasses.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          displayName: item.displayName,
+          selected: false,
+        }));
 
-      this.productType = data.data.productType.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        displayName: item.name, // Ensure it displays correctly
-        selected: false,
-      }));
+        this.productType = data.data.productType.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          displayName: item.displayName,
+          selected: false,
+        }));
+      }
+    }, error => {
+      console.error('Error loading filter data:', error);
     });
   }
 
