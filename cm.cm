@@ -31,10 +31,10 @@ export class FiltersPanelComponent implements OnInit {
   }
 
   loadFiltersData(): void {
-    // Call the getFiltersMetaData function from the service
+    // Fetch filter metadata from the service
     this.lightHouseApiService.getFiltersMetaData().subscribe(
       (response) => {
-        // Ensure you adjust this part to match the actual API response structure
+        // Ensure to match the API response structure
         this.regulations = response.data.regulations.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -58,7 +58,7 @@ export class FiltersPanelComponent implements OnInit {
 
         this.assetClasses = response.data.assetClasses.map((item: any) => ({
           id: item.id,
-          name: item.assetclass, // Adjust this if the API response structure is different
+          name: item.assetclass,
           displayName: item.assetclass,
           selected: false,
         }));
@@ -76,6 +76,7 @@ export class FiltersPanelComponent implements OnInit {
     );
   }
 
+  // Trigger search API call with selected filters
   searchFilters(): void {
     const payload = {
       selectedDate: this.selectedDate,
@@ -83,13 +84,13 @@ export class FiltersPanelComponent implements OnInit {
       selectedReportableDatasets: this.selectedReportableDatasets.map(option => option.name),
       selectedReportableFields: this.selectedReportableFields.map(option => option.name),
       selectedAssetClasses: this.selectedAssetClasses.map(option => option.name),
-      selectedProductType: this.selectedProductType.map(option => option.name)
+      selectedProductType: this.selectedProductType.map(option => option.name),
     };
 
-    // Search the API with selected filters
-    this.lightHouseApiService.searchWithFilters(payload).subscribe(
+    // Call the fetchFlattenFieldData method in the LightHouseApiService
+    this.lightHouseApiService.fetchFlattenFieldData(payload).subscribe(
       (response) => {
-        this.filteredResults = response; // Adjust if needed to match response structure
+        this.filteredResults = response; // Adjust this if necessary based on the response structure
         console.log('Filtered Data:', this.filteredResults);
       },
       (error) => {
@@ -98,6 +99,7 @@ export class FiltersPanelComponent implements OnInit {
     );
   }
 
+  // Reset selected filters and clear the results
   resetFilters(): void {
     this.selectedRegulations = [];
     this.selectedReportableDatasets = [];
