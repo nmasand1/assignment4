@@ -24,67 +24,56 @@ export class FiltersPanelComponent implements OnInit {
 
   filteredResults: any[] = []; // To hold the filtered data results
 
-  private filterApiUrl = 'http://your-api-endpoint.com/filters'; // Replace with the correct API URL for fetching filter data
-  private searchApiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Search API URL
+  // API URL for fetching filter options
+  private filtersApiUrl = 'http://1234.234:8080/fightfox/getFilterOptions'; // Replace with the actual filter API URL
+
+  // API URL for performing the search based on selected filters
+  private searchApiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct search API URL
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.loadFiltersDataFromAPI();
+    this.loadFiltersData();
   }
 
-  loadFiltersDataFromAPI(): void {
-    // API call to fetch filter data
-    this.http.get<any>(this.filterApiUrl).subscribe((response) => {
-      // Mapping the response data to the filters (adjust the structure to match your API)
-      this.regulations = response.data.regulations.map((item: any) => ({
-        id: item.id,
-        name: item.regulationName, // Adjust based on actual field names
-        displayName: item.regulationName, // Adjust if needed
-        selected: false,
-      }));
+  // Fetching filter options from the API
+  loadFiltersData(): void {
+    this.http.get<any>(this.filtersApiUrl).subscribe(
+      (response) => {
+        const data = response.data;
 
-      this.assetClasses = response.data.assetClasses.map((item: any) => ({
-        id: item.id,
-        name: item.assetclass, // Use the correct field name
-        displayName: item.assetclass, // Use the correct field name
-        selected: false,
-      }));
+        // Mapping the 'assetClasses' from API to dropdown options
+        this.assetClasses = data.assetClasses.map((item: any) => ({
+          id: item.id,
+          name: item.assetclass, // Map this to 'name'
+          displayName: item.assetclass, // Map this to 'displayName'
+          selected: false,
+        }));
 
-      this.reportableDatasets = response.data.reportableDatasets.map((item: any) => ({
-        id: item.id,
-        name: item.reportableDatasetName, // Adjust field name
-        displayName: item.reportableDatasetName, // Adjust if needed
-        selected: false,
-      }));
+        // Repeat for productTypes
+        this.productType = data.productTypes.map((item: any) => ({
+          id: item.id,
+          name: item.productType, // Map this to 'name'
+          displayName: item.productType, // Map this to 'displayName'
+          selected: false,
+        }));
 
-      this.reportableFields = response.data.reportableFields.map((item: any) => ({
-        id: item.id,
-        name: item.fieldName, // Adjust the field name based on the actual API response
-        displayName: item.fieldName,
-        selected: false,
-      }));
-
-      this.productType = response.data.productType.map((item: any) => ({
-        id: item.id,
-        name: item.productTypeName, // Adjust field name
-        displayName: item.productTypeName, // Adjust if needed
-        selected: false,
-      }));
-    },
-    (error) => {
-      console.error('Error fetching filter data:', error);
-    });
+        // Continue for regulations, reportableDatasets, reportableFields
+      },
+      (error) => {
+        console.error('Error fetching filter options from API:', error);
+      }
+    );
   }
 
   searchFilters(): void {
     const payload = {
       selectedDate: this.selectedDate,
-      selectedRegulations: this.selectedRegulations.map(option => option.name),
-      selectedReportableDatasets: this.selectedReportableDatasets.map(option => option.name),
-      selectedReportableFields: this.selectedReportableFields.map(option => option.name),
-      selectedAssetClasses: this.selectedAssetClasses.map(option => option.name),
-      selectedProductType: this.selectedProductType.map(option => option.name)
+      selectedRegulations: this.selectedRegulations.map((option) => option.name),
+      selectedReportableDatasets: this.selectedReportableDatasets.map((option) => option.name),
+      selectedReportableFields: this.selectedReportableFields.map((option) => option.name),
+      selectedAssetClasses: this.selectedAssetClasses.map((option) => option.name),
+      selectedProductType: this.selectedProductType.map((option) => option.name),
     };
 
     console.log('Search Payload:', payload);
@@ -92,28 +81,9 @@ export class FiltersPanelComponent implements OnInit {
     // API call with search filters
     this.http.post<any[]>(this.searchApiUrl, payload).subscribe(
       (response) => {
-        let filteredData = response;
+        this.filteredResults = response; // Update the filtered results
 
-        // Apply filtering logic for each filter
-        if (this.selectedRegulations.length > 0 && this.selectedRegulations[0].name !== 'All') {
-          filteredData = filteredData.filter(item => this.selectedRegulations.some(reg => reg.name === item.regulationName));
-        }
-
-        if (this.selectedAssetClasses.length > 0 && this.selectedAssetClasses[0].name !== 'All') {
-          filteredData = filteredData.filter(item => this.selectedAssetClasses.some(ac => ac.name === item.assetclass));
-        }
-
-        if (this.selectedProductType.length > 0 && this.selectedProductType[0].name !== 'All') {
-          filteredData = filteredData.filter(item => this.selectedProductType.some(pt => pt.name === item.productType));
-        }
-
-        if (this.selectedReportableDatasets.length > 0 && this.selectedReportableDatasets[0].name !== 'All') {
-          filteredData = filteredData.filter(item => this.selectedReportableDatasets.some(ds => ds.name === item.messageType));
-        }
-
-        // Update the filtered results
-        this.filteredResults = filteredData;
-
+        // Log the filtered results for debugging
         console.log('Filtered Data:', this.filteredResults);
       },
       (error) => {
