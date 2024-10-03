@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust the path as necessary
+import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust path as necessary
 
 @Component({
   selector: 'app-filters-panel',
@@ -45,20 +45,40 @@ export class FiltersPanelComponent implements OnInit {
         // Mapping the 'assetClasses' from API to dropdown options
         this.assetClasses = data.assetClasses.map((item: any) => ({
           id: item.id,
-          name: item.assetclass, // Map this to 'name'
-          displayName: item.assetclass, // Map this to 'displayName'
+          name: item.assetclass, // Use 'assetclass' for the dropdown name
+          displayName: item.assetclass, // Use 'assetclass' for the display name
           selected: false,
         }));
 
-        // Repeat for productTypes
+        // Mapping the 'productType' from API to dropdown options
         this.productType = data.productTypes.map((item: any) => ({
           id: item.id,
-          name: item.productType, // Map this to 'name'
-          displayName: item.productType, // Map this to 'displayName'
+          name: item.producttype, // Use 'producttype' for the dropdown name
+          displayName: item.producttype, // Use 'producttype' for the display name
           selected: false,
         }));
 
-        // Continue for regulations, reportableDatasets, reportableFields
+        // Similarly map for regulations, reportableDatasets, reportableFields
+        this.regulations = data.regulations.map((item: any) => ({
+          id: item.id,
+          name: item.regulation, // Use 'regulation' for the dropdown name
+          displayName: item.regulation, // Use 'regulation' for the display name
+          selected: false,
+        }));
+
+        this.reportableDatasets = data.reportableDatasets.map((item: any) => ({
+          id: item.id,
+          name: item.datasetName, // Use 'datasetName' for the dropdown name
+          displayName: item.datasetName, // Use 'datasetName' for the display name
+          selected: false,
+        }));
+
+        this.reportableFields = data.reportableFields.map((item: any) => ({
+          id: item.id,
+          name: item.fieldName, // Use 'fieldName' for the dropdown name
+          displayName: item.fieldName, // Use 'fieldName' for the display name
+          selected: false,
+        }));
       },
       (error) => {
         console.error('Error fetching filter options from API:', error);
