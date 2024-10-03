@@ -1,116 +1,31 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+<div>
+  <!-- Asset Classes Dropdown -->
+  <label for="assetClasses">Asset Classes</label>
+  <select [(ngModel)]="selectedAssetClasses" (ngModelChange)="onAssetClassesChange($event)">
+    <option *ngFor="let option of assetClasses" [value]="option">{{ option.displayName }}</option>
+  </select>
 
-interface MultiSelectOption {
-  id: number;
-  name: string;
-  displayName: string;
-  selected: boolean;
-}
+  <!-- Product Types Dropdown -->
+  <label for="productType">Product Type</label>
+  <select [(ngModel)]="selectedProductType" (ngModelChange)="onProductTypeChange($event)">
+    <option *ngFor="let option of productType" [value]="option">{{ option.displayName }}</option>
+  </select>
 
-@Component({
-  selector: 'app-filters-panel',
-  templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.css']
-})
-export class FiltersPanelComponent implements OnInit {
-  assetClasses: MultiSelectOption[] = [];
-  productType: MultiSelectOption[] = [];
-  regulations: MultiSelectOption[] = [];
-  reportableDatasets: MultiSelectOption[] = [];
-  reportableFields: MultiSelectOption[] = [];
+  <!-- Regulations Dropdown -->
+  <label for="regulations">Regulations</label>
+  <select [(ngModel)]="selectedRegulations" (ngModelChange)="onRegulationsChange($event)">
+    <option *ngFor="let option of regulations" [value]="option">{{ option.displayName }}</option>
+  </select>
 
-  selectedAssetClasses: MultiSelectOption[] = [];
-  selectedProductType: MultiSelectOption[] = [];
-  selectedRegulations: MultiSelectOption[] = [];
-  selectedReportableDatasets: MultiSelectOption[] = [];
-  selectedReportableFields: MultiSelectOption[] = [];
+  <!-- Reportable Datasets Dropdown -->
+  <label for="reportableDatasets">Reportable Datasets</label>
+  <select [(ngModel)]="selectedReportableDatasets" (ngModelChange)="onReportableDatasetsChange($event)">
+    <option *ngFor="let option of reportableDatasets" [value]="option">{{ option.displayName }}</option>
+  </select>
 
-  filtersApiUrl = 'YOUR_API_ENDPOINT'; // Replace with your API URL
-
-  constructor(private http: HttpClient) {}
-
-  ngOnInit(): void {
-    this.loadFiltersData();
-  }
-
-  loadFiltersData(): void {
-    this.http.get<any>(this.filtersApiUrl).subscribe(
-      (response) => {
-        console.log('API Response:', response); // Log the full response to inspect the structure
-
-        const data = response.data;
-
-        if (data) {
-          console.log('Asset Classes:', data.assetClasses);
-          console.log('Product Types:', data.productTypes);
-
-          this.assetClasses = data.assetClasses?.map((item: any) => ({
-            id: item.id,
-            name: item.assetclass,
-            displayName: item.assetclass,
-            selected: false,
-          })) || [];
-
-          this.productType = data.productTypes?.map((item: any) => ({
-            id: item.id,
-            name: item.producttype,
-            displayName: item.producttype,
-            selected: false,
-          })) || [];
-
-          this.regulations = data.regulations?.map((item: any) => ({
-            id: item.id,
-            name: item.regulation,
-            displayName: item.regulation,
-            selected: false,
-          })) || [];
-
-          this.reportableDatasets = data.reportableDatasets?.map((item: any) => ({
-            id: item.id,
-            name: item.datasetName,
-            displayName: item.datasetName,
-            selected: false,
-          })) || [];
-
-          this.reportableFields = data.reportableFields?.map((item: any) => ({
-            id: item.id,
-            name: item.fieldName,
-            displayName: item.fieldName,
-            selected: false,
-          })) || [];
-        } else {
-          console.error('No data in the response.');
-        }
-      },
-      (error) => {
-        console.error('Error fetching filter options from API:', error);
-      }
-    );
-  }
-
-  onAssetClassesChange(selectedOptions: MultiSelectOption[]): void {
-    this.selectedAssetClasses = selectedOptions;
-    console.log('Selected Asset Classes:', this.selectedAssetClasses);
-  }
-
-  onProductTypeChange(selectedOptions: MultiSelectOption[]): void {
-    this.selectedProductType = selectedOptions;
-    console.log('Selected Product Types:', this.selectedProductType);
-  }
-
-  onRegulationsChange(selectedOptions: MultiSelectOption[]): void {
-    this.selectedRegulations = selectedOptions;
-    console.log('Selected Regulations:', this.selectedRegulations);
-  }
-
-  onReportableDatasetsChange(selectedOptions: MultiSelectOption[]): void {
-    this.selectedReportableDatasets = selectedOptions;
-    console.log('Selected Reportable Datasets:', this.selectedReportableDatasets);
-  }
-
-  onReportableFieldsChange(selectedOptions: MultiSelectOption[]): void {
-    this.selectedReportableFields = selectedOptions;
-    console.log('Selected Reportable Fields:', this.selectedReportableFields);
-  }
-}
+  <!-- Reportable Fields Dropdown -->
+  <label for="reportableFields">Reportable Fields</label>
+  <select [(ngModel)]="selectedReportableFields" (ngModelChange)="onReportableFieldsChange($event)">
+    <option *ngFor="let option of reportableFields" [value]="option">{{ option.displayName }}</option>
+  </select>
+</div>
