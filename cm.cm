@@ -1,31 +1,124 @@
-<div>
-  <!-- Asset Classes Dropdown -->
-  <label for="assetClasses">Asset Classes</label>
-  <select [(ngModel)]="selectedAssetClasses" (ngModelChange)="onAssetClassesChange($event)">
-    <option *ngFor="let option of assetClasses" [value]="option">{{ option.displayName }}</option>
-  </select>
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust the path as necessary
 
-  <!-- Product Types Dropdown -->
-  <label for="productType">Product Type</label>
-  <select [(ngModel)]="selectedProductType" (ngModelChange)="onProductTypeChange($event)">
-    <option *ngFor="let option of productType" [value]="option">{{ option.displayName }}</option>
-  </select>
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  reportableFields: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productType: MultiSelectOption[] = [];
 
-  <!-- Regulations Dropdown -->
-  <label for="regulations">Regulations</label>
-  <select [(ngModel)]="selectedRegulations" (ngModelChange)="onRegulationsChange($event)">
-    <option *ngFor="let option of regulations" [value]="option">{{ option.displayName }}</option>
-  </select>
+  selectedRegulations: MultiSelectOption[] = [];
+  selectedReportableDatasets: MultiSelectOption[] = [];
+  selectedReportableFields: MultiSelectOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+  selectedProductType: MultiSelectOption[] = [];
 
-  <!-- Reportable Datasets Dropdown -->
-  <label for="reportableDatasets">Reportable Datasets</label>
-  <select [(ngModel)]="selectedReportableDatasets" (ngModelChange)="onReportableDatasetsChange($event)">
-    <option *ngFor="let option of reportableDatasets" [value]="option">{{ option.displayName }}</option>
-  </select>
+  selectedDate: string = '';
 
-  <!-- Reportable Fields Dropdown -->
-  <label for="reportableFields">Reportable Fields</label>
-  <select [(ngModel)]="selectedReportableFields" (ngModelChange)="onReportableFieldsChange($event)">
-    <option *ngFor="let option of reportableFields" [value]="option">{{ option.displayName }}</option>
-  </select>
-</div>
+  filteredResults: any[] = []; // To hold the filtered data results
+
+  // API URL for fetching filter options
+  private filtersApiUrl = 'http://1234.234:8080/fightfox/getFilterOptions'; // Replace with the actual filter API URL
+
+  // API URL for performing the search based on selected filters
+  private searchApiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct search API URL
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
+
+  // Fetching filter options from the API
+  loadFiltersData(): void {
+    this.http.get<any>(this.filtersApiUrl).subscribe(
+      (response) => {
+        const data = response.data;
+
+        // Correctly mapping the API structure for assetClasses
+        this.assetClasses = data.assetClasses.map((item: any) => ({
+          id: item.id,
+          name: item.assetclass, // Using the 'assetclass' field for the dropdown name
+          displayName: item.assetclass, // Mapping 'assetclass' to display name
+          selected: false,
+        }));
+
+        // Similarly for productType
+        this.productType = data.productTypes.map((item: any) => ({
+          id: item.id,
+          name: item.productType, // Using 'productType' for dropdown name
+          displayName: item.productType, // Mapping 'productType' to display name
+          selected: false,
+        }));
+
+        // Continue mapping for regulations, reportableDatasets, and reportableFields if needed
+      },
+      (error) => {
+        console.error('Error fetching filter options from API:', error);
+      }
+    );
+  }
+
+  searchFilters(): void {
+    const payload = {
+      selectedDate: this.selectedDate,
+      selectedRegulations: this.selectedRegulations.map((option) => option.name),
+      selectedReportableDatasets: this.selectedReportableDatasets.map((option) => option.name),
+      selectedReportableFields: this.selectedReportableFields.map((option) => option.name),
+      selectedAssetClasses: this.selectedAssetClasses.map((option) => option.name),
+      selectedProductType: this.selectedProductType.map((option) => option.name),
+    };
+
+    console.log('Search Payload:', payload);
+
+    // API call with search filters
+    this.http.post<any[]>(this.searchApiUrl, payload).subscribe(
+      (response) => {
+        this.filteredResults = response; // Update the filtered results
+
+        // Log the filtered results for debugging
+        console.log('Filtered Data:', this.filteredResults);
+      },
+      (error) => {
+        console.error('Error fetching filtered data:', error);
+      }
+    );
+  }
+
+  resetFilters(): void {
+    this.selectedRegulations = [];
+    this.selectedReportableDatasets = [];
+    this.selectedReportableFields = [];
+    this.selectedAssetClasses = [];
+    this.selectedProductType = [];
+    this.selectedDate = ''; // Reset selected date as well
+    this.filteredResults = []; // Clear filtered results
+  }
+
+  onRegulationsChange(selected: MultiSelectOption[]): void {
+    this.selectedRegulations = selected;
+  }
+
+  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableDatasets = selected;
+  }
+
+  onReportableFieldsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableFields = selected;
+  }
+
+  onAssetClassesChange(selected: MultiSelectOption[]): void {
+    this.selectedAssetClasses = selected;
+  }
+
+  onProductTypeChange(selected: MultiSelectOption[]): void {
+    this.selectedProductType = selected;
+  }
+}
