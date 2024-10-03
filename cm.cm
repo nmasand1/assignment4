@@ -22,19 +22,20 @@ export class FiltersPanelComponent implements OnInit {
   selectedProductType: MultiSelectOption[] = [];
 
   selectedDate: string = '';
+
   filteredResults: any[] = []; // To hold the filtered data results
+
   private apiUrl = 'http://1234.234:8080/fightfox/transformationFieldData'; // Replace with the correct API URL
 
-  constructor(private http: HttpClient, private apiService: LightHouseApiService) {}
+  constructor(private http: HttpClient, private lightHouseApiService: LightHouseApiService) {}
 
   ngOnInit(): void {
     this.loadFiltersData();
   }
 
   loadFiltersData(): void {
-    this.apiService.getFiltersMetaData().subscribe(
+    this.lightHouseApiService.getFiltersMetaData().subscribe(
       (response) => {
-        // Assuming response has the structure { meta: null, error: null, data: { ... } }
         const data = response.data;
 
         this.regulations = data.regulations.map((item: any) => ({
@@ -60,8 +61,8 @@ export class FiltersPanelComponent implements OnInit {
 
         this.assetClasses = data.assetClasses.map((item: any) => ({
           id: item.id,
-          name: item.assetclass,
-          displayName: item.assetclass,
+          name: item.assetclass, // Ensure correct field mapping
+          displayName: item.assetclass, // Ensure correct field mapping
           selected: false,
         }));
 
@@ -73,7 +74,7 @@ export class FiltersPanelComponent implements OnInit {
         }));
       },
       (error) => {
-        console.error('Error loading filter data:', error);
+        console.error('Error loading filters data:', error);
       }
     );
   }
