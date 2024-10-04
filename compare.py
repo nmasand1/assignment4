@@ -9,6 +9,16 @@ def compare_csvs(file1_path, file2_path, output_path):
     df1.columns = df1.columns.str.strip()
     df2.columns = df2.columns.str.strip()
 
+    # Check the contents of both DataFrames
+    print("First CSV data:")
+    print(df1.head())
+    print("Second CSV data:")
+    print(df2.head())
+
+    # Convert numeric columns to appropriate types (if necessary)
+    df1['RowsExtracted'] = pd.to_numeric(df1['RowsExtracted'], errors='coerce')
+    df2['UpstreamCount'] = pd.to_numeric(df2['UpstreamCount'], errors='coerce')
+
     # Create a list to hold the results
     results = []
 
@@ -21,16 +31,22 @@ def compare_csvs(file1_path, file2_path, output_path):
     
     if missing_dates:
         print(f"Missing Dates: {missing_dates}")
-    
+
     # Perform the comparison
     for index, row in df1.iterrows():
         business_date = row['BusinessDate']
         rows_extracted = row['RowsExtracted']
         table_name = row['TableName']
 
+        # Debug print for current row being processed
+        print(f"Processing: {business_date}, {table_name}, RowsExtracted: {rows_extracted}")
+
         # Filter the second dataframe based on the same BusinessDate and TableName
-        matching_rows = df2[(df2['BusinessDate'] == business_date) & (df2['TableName'].str.strip() == table_name)]
+        matching_rows = df2[(df2['BusinessDate'] == business_date) & (df2['TableName'].str.strip().str.upper() == table_name.upper())]
         
+        # Debug print for matching rows
+        print(f"Matching Rows Found: {len(matching_rows)}")
+
         for _, match_row in matching_rows.iterrows():
             record_type = match_row['RecordType']
             upstream_count = match_row['UpstreamCount']
@@ -46,16 +62,20 @@ def compare_csvs(file1_path, file2_path, output_path):
             }
             results.append(output_row)
 
-    # Create a DataFrame for results
-    results_df = pd.DataFrame(results)
+    # Check if results are empty
+    if not results:
+        print("No matches found. Please check the input data.")
+    else:
+        # Create a DataFrame for results
+        results_df = pd.DataFrame(results)
 
-    # Write results to output CSV
-    results_df.to_csv(output_path, index=False)
-    print(f"Output saved to {output_path}")
+        # Write results to output CSV
+        results_df.to_csv(output_path, index=False)
+        print(f"Output saved to {output_path}")
 
 # Usage
-file1_path = 'csv1.csv'  # Update with your first CSV file path
-file2_path = 'csv2.csv'  # Update with your second CSV file path
-output_path = 'output.csv'      # Update with desired output file path
+file1_path = 'path/to/your/first_csv.csv'  # Update with your first CSV file path
+file2_path = 'path/to/your/second_csv.csv'  # Update with your second CSV file path
+output_path = 'path/to/your/output.csv'      # Update with desired output file path
 
 compare_csvs(file1_path, file2_path, output_path)
