@@ -1,13 +1,16 @@
 import pandas as pd
 
 def get_record_type(filename):
-    # Determine RecordType based on the filename
-    if 'OnPrem' in filename:
-        return 1  # Map to RecordType 1
-    elif 'Original' in filename:
-        return 2  # Map to RecordType 2
-    else:
-        return 0  # Default RecordType for other cases
+    # Ensure the filename is treated as a string
+    if isinstance(filename, str):
+        # Determine RecordType based on the filename
+        if 'OnPrem' in filename:
+            return 1  # Map to RecordType 1
+        elif 'Original' in filename:
+            return 2  # Map to RecordType 2
+        else:
+            return 0  # Default RecordType for other cases
+    return None  # Return None if filename is not a string
 
 def compare_csvs(file1_path, file2_path, output_path):
     # Read the CSV files
@@ -26,20 +29,19 @@ def compare_csvs(file1_path, file2_path, output_path):
     print("Processed First CSV Columns:", df1.columns.tolist())
     print("Processed Second CSV Columns:", df2.columns.tolist())
 
-    # Check if 'filename' is among the columns
-    if 'filename' not in df1.columns:
-        print("Error: 'filename' column not found in the first CSV. Available columns are:", df1.columns.tolist())
-        return
+    # Check if required columns are present
+    required_columns_df1 = ['filename', 'businessdate', 'rowsextracted']
+    required_columns_df2 = ['upstreamcount', 'businessdate', 'recordtype']
+    
+    for col in required_columns_df1:
+        if col not in df1.columns:
+            print(f"Error: '{col}' column not found in the first CSV. Available columns are:", df1.columns.tolist())
+            return
 
-    # Check if 'rowsextracted' is among the columns
-    if 'rowsextracted' not in df1.columns:
-        print("Error: 'rowsextracted' column not found in the first CSV. Available columns are:", df1.columns.tolist())
-        return
-
-    # Check if 'upstreamcount' is among the columns
-    if 'upstreamcount' not in df2.columns:
-        print("Error: 'upstreamcount' column not found in the second CSV. Available columns are:", df2.columns.tolist())
-        return
+    for col in required_columns_df2:
+        if col not in df2.columns:
+            print(f"Error: '{col}' column not found in the second CSV. Available columns are:", df2.columns.tolist())
+            return
 
     # Convert numeric columns to appropriate types, handling errors
     df1['rowsextracted'] = pd.to_numeric(df1['rowsextracted'], errors='coerce')
@@ -57,25 +59,28 @@ def compare_csvs(file1_path, file2_path, output_path):
         # Get the corresponding RecordType based on the filename
         record_type = get_record_type(filename)
 
-        # Filter the second DataFrame for matching BusinessDate and RecordType
-        matching_rows = df2[(df2['businessdate'] == business_date) & (df2['recordtype'] == record_type)]
+        if record_type is not None:  # Proceed only if a valid record_type is returned
+            # Filter the second DataFrame for matching BusinessDate and RecordType
+            matching_rows = df2[(df2['businessdate'] == business_date) & (df2['recordtype'] == record_type)]
 
-        # Check for upstream counts
-        if not matching_rows.empty:
-            for _, match_row in matching_rows.iterrows():
-                upstream_count = match_row['upstreamcount']
-                
-                # Prepare the output row
-                output_row = {
-                    'BusinessDate': business_date,
-                    'RowsExtracted': rows_extracted,
-                    'UpstreamCount': upstream_count,
-                    'RecordType': record_type,
-                    'Match': 'Match' if rows_extracted == upstream_count else 'Mismatch'
-                }
-                results.append(output_row)
+            # Check for upstream counts
+            if not matching_rows.empty:
+                for _, match_row in matching_rows.iterrows():
+                    upstream_count = match_row['upstreamcount']
+                    
+                    # Prepare the output row
+                    output_row = {
+                        'BusinessDate': business_date,
+                        'RowsExtracted': rows_extracted,
+                        'UpstreamCount': upstream_count,
+                        'RecordType': record_type,
+                        'Match': 'Match' if rows_extracted == upstream_count else 'Mismatch'
+                    }
+                    results.append(output_row)
+            else:
+                print(f"No matching upstream counts found for {business_date} with RecordType {record_type}.")
         else:
-            print(f"No matching upstream counts found for {business_date} with RecordType {record_type}.")
+            print(f"Invalid filename detected: {filename}. Skipping this entry.")
 
     # Check if results are empty
     if not results:
