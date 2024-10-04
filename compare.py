@@ -15,7 +15,7 @@ def compare_csvs(file1_path, file2_path, output_path):
     print("Second CSV data:")
     print(df2.head())
 
-    # Convert numeric columns to appropriate types (if necessary)
+    # Convert numeric columns to appropriate types
     df1['RowsExtracted'] = pd.to_numeric(df1['RowsExtracted'], errors='coerce')
     df2['UpstreamCount'] = pd.to_numeric(df2['UpstreamCount'], errors='coerce')
 
@@ -32,29 +32,24 @@ def compare_csvs(file1_path, file2_path, output_path):
     if missing_dates:
         print(f"Missing Dates: {missing_dates}")
 
-    # Perform the comparison
+    # Perform the comparison based only on BusinessDate
     for index, row in df1.iterrows():
         business_date = row['BusinessDate']
         rows_extracted = row['RowsExtracted']
-        table_name = row['TableName']
 
-        # Debug print for current row being processed
-        print(f"Processing: {business_date}, {table_name}, RowsExtracted: {rows_extracted}")
-
-        # Filter the second dataframe based on the same BusinessDate and TableName
-        matching_rows = df2[(df2['BusinessDate'] == business_date) & (df2['TableName'].str.strip().str.upper() == table_name.upper())]
+        # Filter the second dataframe based on the same BusinessDate
+        matching_rows = df2[df2['BusinessDate'] == business_date]
         
         # Debug print for matching rows
-        print(f"Matching Rows Found: {len(matching_rows)}")
+        print(f"Matching Rows Found for {business_date}: {len(matching_rows)}")
 
         for _, match_row in matching_rows.iterrows():
-            record_type = match_row['RecordType']
             upstream_count = match_row['UpstreamCount']
-            
+            record_type = match_row['RecordType']
+
             # Prepare the output row
             output_row = {
                 'BusinessDate': business_date,
-                'TableName': table_name,
                 'RowsExtracted': rows_extracted,
                 'UpstreamCount': upstream_count,
                 'RecordType': record_type,
@@ -74,8 +69,8 @@ def compare_csvs(file1_path, file2_path, output_path):
         print(f"Output saved to {output_path}")
 
 # Usage
-file1_path = 'path/to/your/first_csv.csv'  # Update with your first CSV file path
-file2_path = 'path/to/your/second_csv.csv'  # Update with your second CSV file path
-output_path = 'path/to/your/output.csv'      # Update with desired output file path
+file1_path = 'csv1.csv'  # Update with your first CSV file path
+file2_path = 'csv2.csv'  # Update with your second CSV file path
+output_path = 'output.csv'      # Update with desired output file path
 
 compare_csvs(file1_path, file2_path, output_path)
