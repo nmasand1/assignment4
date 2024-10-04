@@ -33,15 +33,23 @@ for _, row1 in csv1.iterrows():
         processed_count_1 = group2[group2['recordtype'] == 1]['processedcount'].values[0] if not group2[group2['recordtype'] == 1].empty else 0
         
         # Append rows for each record type
-        for record_type, processed_count in zip([0, 1], [processed_count_0, processed_count_1]):
-            results.append({
-                'BusinessDate': business_date,
-                'RowsExtracted': '0',  # RowsExtracted only for RecordType 1
-                'UpstreamCount': '0',  # UpstreamCount for RecordTypes 0 and 1 is always 0
-                'ProcessedCount': processed_count,
-                'RecordType': record_type,
-                'ComparisonWithUpstream': 'Match' if processed_count == 0 else 'Mismatch'  # Comparing processed count of 0
-            })
+        results.append({
+            'BusinessDate': business_date,
+            'RowsExtracted': rows_extracted if processed_count_0 == 0 else 'Missing',  # Keep RowsExtracted as is
+            'UpstreamCount': 0,  # UpstreamCount for RecordTypes 0 and 1 is always 0
+            'ProcessedCount': processed_count_0,
+            'RecordType': 0,
+            'ComparisonWithUpstream': 'Match' if processed_count_0 == 0 else 'Mismatch'  # Comparing processed count of 0
+        })
+
+        results.append({
+            'BusinessDate': business_date,
+            'RowsExtracted': rows_extracted if processed_count_1 == 0 else 'Missing',  # Keep RowsExtracted as is
+            'UpstreamCount': 0,  # UpstreamCount for RecordTypes 0 and 1 is always 0
+            'ProcessedCount': processed_count_1,
+            'RecordType': 1,
+            'ComparisonWithUpstream': 'Match' if processed_count_1 == 0 else 'Mismatch'  # Comparing processed count of 1
+        })
 
         # Append RecordType 2
         results.append({
@@ -79,7 +87,7 @@ for business_date, group2 in csv2.groupby('businessdate'):
             'BusinessDate': business_date,
             'RowsExtracted': 'Missing',
             'UpstreamCount': upstream_count,
-            'ProcessedCount': processed_count_0,  # Assuming we want to show processed count for RecordType 0
+            'ProcessedCount': processed_count_0,
             'RecordType': 0,
             'ComparisonWithUpstream': 'Missing'
         })
@@ -87,7 +95,7 @@ for business_date, group2 in csv2.groupby('businessdate'):
             'BusinessDate': business_date,
             'RowsExtracted': 'Missing',
             'UpstreamCount': upstream_count,
-            'ProcessedCount': processed_count_1,  # Assuming we want to show processed count for RecordType 1
+            'ProcessedCount': processed_count_1,
             'RecordType': 1,
             'ComparisonWithUpstream': 'Missing'
         })
@@ -97,12 +105,7 @@ result_df = pd.DataFrame(results)
 
 # Perform the check for all record types
 for index, row in result_df.iterrows():
-    if row['RecordType'] in [0, 1]:  # For RecordType 0 and 1
-        if row['ProcessedCount'] == 0:
-            result_df.at[index, 'ComparisonWithUpstream'] = 'Match'
-        else:
-            result_df.at[index, 'ComparisonWithUpstream'] = 'Mismatch'
-    elif row['RecordType'] == 2:  # For RecordType 2
+    if row['RecordType'] == 2:  # For RecordType 2
         if row['RowsExtracted'] == row['UpstreamCount']:
             result_df.at[index, 'ComparisonWithUpstream'] = 'Match'
         else:
