@@ -30,43 +30,42 @@ for _, row1 in csv1.iterrows():
     if not group2.empty:
         # Get UpstreamCount for RecordType 2
         record_type_2 = group2[group2['recordtype'] == 2]
-        
-        if not record_type_2.empty:
-            upstream_count = record_type_2['upstreamcount'].values[0]
-        else:
-            upstream_count = 'Missing'
+        upstream_count = record_type_2['upstreamcount'].values[0] if not record_type_2.empty else 'Missing'
 
         # Check the total ProcessedCount for RecordType 0 and 1
-        processed_count_0 = group2[group2['recordtype'] == 0]['processedcount'].sum()
-        processed_count_1 = group2[group2['recordtype'] == 1]['processedcount'].sum()
+        processed_count_0 = group2[group2['recordtype'] == 0]['processedcount'].values[0] if not group2[group2['recordtype'] == 0].empty else 0
+        processed_count_1 = group2[group2['recordtype'] == 1]['processedcount'].values[0] if not group2[group2['recordtype'] == 1].empty else 0
         
-        # Total ProcessedCount for RecordType 0 and 1
-        total_processed = processed_count_0 + processed_count_1
-        
-        # Match Status based on total processed counts
-        if upstream_count == total_processed:
-            match_status = 'Match'
-        else:
-            match_status = 'Mismatch'
-        
-        # Append to results
+        # Append rows for each record type
+        for record_type, processed_count in zip([0, 1], [processed_count_0, processed_count_1]):
+            results.append({
+                'BusinessDate': business_date,
+                'RowsExtracted': rows_extracted if record_type == 1 else '0',  # RowsExtracted only for RecordType 1
+                'UpstreamCount': '0',  # UpstreamCount for RecordTypes 0 and 1 is always 0
+                'ProcessedCount': processed_count,
+                'RecordType': record_type,
+                'ComparisonWithUpstream': 'Match' if processed_count == 0 else 'Mismatch'
+            })
+
+        # Append RecordType 2
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'UpstreamCount': upstream_count,
-            'ProcessedCount (0)': processed_count_0,
-            'ProcessedCount (1)': processed_count_1,
-            'MatchStatus': match_status
+            'ProcessedCount': upstream_count,  # For RecordType 2, UpstreamCount equals ProcessedCount
+            'RecordType': 2,
+            'ComparisonWithUpstream': 'Match' if upstream_count == rows_extracted else 'Mismatch'
         })
+        
     else:
         # Handle missing data in CSV2
         results.append({
             'BusinessDate': business_date,
             'RowsExtracted': rows_extracted,
             'UpstreamCount': 'Missing',
-            'ProcessedCount (0)': 'Missing',
-            'ProcessedCount (1)': 'Missing',
-            'MatchStatus': 'Missing'
+            'ProcessedCount': 'Missing',
+            'RecordType': 'Missing',
+            'ComparisonWithUpstream': 'Missing'
         })
 
 # Handle dates present in CSV2 but missing in CSV1
@@ -77,8 +76,6 @@ for business_date, group2 in csv2.groupby('businessdate'):
         processed_count_1 = group2[group2['recordtype'] == 1]['processedcount'].sum()
         
         # Total ProcessedCount for RecordType 0 and 1
-        total_processed = processed_count_0 + processed_count_1
-        
         upstream_count = group2[group2['recordtype'] == 2]['upstreamcount'].values[0] if not group2[group2['recordtype'] == 2].empty else 'Missing'
         
         # Append to results indicating missing data from CSV1
@@ -86,9 +83,17 @@ for business_date, group2 in csv2.groupby('businessdate'):
             'BusinessDate': business_date,
             'RowsExtracted': 'Missing',
             'UpstreamCount': upstream_count,
-            'ProcessedCount (0)': processed_count_0,
-            'ProcessedCount (1)': processed_count_1,
-            'MatchStatus': 'Missing'
+            'ProcessedCount': processed_count_0,  # Assuming we want to show processed count for RecordType 0
+            'RecordType': 0,
+            'ComparisonWithUpstream': 'Missing'
+        })
+        results.append({
+            'BusinessDate': business_date,
+            'RowsExtracted': 'Missing',
+            'UpstreamCount': upstream_count,
+            'ProcessedCount': processed_count_1,  # Assuming we want to show processed count for RecordType 1
+            'RecordType': 1,
+            'ComparisonWithUpstream': 'Missing'
         })
 
 # Convert results into a DataFrame
