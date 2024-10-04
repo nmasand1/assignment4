@@ -6,15 +6,19 @@ csv1 = pd.read_csv('csv1.csv')
 # Reading the second CSV with data on table names, business dates, upstream and processed counts, and record types
 csv2 = pd.read_csv('csv2.csv')
 
-# Clean up column names by removing extra spaces (if needed)
-csv1.columns = csv1.columns.str.strip()
-csv2.columns = csv2.columns.str.strip()
+# Clean up column names by stripping spaces and converting to lowercase (if needed)
+csv1.columns = csv1.columns.str.strip().str.lower()
+csv2.columns = csv2.columns.str.strip().str.lower()
+
+# Now, 'filename' instead of 'FileName' (assuming lowercase convention)
+if 'filename' not in csv1.columns:
+    raise KeyError("The column 'filename' is missing in CSV1. Please check the column names.")
 
 # Initialize a list to store comparison results
 comparison_results = []
 
-# Group by 'TableName' and 'BusinessDate' to handle each business date separately
-for (table_name, business_date), group in csv2.groupby(['TableName', 'BusinessDate']):
+# Group by 'tablename' and 'businessdate' to handle each business date separately
+for (table_name, business_date), group in csv2.groupby(['tablename', 'businessdate']):
     
     # Generate dynamic record_type_map based on the business date
     dynamic_record_type_map = {
@@ -24,20 +28,20 @@ for (table_name, business_date), group in csv2.groupby(['TableName', 'BusinessDa
     }
     
     # Filter rows by RecordType within the group
-    processed_0 = group[group['RecordType'] == 0]['ProcessedCount'].sum()
-    processed_1 = group[group['RecordType'] == 1]['ProcessedCount'].sum()
-    processed_2 = group[group['RecordType'] == 2]['ProcessedCount'].sum()
+    processed_0 = group[group['recordtype'] == 0]['processedcount'].sum()
+    processed_1 = group[group['recordtype'] == 1]['processedcount'].sum()
+    processed_2 = group[group['recordtype'] == 2]['processedcount'].sum()
 
     # Check if the sum of RecordType 0 and 1 matches RecordType 2
     match = (processed_0 + processed_1 == processed_2)
     
     # Get the UpstreamCount from RecordType 2 (it will always have a non-zero value)
-    upstream_count = group[group['RecordType'] == 2]['UpstreamCount'].values[0]
+    upstream_count = group[group['recordtype'] == 2]['upstreamcount'].values[0]
     
     # Find matching row in csv1 for the current table and business date
-    matching_row = csv1[(csv1['FileName'] == dynamic_record_type_map[2]) & 
-                        (csv1['BusinessDate'] == business_date) & 
-                        (csv1['RowsExtracted'] == upstream_count)]
+    matching_row = csv1[(csv1['filename'] == dynamic_record_type_map[2]) & 
+                        (csv1['businessdate'] == business_date) & 
+                        (csv1['rowsextracted'] == upstream_count)]
 
     # Check if rows extracted match the upstream count
     rows_extracted_match = not matching_row.empty
@@ -49,7 +53,7 @@ for (table_name, business_date), group in csv2.groupby(['TableName', 'BusinessDa
         'ProcessedCount_Match': match,
         'UpstreamCount_Match': rows_extracted_match,
         'UpstreamCount (CSV2)': upstream_count,
-        'RowsExtracted (CSV1)': matching_row['RowsExtracted'].values[0] if rows_extracted_match else 'N/A'
+        'RowsExtracted (CSV1)': matching_row['rowsextracted'].values[0] if rows_extracted_match else 'N/A'
     })
 
 # Convert the results into a DataFrame
@@ -59,8 +63,8 @@ results_df = pd.DataFrame(comparison_results)
 results_df.to_csv('comparison_results.csv', index=False)
 
 # Identify missing business dates between the two CSVs
-csv1_dates = set(csv1['BusinessDate'])
-csv2_dates = set(csv2['BusinessDate'])
+csv1_dates = set(csv1['businessdate'])
+csv2_dates = set(csv2['businessdate'])
 
 missing_in_csv1 = csv2_dates - csv1_dates
 missing_in_csv2 = csv1_dates - csv2_dates
