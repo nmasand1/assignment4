@@ -1,81 +1,70 @@
 import pandas as pd
 
-# Reading the first CSV with data on business dates, table names, rows extracted, and file names
+# Read both CSV files
 csv1 = pd.read_csv('csv1.csv')
-
-# Reading the second CSV with data on table names, business dates, upstream and processed counts, and record types
 csv2 = pd.read_csv('csv2.csv')
 
-# Clean up column names by stripping spaces and converting to lowercase (if needed)
-csv1.columns = csv1.columns.str.strip().str.lower()
-csv2.columns = csv2.columns.str.strip().str.lower()
+# Clean and normalize TableName and BusinessDate columns
+csv1['TableName'] = csv1['TableName'].str.strip().str.upper()
+csv2['TableName'] = csv2['TableName'].str.strip().str.upper()
 
-# Now, 'filename' instead of 'FileName' (assuming lowercase convention)
-if 'filename' not in csv1.columns:
-    raise KeyError("The column 'filename' is missing in CSV1. Please check the column names.")
+csv1['BusinessDate'] = pd.to_datetime(csv1['BusinessDate'])
+csv2['BusinessDate'] = pd.to_datetime(csv2['BusinessDate'])
 
-# Initialize a list to store comparison results
-comparison_results = []
+# Create a DataFrame to store the results
+results = []
 
-# Group by 'tablename' and 'businessdate' to handle each business date separately
-for (table_name, business_date), group in csv2.groupby(['tablename', 'businessdate']):
-    
-    # Generate dynamic record_type_map based on the business date
-    dynamic_record_type_map = {
-        0: f'Cash_TRADEMESSAGE_{business_date.replace("-", "")}',  # Cash_TRADEMESSAGE_<BusinessDate>
-        1: f'Cash_TRADEMESSAGE_OnPrem_{business_date.replace("-", "")}',  # Cash_TRADEMESSAGE_OnPrem_<BusinessDate>
-        2: f'Cash_TRADEMESSAGE_Original_{business_date.replace("-", "")}'  # Cash_TRADEMESSAGE_Original_<BusinessDate>
-    }
-    
-    # Filter rows by RecordType within the group
-    processed_0 = group[group['recordtype'] == 0]['processedcount'].sum()
-    processed_1 = group[group['recordtype'] == 1]['processedcount'].sum()
-    processed_2 = group[group['recordtype'] == 2]['processedcount'].sum()
+# Group data by BusinessDate and TableName in both CSVs
+grouped_csv1 = csv1.groupby(['BusinessDate', 'TableName'])
+grouped_csv2 = csv2.groupby(['BusinessDate', 'TableName'])
 
-    # Check if the sum of RecordType 0 and 1 matches RecordType 2
-    match = (processed_0 + processed_1 == processed_2)
-    
-    # Get the UpstreamCount from RecordType 2 (it will always have a non-zero value)
-    upstream_count = group[group['recordtype'] == 2]['upstreamcount'].values[0]
-    
-    # Find matching row in csv1 for the current table and business date
-    matching_row = csv1[(csv1['filename'] == dynamic_record_type_map[2]) & 
-                        (csv1['businessdate'] == business_date) & 
-                        (csv1['rowsextracted'] == upstream_count)]
+# Loop through each group in CSV1
+for (business_date, table_name), group1 in grouped_csv1:
+    # Get the corresponding group from CSV2
+    group2 = grouped_csv2.get_group((business_date, table_name)) if (business_date, table_name) in grouped_csv2.groups else None
 
-    # Check if rows extracted match the upstream count
-    rows_extracted_match = not matching_row.empty
+    if group2 is not None:
+        # Sum ProcessedCount for RecordType 0 and 1 in CSV2
+        processed_sum = group2[group2['RecordType'].isin([0, 1])]['ProcessedCount'].sum()
+        
+        # Get the upstream count for RecordType 2
+        upstream_count = group2[group2['RecordType'] == 2]['UpstreamCount'].values[0]
+        
+        # Compare with RowsExtracted from CSV1
+        for _, row1 in group1.iterrows():
+            rowsextracted = row1['RowsExtracted']
+            filename = row1['FileName']
 
-    # Append results for each business date and table name
-    comparison_results.append({
-        'TableName': table_name,
-        'BusinessDate': business_date,
-        'ProcessedCount_Match': match,
-        'UpstreamCount_Match': rows_extracted_match,
-        'UpstreamCount (CSV2)': upstream_count,
-        'RowsExtracted (CSV1)': matching_row['rowsextracted'].values[0] if rows_extracted_match else 'N/A'
-    })
+            # Check if upstream_count equals RowsExtracted
+            match_status = 'Match' if upstream_count == rowsextracted else 'Mismatch'
 
-# Convert the results into a DataFrame
-results_df = pd.DataFrame(comparison_results)
+            # Append to results
+            results.append({
+                'BusinessDate': business_date,
+                'TableName': table_name,
+                'FileName': filename,
+                'UpstreamCount': upstream_count,
+                'RowsExtracted': rowsextracted,
+                'ProcessedCount (0+1)': processed_sum,
+                'ProcessedCount (2)': upstream_count,
+                'MatchStatus': match_status
+            })
+    else:
+        # Handle missing data in CSV2
+        for _, row1 in group1.iterrows():
+            results.append({
+                'BusinessDate': business_date,
+                'TableName': table_name,
+                'FileName': row1['FileName'],
+                'UpstreamCount': 'Missing',
+                'RowsExtracted': row1['RowsExtracted'],
+                'ProcessedCount (0+1)': 'Missing',
+                'ProcessedCount (2)': 'Missing',
+                'MatchStatus': 'Missing'
+            })
 
-# Export the comparison results to a CSV
-results_df.to_csv('comparison_results.csv', index=False)
+# Convert results into a DataFrame
+result_df = pd.DataFrame(results)
 
-# Identify missing business dates between the two CSVs
-csv1_dates = set(csv1['businessdate'])
-csv2_dates = set(csv2['businessdate'])
-
-missing_in_csv1 = csv2_dates - csv1_dates
-missing_in_csv2 = csv1_dates - csv2_dates
-
-# Create a DataFrame for missing dates
-missing_dates_df = pd.DataFrame({
-    'Missing in CSV1': list(missing_in_csv1),
-    'Missing in CSV2': list(missing_in_csv2)
-})
-
-# Export missing dates to a separate CSV
-missing_dates_df.to_csv('missing_dates.csv', index=False)
-
-print("Comparison complete. Results saved to 'comparison_results.csv' and 'missing_dates.csv'.")
+# Write the results to a CSV file
+result_df.to_csv('comparison_results.csv', index=False)
