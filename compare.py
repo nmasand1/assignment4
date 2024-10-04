@@ -8,10 +8,6 @@ csv2 = pd.read_csv('csv2.csv')
 csv1.columns = csv1.columns.str.strip().str.lower()
 csv2.columns = csv2.columns.str.strip().str.lower()
 
-# Print the columns to check their names
-print("CSV1 Columns:", csv1.columns)
-print("CSV2 Columns:", csv2.columns)
-
 # Normalize BusinessDate to datetime for consistency
 csv1['businessdate'] = pd.to_datetime(csv1['businessdate'])
 csv2['businessdate'] = pd.to_datetime(csv2['businessdate'])
@@ -40,11 +36,11 @@ for _, row1 in csv1.iterrows():
         for record_type, processed_count in zip([0, 1], [processed_count_0, processed_count_1]):
             results.append({
                 'BusinessDate': business_date,
-                'RowsExtracted': rows_extracted if record_type == 1 else '0',  # RowsExtracted only for RecordType 1
+                'RowsExtracted': '0',  # RowsExtracted only for RecordType 1
                 'UpstreamCount': '0',  # UpstreamCount for RecordTypes 0 and 1 is always 0
                 'ProcessedCount': processed_count,
                 'RecordType': record_type,
-                'ComparisonWithUpstream': 'Match' if processed_count == 0 else 'Mismatch'
+                'ComparisonWithUpstream': 'Match' if processed_count == 0 else 'Mismatch'  # Comparing processed count of 0
             })
 
         # Append RecordType 2
@@ -75,7 +71,7 @@ for business_date, group2 in csv2.groupby('businessdate'):
         processed_count_0 = group2[group2['recordtype'] == 0]['processedcount'].sum()
         processed_count_1 = group2[group2['recordtype'] == 1]['processedcount'].sum()
         
-        # Total ProcessedCount for RecordType 0 and 1
+        # UpstreamCount for RecordType 2
         upstream_count = group2[group2['recordtype'] == 2]['upstreamcount'].values[0] if not group2[group2['recordtype'] == 2].empty else 'Missing'
         
         # Append to results indicating missing data from CSV1
@@ -98,6 +94,19 @@ for business_date, group2 in csv2.groupby('businessdate'):
 
 # Convert results into a DataFrame
 result_df = pd.DataFrame(results)
+
+# Perform the check for all record types
+for index, row in result_df.iterrows():
+    if row['RecordType'] in [0, 1]:  # For RecordType 0 and 1
+        if row['ProcessedCount'] == 0:
+            result_df.at[index, 'ComparisonWithUpstream'] = 'Match'
+        else:
+            result_df.at[index, 'ComparisonWithUpstream'] = 'Mismatch'
+    elif row['RecordType'] == 2:  # For RecordType 2
+        if row['RowsExtracted'] == row['UpstreamCount']:
+            result_df.at[index, 'ComparisonWithUpstream'] = 'Match'
+        else:
+            result_df.at[index, 'ComparisonWithUpstream'] = 'Mismatch'
 
 # Write the results to a CSV file
 result_df.to_csv('comparison_results.csv', index=False)
