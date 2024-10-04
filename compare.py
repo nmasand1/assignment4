@@ -9,53 +9,49 @@ def compare_csvs(file1_path, file2_path, output_path):
     df1.columns = df1.columns.str.strip()
     df2.columns = df2.columns.str.strip()
 
-    # Check the contents of both DataFrames
-    print("First CSV data:")
-    print(df1.head())
-    print("Second CSV data:")
-    print(df2.head())
-
     # Convert numeric columns to appropriate types
     df1['RowsExtracted'] = pd.to_numeric(df1['RowsExtracted'], errors='coerce')
-    df2['UpstreamCount'] = pd.to_numeric(df2['UpstreamCount'], errors='coerce')
+
+    # Create a mapping of filenames to RecordTypes
+    filename_to_recordtype = {
+        'Cash_TRADEMESSAGE_OnPrem_20230330': 1,
+        'Cash_TRADEMESSAGE_20230330': 0,
+        'Cash_TRADEMESSAGE_Original_20230330': 2
+    }
 
     # Create a list to hold the results
     results = []
 
-    # Extract unique BusinessDates from both dataframes
-    unique_dates_df1 = df1['BusinessDate'].unique()
-    unique_dates_df2 = df2['BusinessDate'].unique()
-
-    # Find missing dates
-    missing_dates = set(unique_dates_df1) - set(unique_dates_df2)
-    
-    if missing_dates:
-        print(f"Missing Dates: {missing_dates}")
-
-    # Perform the comparison based only on BusinessDate
+    # Perform the comparison based on BusinessDate and mapped RecordType
     for index, row in df1.iterrows():
         business_date = row['BusinessDate']
         rows_extracted = row['RowsExtracted']
+        filename = row['FileName']  # Assuming the filename is in the column 'FileName'
 
-        # Filter the second dataframe based on the same BusinessDate
-        matching_rows = df2[df2['BusinessDate'] == business_date]
+        # Get the corresponding RecordType from the filename mapping
+        record_type = filename_to_recordtype.get(filename)
         
-        # Debug print for matching rows
-        print(f"Matching Rows Found for {business_date}: {len(matching_rows)}")
+        if record_type is not None:
+            # Filter the second dataframe for the same BusinessDate and RecordType
+            matching_rows = df2[(df2['BusinessDate'] == business_date) & (df2['RecordType'] == record_type)]
+            
+            # Debug print for matching rows
+            print(f"Matching Rows Found for {business_date} and RecordType {record_type}: {len(matching_rows)}")
 
-        for _, match_row in matching_rows.iterrows():
-            upstream_count = match_row['UpstreamCount']
-            record_type = match_row['RecordType']
-
-            # Prepare the output row
-            output_row = {
-                'BusinessDate': business_date,
-                'RowsExtracted': rows_extracted,
-                'UpstreamCount': upstream_count,
-                'RecordType': record_type,
-                'Match': 'Match' if rows_extracted == upstream_count else 'Mismatch'
-            }
-            results.append(output_row)
+            for _, match_row in matching_rows.iterrows():
+                upstream_count = match_row['UpstreamCount']
+                
+                # Prepare the output row
+                output_row = {
+                    'BusinessDate': business_date,
+                    'RowsExtracted': rows_extracted,
+                    'UpstreamCount': upstream_count,
+                    'RecordType': record_type,
+                    'Match': 'Match' if rows_extracted == upstream_count else 'Mismatch'
+                }
+                results.append(output_row)
+        else:
+            print(f"No mapping found for filename: {filename}")
 
     # Check if results are empty
     if not results:
@@ -69,8 +65,8 @@ def compare_csvs(file1_path, file2_path, output_path):
         print(f"Output saved to {output_path}")
 
 # Usage
-file1_path = 'csv1.csv'  # Update with your first CSV file path
-file2_path = 'csv2.csv'  # Update with your second CSV file path
-output_path = 'output.csv'      # Update with desired output file path
+file1_path = 'path/to/your/first_csv.csv'  # Update with your first CSV file path
+file2_path = 'path/to/your/second_csv.csv'  # Update with your second CSV file path
+output_path = 'path/to/your/output.csv'      # Update with desired output file path
 
 compare_csvs(file1_path, file2_path, output_path)
