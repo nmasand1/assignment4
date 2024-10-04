@@ -14,15 +14,17 @@ def compare_csvs(file1_path, file2_path, output_path):
     df1 = pd.read_csv(file1_path)
     df2 = pd.read_csv(file2_path)
 
+    # Print the original column names before processing
+    print("Original First CSV Columns:", df1.columns.tolist())
+    print("Original Second CSV Columns:", df2.columns.tolist())
+
     # Convert column names to lowercase and strip whitespace
     df1.columns = df1.columns.str.lower().str.replace(' ', '')
     df2.columns = df2.columns.str.lower().str.replace(' ', '')
 
-    # Print the columns of the first DataFrame and the first few rows
-    print("First CSV Columns:", df1.columns.tolist())
-    print("First CSV Sample Data:\n", df1.head())
-    print("Second CSV Columns:", df2.columns.tolist())
-    print("Second CSV Sample Data:\n", df2.head())
+    # Print processed column names
+    print("Processed First CSV Columns:", df1.columns.tolist())
+    print("Processed Second CSV Columns:", df2.columns.tolist())
 
     # Check if 'filename' is among the columns
     if 'filename' not in df1.columns:
@@ -77,8 +79,8 @@ def compare_csvs(file1_path, file2_path, output_path):
         print(f"Output saved to {output_path}")
 
 # Usage
-file1_path = 'path/to/your/first_csv.csv'  # Update with your first CSV file path
-file2_path = 'path/to/your/second_csv.csv'  # Update with your second CSV file path
-output_path = 'path/to/your/output.csv'      # Update with desired output file path
+file1_path = 'csv1.csv'  # Update with your first CSV file path
+file2_path = 'csv2.csv'  # Update with your second CSV file path
+output_path = 'output.csv'      # Update with desired output file path
 
 compare_csvs(file1_path, file2_path, output_path)
