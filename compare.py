@@ -13,8 +13,21 @@ def compare_csvs(file1_path, file2_path, output_path):
     print("First CSV Columns:", df1.columns.tolist())
     print("Second CSV Columns:", df2.columns.tolist())
 
+    # Check for specific expected columns
+    expected_columns_df1 = ['businessdate', 'tablename', 'rowsextracted']
+    expected_columns_df2 = ['businessdate', 'tablename', 'upstreamcount', 'processedcount', 'recordtype']
+
+    # Check if expected columns exist
+    for col in expected_columns_df1:
+        if col not in df1.columns:
+            print(f"Missing column in first CSV: {col}")
+    
+    for col in expected_columns_df2:
+        if col not in df2.columns:
+            print(f"Missing column in second CSV: {col}")
+
     # Merge dataframes on BusinessDate and TableName (with case sensitivity and spaces handled)
-    merged_df = pd.merge(df1, df2, left_on=['businessdate', 'tablename'], right_on=['businessdate', 'tablename'], how='outer')
+    merged_df = pd.merge(df1, df2, on=['businessdate', 'tablename'], how='outer')
 
     # Initialize a list for output
     output_data = []
