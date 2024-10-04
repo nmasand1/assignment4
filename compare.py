@@ -31,8 +31,18 @@ def compare_csvs(file1_path, file2_path, output_path):
         print("Error: 'filename' column not found in the first CSV. Available columns are:", df1.columns.tolist())
         return
 
+    # Check if 'rowsextracted' is among the columns
+    if 'rowsextracted' not in df1.columns:
+        print("Error: 'rowsextracted' column not found in the first CSV. Available columns are:", df1.columns.tolist())
+        return
+
+    # Check if 'upstreamcount' is among the columns
+    if 'upstreamcount' not in df2.columns:
+        print("Error: 'upstreamcount' column not found in the second CSV. Available columns are:", df2.columns.tolist())
+        return
+
     # Convert numeric columns to appropriate types, handling errors
-    df1['rowsdetected'] = pd.to_numeric(df1['rowsdetected'], errors='coerce')
+    df1['rowsextracted'] = pd.to_numeric(df1['rowsextracted'], errors='coerce')
     df2['upstreamcount'] = pd.to_numeric(df2['upstreamcount'], errors='coerce')
 
     # Create a list to hold the results
@@ -41,7 +51,7 @@ def compare_csvs(file1_path, file2_path, output_path):
     # Iterate through the first DataFrame
     for index, row in df1.iterrows():
         business_date = row['businessdate']
-        rows_extracted = row['rowsdetected']
+        rows_extracted = row['rowsextracted']
         filename = row['filename']  # Get the filename
 
         # Get the corresponding RecordType based on the filename
