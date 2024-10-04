@@ -9,16 +9,20 @@ def compare_csvs(file1_path, file2_path, output_path):
     df1.columns = df1.columns.str.strip().str.lower()
     df2.columns = df2.columns.str.strip().str.lower()
 
+    # Print cleaned column names for debugging
+    print("First CSV Columns:", df1.columns.tolist())
+    print("Second CSV Columns:", df2.columns.tolist())
+
     # Merge dataframes on BusinessDate and TableName (with case sensitivity and spaces handled)
-    merged_df = pd.merge(df1, df2, on=['businesdate', 'tablename'], how='outer')
+    merged_df = pd.merge(df1, df2, left_on=['businessdate', 'tablename'], right_on=['businessdate', 'tablename'], how='outer')
 
     # Initialize a list for output
     output_data = []
 
     # Loop through merged data
     for index, row in merged_df.iterrows():
-        date = row['businesdate']
-        table_name = row['tablename']
+        date = row.get('businessdate', None)
+        table_name = row.get('tablename', None)
         rows_extracted = row.get('rowsextracted', 0)
         upstream_count = row.get('upstreamcount', 0)
         record_type = row.get('recordtype', 'N/A')
@@ -42,7 +46,7 @@ def compare_csvs(file1_path, file2_path, output_path):
     output_df.to_csv(output_path, index=False)
 
     # Print missing dates if any
-    missing_dates = merged_df[merged_df['rowsextracted'].isnull()]['businesdate'].unique()
+    missing_dates = merged_df[merged_df['rowsextracted'].isnull()]['businessdate'].unique()
     if missing_dates.size > 0:
         print("Missing Business Dates:")
         for date in missing_dates:
