@@ -18,9 +18,11 @@ def compare_csvs(file1_path, file2_path, output_path):
     df1.columns = df1.columns.str.strip()
     df2.columns = df2.columns.str.strip()
 
-    # Debug: Print the columns of the first DataFrame
+    # Debug: Print the columns of the first DataFrame and the first few rows
     print("First CSV Columns:", df1.columns.tolist())
+    print("First CSV Sample Data:\n", df1.head())
     print("Second CSV Columns:", df2.columns.tolist())
+    print("Second CSV Sample Data:\n", df2.head())
 
     # Convert numeric columns to appropriate types
     df1['RowsExtracted'] = pd.to_numeric(df1['RowsExtracted'], errors='coerce')
@@ -33,6 +35,11 @@ def compare_csvs(file1_path, file2_path, output_path):
         business_date = row['BusinessDate']
         rows_extracted = row['RowsExtracted']
         filename = row['FileName']  # Assuming the filename is in the column 'FileName'
+
+        # Check if the 'filename' column exists
+        if 'FileName' not in df1.columns:
+            print("Column 'FileName' not found in the first CSV.")
+            return
 
         # Get the corresponding RecordType based on the filename
         record_type = get_record_type(filename)
