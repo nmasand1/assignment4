@@ -19,32 +19,32 @@ csv2['businessdate'] = pd.to_datetime(csv2['businessdate'])
 # Create a DataFrame to store the results
 results = []
 
-# Group data by BusinessDate in both CSVs
-grouped_csv1 = csv1.groupby('businessdate')
-grouped_csv2 = csv2.groupby('businessdate')
-
-# Loop through each group in CSV1
-for business_date, group1 in grouped_csv1:
-    # Get the total RowsExtracted for the current business date
-    total_rows_extracted = group1['rowsextracted'].sum()
+# Loop through each row in CSV1
+for _, row1 in csv1.iterrows():
+    business_date = row1['businessdate']
+    rows_extracted = row1['rowsextracted']
     
-    # Get the corresponding group from CSV2
-    group2 = grouped_csv2.get_group(business_date) if business_date in grouped_csv2.groups else None
-
-    if group2 is not None:
-        # Sum ProcessedCount for RecordType 0 and 1 in CSV2
+    # Check for matching business date in CSV2
+    group2 = csv2[csv2['businessdate'] == business_date]
+    
+    if not group2.empty:
+        # Filter for RecordType 2 to get UpstreamCount
+        record_type_2 = group2[group2['recordtype'] == 2]
+        
+        if not record_type_2.empty:
+            upstream_count = record_type_2['upstreamcount'].values[0]
+            match_status = 'Match' if upstream_count == rows_extracted else 'Mismatch'
+        else:
+            upstream_count = 'Missing'
+            match_status = 'Mismatch'
+        
+        # Get total processed count for RecordType 0 and 1
         processed_sum = group2[group2['recordtype'].isin([0, 1])]['processedcount'].sum()
         
-        # Get the upstream count for RecordType 2
-        upstream_count = group2[group2['recordtype'] == 2]['upstreamcount'].values[0] if not group2[group2['recordtype'] == 2].empty else None
-        
-        # Compare UpstreamCount with RowsExtracted
-        match_status = 'Match' if upstream_count == total_rows_extracted else 'Mismatch'
-
         # Append to results
         results.append({
             'BusinessDate': business_date,
-            'TotalRowsExtracted': total_rows_extracted,
+            'RowsExtracted': rows_extracted,
             'UpstreamCount': upstream_count,
             'ProcessedCount (0+1)': processed_sum,
             'MatchStatus': match_status
@@ -53,15 +53,15 @@ for business_date, group1 in grouped_csv1:
         # Handle missing data in CSV2
         results.append({
             'BusinessDate': business_date,
-            'TotalRowsExtracted': total_rows_extracted,
+            'RowsExtracted': rows_extracted,
             'UpstreamCount': 'Missing',
             'ProcessedCount (0+1)': 'Missing',
             'MatchStatus': 'Missing'
         })
 
 # Handle dates present in CSV2 but missing in CSV1
-for business_date, group2 in grouped_csv2:
-    if business_date not in grouped_csv1.groups:
+for business_date, group2 in csv2.groupby('businessdate'):
+    if business_date not in csv1['businessdate'].values:
         # Get the total ProcessedCount for RecordType 0 and 1
         processed_sum = group2[group2['recordtype'].isin([0, 1])]['processedcount'].sum()
         upstream_count = group2[group2['recordtype'] == 2]['upstreamcount'].values[0] if not group2[group2['recordtype'] == 2].empty else None
@@ -69,7 +69,7 @@ for business_date, group2 in grouped_csv2:
         # Append to results indicating missing data from CSV1
         results.append({
             'BusinessDate': business_date,
-            'TotalRowsExtracted': 'Missing',
+            'RowsExtracted': 'Missing',
             'UpstreamCount': upstream_count,
             'ProcessedCount (0+1)': processed_sum,
             'MatchStatus': 'Missing'
