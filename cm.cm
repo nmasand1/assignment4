@@ -1,3 +1,67 @@
+<div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+  <div class="popup-content">
+    <h2>Transformation Details</h2>
+    
+    <!-- Transformation Details -->
+    <div class="details-container">
+      <div class="detail-item">
+        <span class="detail-label">Reporting Requirement:</span>
+        <span class="detail-value">{{transformationDetails?.[0]?.reportingReq || 'N/A'}}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Transformation Type:</span>
+        <span class="detail-value">{{transformationDetails?.[0]?.transformationType || 'N/A'}}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Asset Class:</span>
+        <span class="detail-value">{{transformationDetails?.[0]?.assetclass || 'N/A'}}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Product Type:</span>
+        <span class="detail-value">{{transformationDetails?.[0]?.producttype || 'N/A'}}</span>
+      </div>
+    </div>
+
+    <!-- Input Fields Section -->
+    <h3>Input Fields</h3>
+    <table class="input-fields-table">
+      <thead>
+        <tr>
+          <th>Data Source Name</th>
+          <th>Field ID</th>
+          <th>Field Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>BCML</td>
+          <td>101</td>
+          <td>Document</td>
+        </tr>
+        <!-- Add more rows as needed -->
+      </tbody>
+    </table>
+
+    <!-- Code Section -->
+    <h3>Code Example</h3>
+    <pre class="code-snippet">
+      <code>
+        public fetchData(): void {
+          this.httpApiService.getData().subscribe(data => {
+            this.transformationDetails = data;
+          });
+        }
+      </code>
+    </pre>
+
+    <button (click)="closePopup()" class="close-button">Close</button>
+  </div>
+</div>
+
+
+
+
+
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -12,48 +76,22 @@
 
 .popup-content {
   background-color: white;
-  padding: 40px; /* Increase padding for more space */
+  padding: 40px;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 1000px; /* Increased max-width for a larger window */
-  width: 90%; /* Keeps responsive design */
-}
-
-.tabs {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.tab {
-  flex: 1;
-  padding: 15px; /* Increase tab padding */
-  text-align: center;
-  cursor: pointer;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 5px 5px 0 0;
-  transition: background-color 0.3s;
-}
-
-.tab:hover {
-  background-color: #e0e0e0;
-}
-
-.tab.active {
-  background-color: #007bff;
-  color: white;
-  border-bottom: 1px solid white; /* Keeps the border consistent */
+  max-width: 800px;
+  width: 90%;
 }
 
 .details-container {
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  padding: 15px; /* Increase detail item padding */
+  padding: 10px;
   background-color: #f9f9f9;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -62,10 +100,36 @@
 .detail-label {
   font-weight: bold;
   color: #333;
+  text-transform: capitalize; /* Makes the labels look nicer */
 }
 
 .detail-value {
   color: #555;
+  margin-left: 10px; /* Adds space between label and value */
+}
+
+.input-fields-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.input-fields-table th,
+.input-fields-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+.input-fields-table th {
+  background-color: #f0f0f0;
+}
+
+.code-snippet {
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
 }
 
 .details-button,
@@ -83,3 +147,4 @@
 .close-button:hover {
   background-color: #0056b3;
 }
+
