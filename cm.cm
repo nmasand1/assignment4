@@ -21,11 +21,10 @@ export class DashboardComponent implements OnInit {
   
   public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public dashboardGridVisibleColumns: string[] = [];
-  public dashboardGridData: any[] = [];
-  
+  public dashboardGridData: any[] = []; // Use 'any[]' type
   public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public transformationGridVisibleColumns: string[] = [];
-  public transformationGridData: any[] = [];
+  public transformationGridData: any[] = []; // Use 'any[]' type
   
   public isTransformationPopUpVisible = false;
 
@@ -71,51 +70,3 @@ export class DashboardComponent implements OnInit {
     console.log(this.isTransformationPopUpVisible); // Debugging log
   }
 }
-
-
-
-<div class="dashboard-div">
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid 
-      gridId="dashboard-grid" 
-      [columns]="dashboardGridColumns" 
-      [visibleColumnsList]="dashboardGridVisibleColumns" 
-      [reloadData]="true" 
-      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)" 
-      [dataProvider]="dashboardGridData">
-    </app-grid>
-  </div>
-  
-  <h3>Transformations</h3>
-  
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid 
-      gridId="transformation-grid" 
-      [columns]="transformationGridColumns" 
-      [visibleColumnsList]="transformationGridVisibleColumns" 
-      [reloadData]="true" 
-      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)" 
-      [dataProvider]="transformationGridData">
-    </app-grid>
-  </div>
-  
-  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
-</div>
-
-<!-- Transformation Popup -->
-<panther-dialog 
-    header="Transformation Details" 
-    [(visible)]="isTransformationPopUpVisible" 
-    [modal]="true" 
-    [responsive]="true" 
-    [width]="800" 
-    [minWidth]="200" 
-    [minY]="70" 
-    [maximizable]="true" 
-    [baseZIndex]="18000">
-    
-    <div dialog-content>
-        <!-- Your transformation popup content here -->
-        <div>Transformation Details Content</div>
-    </div>
-</panther-dialog>
