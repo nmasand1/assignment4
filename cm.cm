@@ -17,6 +17,8 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   max-width: 1000px; /* Increased max-width for a larger window */
   width: 90%; /* Keeps responsive design */
+  max-height: 80%; /* Limits the height of the popup */
+  overflow-y: auto; /* Enables vertical scrolling */
 }
 
 .tabs {
