@@ -1,30 +1,20 @@
-<div class="dashboard-div">
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <!-- Existing app-grid content for your dashboard -->
-  </div>
-
-  <!-- Details Button to trigger popup -->
-  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
-
-  <!-- Transformation Details Popup -->
-  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
-    <div class="popup-content">
-      <h2>Transformation Details</h2>
-
-      <!-- Display transformation details -->
-      <div *ngIf="transformationDetails && transformationDetails.length > 0">
-        <div *ngFor="let detail of transformationDetails">
-          <p><strong>Field Link ID:</strong> {{ detail.fieldLinkId || 'N/A' }}</p>
-          <p><strong>Reporting Requirement:</strong> {{ detail.reportingReq || 'N/A' }}</p>
-          <p><strong>Transformation Type:</strong> {{ detail.transformationType || 'N/A' }}</p>
-          <p><strong>Asset Class:</strong> {{ detail.assetclass || 'N/A' }}</p>
-          <p><strong>Product Type:</strong> {{ detail.producttype || 'N/A' }}</p>
-          <hr />
-        </div>
-      </div>
-
-      <!-- Close Popup Button -->
-      <button (click)="closePopup()" class="close-button">Close</button>
-    </div>
-  </div>
-</div>
+ <table *ngIf="transformationDetails && transformationDetails.length > 0" class="transformation-table">
+        <thead>
+          <tr>
+            <th>Field Link ID</th>
+            <th>Reporting Requirement</th>
+            <th>Transformation Type</th>
+            <th>Asset Class</th>
+            <th>Product Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detail of transformationDetails">
+            <td>{{ detail.fieldLinkId || 'N/A' }}</td>
+            <td>{{ detail.reportingReq || 'N/A' }}</td>
+            <td>{{ detail.transformationType || 'N/A' }}</td>
+            <td>{{ detail.assetclass || 'N/A' }}</td>
+            <td>{{ detail.producttype || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
