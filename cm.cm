@@ -12,11 +12,11 @@
 
 .popup-content {
   background-color: white;
-  padding: 20px;
+  padding: 30px; /* Increased padding for better spacing */
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 500px;
-  width: 100%;
+  max-width: 800px; /* Increased maximum width */
+  width: 90%; /* Ensures it scales well on smaller screens */
 }
 
 .details-container {
@@ -27,7 +27,7 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 15px; /* Increased padding for each item */
   background-color: #f9f9f9;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -44,7 +44,7 @@
 
 .details-button,
 .close-button {
-  padding: 10px 15px;
+  padding: 12px 20px; /* Increased padding for better button size */
   margin-top: 10px;
   cursor: pointer;
   border: none;
