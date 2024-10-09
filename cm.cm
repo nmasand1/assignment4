@@ -1,8 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GridComponent } from '../../common/components/grid/grid.component';
-import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
-import { GridColumns, PartialBy } from '../../common/components/grid/grid-columns';
 import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
 import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
 import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
@@ -16,18 +14,20 @@ import { LightHouseApiService } from '../../services/lighthouse-api.service';
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
+  public isTransformationPopUpVisible = false;
+
+  // Inject the necessary services
   private readonly dashboardStaticData = inject(DashboardStaticDataService);
   private readonly transformationStaticData = inject(TransformationsStaticDataService);
 
-  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  // Grid Data
+  public dashboardGridColumns: any[] = [];
   public dashboardGridVisibleColumns: string[] = [];
   public dashboardGridData: any[] = [];
 
-  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public transformationGridColumns: any[] = [];
   public transformationGridVisibleColumns: string[] = [];
   public transformationGridData: any[] = [];
-
-  public isTransformationPopUpVisible = false;
 
   constructor(private httpApiService: LightHouseApiService) {}
 
@@ -41,18 +41,27 @@ export class DashboardComponent implements OnInit {
     this.getTransformationGridData();
   }
 
+  // Fetch data for the dashboard grid
   getDashboardGridData(): void {
     this.httpApiService.fetchFlattenFieldData().subscribe((res) => {
-      this.dashboardGridData = Object.values(res);
+      this.dashboardGridData = res;
     });
   }
 
+  // Fetch data for the transformation grid
   getTransformationGridData(): void {
     this.httpApiService.fetchTransformationFieldData().subscribe((res) => {
-      this.transformationGridData = Object.values(res);
+      this.transformationGridData = res;
     });
   }
 
+  // Toggle visibility of the popup
+  onDetailsButtonClick(): void {
+    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
+    console.log('Popup visibility:', this.isTransformationPopUpVisible); // Debug log
+  }
+
+  // Grid data load completed event
   onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
     if (event.eventData) {
       window.parent[event.eventData.gridId] = event.eventData.gridComponent;
@@ -64,63 +73,4 @@ export class DashboardComponent implements OnInit {
       window.parent[event.eventData.gridId] = event.eventData.gridComponent;
     }
   }
-
-  onDetailsButtonClick(): void {
-    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible; // Toggle popup visibility
-  }
 }
-
-
-<div class="dashboard-div">
-  <!-- Dashboard Grid -->
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px">
-    <app-grid
-      gridId="dashboard-grid"
-      [columns]="dashboardGridColumns"
-      [visibleColumnsList]="dashboardGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-      [dataProvider]="dashboardGridData"
-    >
-    </app-grid>
-  </div>
-
-  <h3>Transformations</h3>
-
-  <!-- Transformation Grid -->
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px">
-    <app-grid
-      gridId="transformation-grid"
-      [columns]="transformationGridColumns"
-      [visibleColumnsList]="transformationGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
-      [dataProvider]="transformationGridData"
-    >
-    </app-grid>
-  </div>
-
-  <!-- Details Button -->
-  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
-
-  <!-- Popup for Transformation Details -->
-  <ng-template [ngIf]="isTransformationPopUpVisible">
-    <panther-dialog
-      header="Transformation Details"
-      [(visible)]="isTransformationPopUpVisible"
-      [modal]="true"
-      [responsive]="true"
-      [width]="800"
-      [minWidth]="200"
-      [minY]="70"
-      [maximizable]="true"
-      [baseZIndex]="18000"
-    >
-      <div dialog-content>
-        <!-- Add transformation details content here -->
-        <div>Transformation Details Content</div>
-      </div>
-    </panther-dialog>
-  </ng-template>
-</div>
-
