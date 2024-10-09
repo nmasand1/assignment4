@@ -1,17 +1,45 @@
-<button (click)="onDetailsButtonClick()" class="details-button">Details</button>
+<div class="dashboard-div">
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
+    <app-grid
+      gridId="dashboard-grid"
+      [columns]="dashboardGridColumns"
+      [visibleColumnsList]="dashboardGridVisibleColumns"
+      [reloadData]="true"
+      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+      [dataProvider]="dashboardGridData">
+    </app-grid>
+  </div>
 
-<div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
-  <div class="popup-content">
-    <h2>Transformation Details</h2>
-    
-    <!-- Displaying transformation details -->
-    <div *ngIf="transformationDetails">
-      <p><strong>Field Link ID:</strong> {{transformationDetails.FieldLinkId}}</p>
-      <p><strong>Transformation Type:</strong> {{transformationDetails.transformationType}}</p>
-      <p><strong>Asset Class:</strong> {{transformationDetails.assetclass}}</p>
-      <p><strong>Product Type:</strong> {{transformationDetails.producttype}}</p>
+  <h3>Transformations</h3>
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
+    <app-grid
+      gridId="transformation-grid"
+      [columns]="transformationGridColumns"
+      [visibleColumnsList]="transformationGridVisibleColumns"
+      [reloadData]="true"
+      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+      [dataProvider]="transformationGridData">
+    </app-grid>
+  </div>
+
+  <!-- Details Button to trigger popup -->
+  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
+
+  <!-- Transformation Details Popup -->
+  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+    <div class="popup-content">
+      <h2>Transformation Details</h2>
+
+      <!-- Displaying transformation details -->
+      <div *ngIf="transformationDetails">
+        <p><strong>Field Link ID:</strong> {{transformationDetails.FieldLinkId}}</p>
+        <p><strong>Transformation Type:</strong> {{transformationDetails.transformationType}}</p>
+        <p><strong>Asset Class:</strong> {{transformationDetails.assetclass}}</p>
+        <p><strong>Product Type:</strong> {{transformationDetails.producttype}}</p>
+      </div>
+
+      <!-- Close Popup Button -->
+      <button (click)="closePopup()" class="close-button">Close</button>
     </div>
-
-    <button (click)="closePopup()" class="close-button">Close</button>
   </div>
 </div>
