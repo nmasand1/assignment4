@@ -1,3 +1,17 @@
+<h3>Code Example</h3>
+<pre class="code-snippet">
+  <code>
+    {{ 'public fetchData(): void {' }}<br>
+    {{ '  this.httpApiService.getData().subscribe(data => {' }}<br>
+    {{ '    this.transformationDetails = data;' }}<br>
+    {{ '  });' }}<br>
+    {{ '}' }}
+  </code>
+</pre>
+
+
+
+
 <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
 
 <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
