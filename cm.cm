@@ -1,10 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { GridComponent } from '../../common/components/grid/grid.component';
-import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
-import { GridColumns, PartialBy } from '../../common/components/grid/grid-columns';
 import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
 import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
-import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
 import { LightHouseApiService } from '../services/lighthouse-api.service';
 import { CommonModule } from '@angular/common';
 
@@ -18,14 +15,14 @@ import { CommonModule } from '@angular/common';
 export class DashboardComponent implements OnInit {
   private readonly dashboardStaticData = inject(DashboardStaticDataService);
   private readonly transformationStaticData = inject(TransformationsStaticDataService);
-  
-  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+
+  public dashboardGridColumns: any[] = []; // Adjusted if needed
   public dashboardGridVisibleColumns: string[] = [];
-  public dashboardGridData: any[] = []; // Use 'any[]' type
-  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public dashboardGridData: any[] = []; // Using any[]
+  public transformationGridColumns: any[] = []; // Adjusted if needed
   public transformationGridVisibleColumns: string[] = [];
-  public transformationGridData: any[] = []; // Use 'any[]' type
-  
+  public transformationGridData: any[] = []; // Using any[]
+
   public isTransformationPopUpVisible = false;
 
   constructor(private httpApiService: LightHouseApiService) {}
@@ -40,12 +37,6 @@ export class DashboardComponent implements OnInit {
     this.getTransformationGridData();
   }
 
-  onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
-    if (event.eventData) {
-      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
-    }
-  }
-
   getDashboardGridData(): void {
     this.httpApiService.fetchFlattenFieldData().subscribe(res => {
       this.dashboardGridData = res;
@@ -58,14 +49,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  onTransformationGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
-    if (event.eventData) {
-      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
-    }
-  }
-
   onDetailsButtonClick(): void {
-    // Toggle the visibility of the popup
     this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
     console.log(this.isTransformationPopUpVisible); // Debugging log
   }
