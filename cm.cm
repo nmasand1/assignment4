@@ -1,24 +1,26 @@
+<button (click)="onDetailsButtonClick()" class="details-button">Details</button>
+
 <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
   <div class="popup-content">
     <h2>Transformation Details</h2>
-    
-    <!-- Transformation Details -->
+
+    <!-- Transformation Details Section -->
     <div class="details-container">
       <div class="detail-item">
         <span class="detail-label">Reporting Requirement:</span>
-        <span class="detail-value">{{transformationDetails?.[0]?.reportingReq || 'N/A'}}</span>
+        <span class="detail-value">{{ transformationDetails?.reportingReq || 'N/A' }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Transformation Type:</span>
-        <span class="detail-value">{{transformationDetails?.[0]?.transformationType || 'N/A'}}</span>
+        <span class="detail-value">{{ transformationDetails?.transformationType }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Asset Class:</span>
-        <span class="detail-value">{{transformationDetails?.[0]?.assetclass || 'N/A'}}</span>
+        <span class="detail-value">{{ transformationDetails?.assetclass }}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Product Type:</span>
-        <span class="detail-value">{{transformationDetails?.[0]?.producttype || 'N/A'}}</span>
+        <span class="detail-value">{{ transformationDetails?.producttype }}</span>
       </div>
     </div>
 
@@ -38,27 +40,22 @@
           <td>101</td>
           <td>Document</td>
         </tr>
-        <!-- Add more rows as needed -->
+        <tr>
+          <td>XYZ Data</td>
+          <td>102</td>
+          <td>Transaction</td>
+        </tr>
+        <tr>
+          <td>ABC Data</td>
+          <td>103</td>
+          <td>Report</td>
+        </tr>
       </tbody>
     </table>
-
-    <!-- Code Section -->
-    <h3>Code Example</h3>
-    <pre class="code-snippet">
-      <code>
-        public fetchData(): void {
-          this.httpApiService.getData().subscribe(data => {
-            this.transformationDetails = data;
-          });
-        }
-      </code>
-    </pre>
 
     <button (click)="closePopup()" class="close-button">Close</button>
   </div>
 </div>
-
-
 
 
 
@@ -76,22 +73,22 @@
 
 .popup-content {
   background-color: white;
-  padding: 40px;
+  padding: 40px; /* Padding for the popup */
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 800px;
-  width: 90%;
+  max-width: 800px; /* Maximum width of the popup */
+  width: 90%; /* Responsive width */
 }
 
 .details-container {
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 15px;
   background-color: #f9f9f9;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -100,18 +97,17 @@
 .detail-label {
   font-weight: bold;
   color: #333;
-  text-transform: capitalize; /* Makes the labels look nicer */
 }
 
 .detail-value {
   color: #555;
-  margin-left: 10px; /* Adds space between label and value */
+  font-style: italic; /* Italics for values */
 }
 
 .input-fields-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .input-fields-table th,
@@ -122,20 +118,17 @@
 }
 
 .input-fields-table th {
-  background-color: #f0f0f0;
+  background-color: #007bff;
+  color: white;
 }
 
-.code-snippet {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
-  overflow-x: auto;
+.input-fields-table tr:nth-child(even) {
+  background-color: #f2f2f2; /* Zebra striping */
 }
 
-.details-button,
 .close-button {
   padding: 10px 15px;
-  margin-top: 10px;
+  margin-top: 20px;
   cursor: pointer;
   border: none;
   border-radius: 5px;
@@ -143,7 +136,6 @@
   color: white;
 }
 
-.details-button:hover,
 .close-button:hover {
   background-color: #0056b3;
 }
