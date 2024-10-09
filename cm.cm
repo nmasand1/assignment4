@@ -1,3 +1,85 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { GridComponent } from '../../../common/components/grid/grid.component';
+import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
+import { GridColumns, PartialBy } from '../../../common/components/grid/grid-columns';
+import { dashboardStaticDataService } from '../services/dashboard-static-data.service';
+import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
+import { DataLoadCompletedEvent } from '../../../common/components/grid/events/data-load-completed-event';
+import { LightHouseApiService } from '../../../services/lighthouse-api.service';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [GridComponent],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css']
+})
+export class DashboardComponent implements OnInit {
+  private readonly dashboardStaticData = inject(dashboardStaticDataService);
+  private readonly transformationStaticData = inject(TransformationsStaticDataService);
+  private readonly httpApiService = inject(LightHouseApiService); // Injecting the API service
+
+  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public dashboardGridVisibleColumns: string[] = [];
+  public dashboardGridData: any[] = [];
+  
+  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public transformationGridVisibleColumns: string[] = [];
+  public transformationGridData: any[] = [];
+
+  public isTransformationPopUpVisible = false;
+
+  ngOnInit() {
+    this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
+    this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
+    this.getDashboardGridData();
+
+    this.transformationGridColumns = this.transformationStaticData.transformationsGridMetaData;
+    this.transformationGridVisibleColumns = this.transformationStaticData.transformationsGridVisibleColumns;
+    this.getTransformationGridData();
+  }
+
+  getDashboardGridData(): void {
+    this.httpApiService.fetchFlattenFieldData().subscribe({
+      next: (res) => {
+        this.dashboardGridData = Object.values(res);
+      },
+      error: (err) => {
+        console.error('Error fetching dashboard grid data:', err);
+      }
+    });
+  }
+
+  getTransformationGridData(): void {
+    this.httpApiService.fetchTransformationFieldData().subscribe({
+      next: (res) => {
+        this.transformationGridData = Object.values(res);
+      },
+      error: (err) => {
+        console.error('Error fetching transformation grid data:', err);
+      }
+    });
+  }
+
+  onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
+    if (event.eventData) {
+      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
+    }
+  }
+
+  onTransformationGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
+    if (event.eventData) {
+      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
+    }
+  }
+
+  onDetailsButtonClick(): void {
+    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
+    console.log('Transformation Popup Visible:', this.isTransformationPopUpVisible);
+  }
+}
+
+
 <!-- Dashboard Grid -->
 <div class="dashboard-div">
   <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px">
@@ -42,5 +124,6 @@
   <div dialog-content>
     <!-- Your transformation popup content here -->
     <div>Transformation Details Content</div>
+    <button (click)="isTransformationPopUpVisible = false">Close</button>
   </div>
 </panther-dialog>
