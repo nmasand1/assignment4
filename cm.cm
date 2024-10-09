@@ -1,20 +1,104 @@
- <table *ngIf="transformationDetails && transformationDetails.length > 0" class="transformation-table">
-        <thead>
-          <tr>
-            <th>Field Link ID</th>
-            <th>Reporting Requirement</th>
-            <th>Transformation Type</th>
-            <th>Asset Class</th>
-            <th>Product Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let detail of transformationDetails">
-            <td>{{ detail.fieldLinkId || 'N/A' }}</td>
-            <td>{{ detail.reportingReq || 'N/A' }}</td>
-            <td>{{ detail.transformationType || 'N/A' }}</td>
-            <td>{{ detail.assetclass || 'N/A' }}</td>
-            <td>{{ detail.producttype || 'N/A' }}</td>
-          </tr>
-        </tbody>
-      </table>
+<div class="dashboard-div">
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
+    <!-- Existing app-grid content for your dashboard -->
+  </div>
+
+  <!-- Details Button to trigger popup -->
+  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
+
+  <!-- Transformation Details Popup -->
+  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+    <div class="popup-content">
+      <h2>Transformation Details</h2>
+
+      <div *ngIf="transformationDetails && transformationDetails.length > 0" class="details-container">
+        <div *ngFor="let detail of transformationDetails">
+          <div class="detail-item">
+            <span class="detail-label">Reporting Requirement:</span>
+            <span class="detail-value">{{ detail.reportingReq || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Transformation Type:</span>
+            <span class="detail-value">{{ detail.transformationType || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Field Link ID:</span>
+            <span class="detail-value">{{ detail.fieldLinkId || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Asset Class:</span>
+            <span class="detail-value">{{ detail.assetclass || 'N/A' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Product Type:</span>
+            <span class="detail-value">{{ detail.producttype || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Close Popup Button -->
+      <button (click)="closePopup()" class="close-button">Close</button>
+    </div>
+  </div>
+</div>
+
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+}
+
+.details-container {
+  margin-top: 20px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.detail-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.detail-value {
+  color: #555;
+}
+
+.details-button,
+.close-button {
+  padding: 10px 15px;
+  margin-top: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+}
+
+.details-button:hover,
+.close-button:hover {
+  background-color: #0056b3;
+}
