@@ -1,51 +1,17 @@
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000; /* Ensure the popup is above other elements */
-}
+<button (click)="onDetailsButtonClick()" class="details-button">Details</button>
 
-.popup-content {
-  background: white;
-  border-radius: 8px;
-  padding: 40px; /* Increased padding for larger content area */
-  width: 90%; /* Set width to 90% of the viewport */
-  max-width: 1200px; /* Set a maximum width */
-  max-height: 90%; /* Limit the height of the popup */
-  height: 80%; /* Set height to 80% of the viewport for increased vertical size */
-  overflow-y: auto; /* Allow scrolling if content exceeds max height */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
+<div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+  <div class="popup-content">
+    <h2>Transformation Details</h2>
+    
+    <!-- Displaying transformation details -->
+    <div *ngIf="transformationDetails">
+      <p><strong>Field Link ID:</strong> {{transformationDetails.FieldLinkId}}</p>
+      <p><strong>Transformation Type:</strong> {{transformationDetails.transformationType}}</p>
+      <p><strong>Asset Class:</strong> {{transformationDetails.assetclass}}</p>
+      <p><strong>Product Type:</strong> {{transformationDetails.producttype}}</p>
+    </div>
 
-/* Optional styling for header */
-.popup-content h2 {
-  margin: 0 0 20px;
-  font-size: 28px; /* Increase font size for the header */
-}
-
-/* Container for API data */
-.api-data-container {
-  max-height: 70%; /* Set a max height for the data container */
-  overflow-y: auto; /* Allow scrolling within this container */
-}
-
-/* Optional styling for buttons */
-.popup-content button {
-  background-color: #007bff; /* Bootstrap primary color */
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 20px; /* Add space above the button */
-}
-
-.popup-content button:hover {
-  background-color: #0056b3; /* Darker shade on hover */
-}
+    <button (click)="closePopup()" class="close-button">Close</button>
+  </div>
+</div>
