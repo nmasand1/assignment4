@@ -1,54 +1,3 @@
-<!-- Popup Overlay -->
-<div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
-  <div class="popup-content">
-    <h2>Transformation Details</h2>
-
-    <!-- Tabs Navigation -->
-    <div class="tabs">
-      <div 
-        *ngFor="let detail of transformationDetails; let i = index"
-        [class.active]="selectedTabIndex === i"
-        (click)="selectTab(i)"
-        class="tab">
-        Transformation {{ i + 1 }}
-      </div>
-    </div>
-
-    <div class="details-container">
-      <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
-        <div class="detail-item">
-          <span class="detail-label">Field Link ID:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex].fieldLinkId }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Reporting Requirement:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex].reportingReq || 'N/A' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Transformation Type:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Transformation ID:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationID }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Asset Class:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex].assetclass }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Product Type:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex].producttype }}</span>
-        </div>
-      </div>
-    </div>
-
-    <button (click)="closePopup()" class="close-button">Close</button>
-  </div>
-</div>
-
-
-
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -63,11 +12,11 @@
 
 .popup-content {
   background-color: white;
-  padding: 30px;
+  padding: 40px; /* Increase padding for more space */
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 800px;
-  width: 90%;
+  max-width: 1000px; /* Increased max-width for a larger window */
+  width: 90%; /* Keeps responsive design */
 }
 
 .tabs {
@@ -77,7 +26,7 @@
 
 .tab {
   flex: 1;
-  padding: 10px;
+  padding: 15px; /* Increase tab padding */
   text-align: center;
   cursor: pointer;
   background-color: #f0f0f0;
@@ -104,7 +53,7 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 15px; /* Increase detail item padding */
   background-color: #f9f9f9;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
