@@ -1,9 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { GridComponent } from '../../common/components/grid/grid.component';
+import { CommonModule } from '@angular/common';
+import { GridComponent } from '../../../common/components/grid/grid.component';
+import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
+import { GridColumns, PartialBy } from '../../../common/components/grid/grid-columns';
 import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
 import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
-import { LightHouseApiService } from '../services/lighthouse-api.service';
-import { CommonModule } from '@angular/common';
+import { DataLoadCompletedEvent } from '../../../common/components/grid/events/data-load-completed-event';
+import { LightHouseApiService } from '../../../services/lighthouse-api.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,15 +18,15 @@ import { CommonModule } from '@angular/common';
 export class DashboardComponent implements OnInit {
   private readonly dashboardStaticData = inject(DashboardStaticDataService);
   private readonly transformationStaticData = inject(TransformationsStaticDataService);
-
-  public dashboardGridColumns: any[] = []; // Adjusted if needed
+  
+  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public dashboardGridVisibleColumns: string[] = [];
-  public dashboardGridData: any[] = []; // Using any[]
-  public transformationGridColumns: any[] = []; // Adjusted if needed
+  public dashboardGridData: any[] = [];
+  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public transformationGridVisibleColumns: string[] = [];
-  public transformationGridData: any[] = []; // Using any[]
-
-  public isTransformationPopUpVisible = false;
+  public transformationGridData: any[] = [];
+  
+  public isTransformationPopUpVisible = false; // Flag for popup visibility
 
   constructor(private httpApiService: LightHouseApiService) {}
 
@@ -31,10 +34,16 @@ export class DashboardComponent implements OnInit {
     this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
     this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
     this.getDashboardGridData();
-
+    
     this.transformationGridColumns = this.transformationStaticData.transformationsGridMetaData;
     this.transformationGridVisibleColumns = this.transformationStaticData.transformationsGridVisibleColumns;
     this.getTransformationGridData();
+  }
+
+  onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
+    if (event.eventData) {
+      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
+    }
   }
 
   getDashboardGridData(): void {
@@ -50,7 +59,10 @@ export class DashboardComponent implements OnInit {
   }
 
   onDetailsButtonClick(): void {
-    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
-    console.log(this.isTransformationPopUpVisible); // Debugging log
+    this.isTransformationPopUpVisible = true; // Show the popup
+  }
+
+  closePopup(): void {
+    this.isTransformationPopUpVisible = false; // Hide the popup
   }
 }
