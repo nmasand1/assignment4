@@ -1,3 +1,33 @@
+<app-grid 
+  gridId="transformation-grid"
+  [columns]="transformationGridColumns"
+  [visibleColumnsList]="transformationGridVisibleColumns"
+  [reloadData]="true"
+  [dataProvider]="transformationGridData">
+</app-grid>
+
+<!-- Trigger Button to Open Popup -->
+<button (click)="openPopup()">Show Details</button>
+
+<!-- Popup Overlay -->
+<div class="popup-overlay" *ngIf="isPopupVisible" (click)="closePopup()">
+  <div class="popup-content" (click)="$event.stopPropagation()">
+    <h2>Transformation Details</h2>
+    
+    <!-- Container for rendering API data -->
+    <div class="api-data-container">
+      <!-- Example of dynamically rendering API data -->
+      <div *ngFor="let item of apiData">
+        <p>{{ item }}</p> <!-- Adjust this according to your data structure -->
+      </div>
+    </div>
+
+    <!-- Close Button -->
+    <button (click)="closePopup()">Close</button>
+  </div>
+</div>
+
+
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -15,8 +45,9 @@
   background: white;
   border-radius: 8px;
   padding: 40px; /* Increased padding for larger content area */
-  max-width: 800px; /* Set a maximum width */
-  max-height: 80%; /* Limit the height of the popup */
+  width: 90%; /* Set width to 90% of the viewport */
+  max-width: 1200px; /* Set a maximum width */
+  max-height: 90%; /* Limit the height of the popup */
   overflow-y: auto; /* Allow scrolling if content exceeds max height */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -25,7 +56,13 @@
 /* Optional styling for header */
 .popup-content h2 {
   margin: 0 0 20px;
-  font-size: 24px; /* Increase font size */
+  font-size: 28px; /* Increase font size for the header */
+}
+
+/* Container for API data */
+.api-data-container {
+  max-height: 70%; /* Set a max height for the data container */
+  overflow-y: auto; /* Allow scrolling within this container */
 }
 
 /* Optional styling for buttons */
@@ -36,6 +73,7 @@
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
+  margin-top: 20px; /* Add space above the button */
 }
 
 .popup-content button:hover {
