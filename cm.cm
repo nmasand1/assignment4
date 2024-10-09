@@ -1,52 +1,3 @@
-<div class="dashboard-div">
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <!-- Existing app-grid content for your dashboard -->
-  </div>
-
-  <!-- Details Button to trigger popup -->
-  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
-
-  <!-- Transformation Details Popup -->
-  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
-    <div class="popup-content">
-      <h2>Transformation Details</h2>
-
-      <div *ngIf="transformationDetails && transformationDetails.length > 0" class="details-container">
-        <div *ngFor="let detail of transformationDetails">
-          <div class="detail-item">
-            <span class="detail-label">Reporting Requirement:</span>
-            <span class="detail-value">{{ detail.reportingReq || 'N/A' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Transformation Type:</span>
-            <span class="detail-value">{{ detail.transformationType || 'N/A' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Field Link ID:</span>
-            <span class="detail-value">{{ detail.fieldLinkId || 'N/A' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Asset Class:</span>
-            <span class="detail-value">{{ detail.assetclass || 'N/A' }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Product Type:</span>
-            <span class="detail-value">{{ detail.producttype || 'N/A' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Close Popup Button -->
-      <button (click)="closePopup()" class="close-button">Close</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -64,8 +15,8 @@
   padding: 30px; /* Increased padding for better spacing */
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 800px; /* Increased maximum width */
-  width: 90%; /* Ensures it scales well on smaller screens */
+  max-width: 800px; /* Increased max-width for a larger popup */
+  width: 90%; /* Make it responsive */
 }
 
 .details-container {
@@ -76,7 +27,7 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  padding: 15px; /* Increased padding for each item */
+  padding: 10px;
   background-color: #f9f9f9;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -85,21 +36,24 @@
 .detail-label {
   font-weight: bold;
   color: #333;
+  font-size: 1.1em; /* Slightly larger font size for better visibility */
 }
 
 .detail-value {
   color: #555;
+  font-size: 1em; /* Adjust font size if needed */
 }
 
 .details-button,
 .close-button {
-  padding: 12px 20px; /* Increased padding for better button size */
+  padding: 10px 15px;
   margin-top: 10px;
   cursor: pointer;
   border: none;
   border-radius: 5px;
   background-color: #007bff;
   color: white;
+  font-size: 1em; /* Ensure button text is legible */
 }
 
 .details-button:hover,
