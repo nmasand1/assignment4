@@ -74,3 +74,55 @@ export class DashboardComponent implements OnInit {
     }
   }
 }
+
+
+
+<div class="dashboard-div">
+  <!-- Dashboard Grid -->
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em 0.1em 0.1em 0.1em; padding: 10px;">
+    <app-grid
+      gridId="dashboard-grid"
+      [columns]="dashboardGridColumns"
+      [visiblecolumnsList]="dashboardGridVisibleColumns"
+      [reloadData]="true"
+      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+      [dataProvider]="dashboardGridData"
+    ></app-grid>
+  </div>
+
+  <h3>Transformations</h3>
+  <!-- Transformation Grid -->
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em 0.1em 6.1em 8.1em; padding: 10px;">
+    <app-grid
+      gridId="transformation-grid"
+      [columns]="transformationGridColumns"
+      [visibleColumnsList]="transformationGridVisibleColumns"
+      [reloadData]="true"
+      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+      [dataProvider]="transformationGridData"
+    ></app-grid>
+  </div>
+
+  <!-- Button to open popup -->
+  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
+
+  <!-- Popup for Transformation Details -->
+  <ng-template [ngIf]="isTransformationPopUpVisible">
+    <panther-dialog
+      header="Transformation Details"
+      [(visible)]="isTransformationPopUpVisible"
+      [modal]="true"
+      [responsive]="true"
+      [width]="800"
+      [minWidth]="200"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="99999" <!-- Ensures a high z-index -->
+    >
+      <div dialog-content>
+        <div>Transformation Details Content</div>
+      </div>
+    </panther-dialog>
+  </ng-template>
+</div>
+
