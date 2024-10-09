@@ -32,11 +32,11 @@
 
       <!-- Displaying transformation details -->
       <div *ngIf="transformationDetails">
-        <p><strong>Field Link ID:</strong> {{transformationDetails.FieldLinkId}}</p>
+        <p><strong>Field Link ID:</strong> {{transformationDetails.fieldLinkId}}</p>
         <p><strong>Reporting Requirement:</strong> {{transformationDetails.reportingReq || 'N/A'}}</p>
         <p><strong>Transformation Type:</strong> {{transformationDetails.transformationType}}</p>
         <p><strong>Asset Class:</strong> {{transformationDetails.assetclass}}</p>
-        <p><strong>Product Type:</strong> {{transformationDetails.producttype || transformationDetails.producttvpe}}</p>
+        <p><strong>Product Type:</strong> {{transformationDetails.producttype}}</p>
       </div>
 
       <!-- Close Popup Button -->
