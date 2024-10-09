@@ -1,30 +1,51 @@
+<!-- Popup Overlay -->
 <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
   <div class="popup-content">
     <h2>Transformation Details</h2>
 
+    <!-- Tabs Navigation -->
+    <div class="tabs">
+      <div 
+        *ngFor="let detail of transformationDetails; let i = index"
+        [class.active]="selectedTabIndex === i"
+        (click)="selectTab(i)"
+        class="tab">
+        Transformation {{ i + 1 }}
+      </div>
+    </div>
+
     <div class="details-container">
-      <div class="detail-item">
-        <span class="detail-label">Reporting Requirement:</span>
-        <span class="detail-value">{{ transformationDetails[0]?.reportingReq || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Transformation Type:</span>
-        <span class="detail-value">{{ transformationDetails[0]?.transformationType }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Asset Class:</span>
-        <span class="detail-value">{{ transformationDetails[0]?.assetclass }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Product Type:</span>
-        <span class="detail-value">{{ transformationDetails[0]?.producttype }}</span>
+      <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+        <div class="detail-item">
+          <span class="detail-label">Field Link ID:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex].fieldLinkId }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Reporting Requirement:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex].reportingReq || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Transformation Type:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Transformation ID:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationID }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Asset Class:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex].assetclass }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Product Type:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex].producttype }}</span>
+        </div>
       </div>
     </div>
 
     <button (click)="closePopup()" class="close-button">Close</button>
   </div>
 </div>
-
 
 
 
@@ -49,6 +70,32 @@
   width: 90%;
 }
 
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+  transition: background-color 0.3s;
+}
+
+.tab:hover {
+  background-color: #e0e0e0;
+}
+
+.tab.active {
+  background-color: #007bff;
+  color: white;
+  border-bottom: 1px solid white; /* Keeps the border consistent */
+}
+
 .details-container {
   margin-top: 20px;
 }
@@ -66,14 +113,13 @@
 .detail-label {
   font-weight: bold;
   color: #333;
-  font-size: 1.1em; /* Slightly larger font size for better visibility */
 }
 
 .detail-value {
   color: #555;
-  font-size: 1em; /* Adjust font size if needed */
 }
 
+.details-button,
 .close-button {
   padding: 10px 15px;
   margin-top: 10px;
@@ -82,9 +128,9 @@
   border-radius: 5px;
   background-color: #007bff;
   color: white;
-  font-size: 1em; /* Ensure button text is legible */
 }
 
+.details-button:hover,
 .close-button:hover {
   background-color: #0056b3;
 }
