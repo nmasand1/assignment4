@@ -12,22 +12,48 @@
 
 .popup-content {
   background-color: white;
-  padding: 40px;
+  padding: 40px; /* Increase padding for more space */
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 800px;
-  width: 90%;
+  max-width: 1000px; /* Increased max-width for a larger window */
+  width: 90%; /* Keeps responsive design */
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  padding: 15px; /* Increase tab padding */
+  text-align: center;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+  transition: background-color 0.3s;
+}
+
+.tab:hover {
+  background-color: #e0e0e0;
+}
+
+.tab.active {
+  background-color: #007bff;
+  color: white;
+  border-bottom: 1px solid white; /* Keeps the border consistent */
 }
 
 .details-container {
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  padding: 10px;
+  padding: 15px; /* Increase detail item padding */
   background-color: #f9f9f9;
   border-radius: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -36,45 +62,10 @@
 .detail-label {
   font-weight: bold;
   color: #333;
-  text-transform: capitalize; /* Makes the labels look nicer */
 }
 
 .detail-value {
   color: #555;
-  margin-left: 10px; /* Adds space between label and value */
-}
-
-.input-fields-table {
-  width: 100%; /* Full width */
-  border-collapse: collapse; /* Remove space between borders */
-  margin-top: 10px; /* Space above the table */
-}
-
-.input-fields-table th,
-.input-fields-table td {
-  border: 1px solid #ccc; /* Border for cells */
-  padding: 10px; /* Padding for cells */
-  text-align: left; /* Align text to the left */
-}
-
-.input-fields-table th {
-  background-color: #f0f0f0; /* Light grey background for header */
-  font-weight: bold; /* Bold header text */
-}
-
-.input-fields-table tr:nth-child(even) {
-  background-color: #f9f9f9; /* Zebra striping for rows */
-}
-
-.input-fields-table tr:hover {
-  background-color: #f1f1f1; /* Highlight row on hover */
-}
-
-.code-snippet {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
-  overflow-x: auto;
 }
 
 .details-button,
@@ -91,4 +82,30 @@
 .details-button:hover,
 .close-button:hover {
   background-color: #0056b3;
+}
+
+/* Table Styles */
+.input-fields-table {
+  width: 100%; /* Full width */
+  border-collapse: collapse; /* Remove space between borders */
+  margin-top: 20px; /* Space above the table */
+}
+
+.input-fields-table th, .input-fields-table td {
+  border: 1px solid #ccc; /* Border for cells */
+  padding: 10px; /* Padding for cells */
+  text-align: left; /* Align text to the left */
+}
+
+.input-fields-table th {
+  background-color: #f2f2f2; /* Light grey background for header */
+  font-weight: bold; /* Bold header text */
+}
+
+.input-fields-table tr:nth-child(even) {
+  background-color: #f9f9f9; /* Zebra striping for rows */
+}
+
+.input-fields-table tr:hover {
+  background-color: #f1f1f1; /* Highlight row on hover */
 }
