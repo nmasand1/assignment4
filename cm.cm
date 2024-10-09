@@ -1,10 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { GridComponent } from '../../../common/components/grid/grid.component';
+import { GridComponent } from '../../common/components/grid/grid.component';
 import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
-import { GridColumns, PartialBy } from '../../../common/components/grid/grid-columns';
-import { dashboardStaticDataService } from '../services/dashboard-static-data.service';
-import { TransformationsStaticDataService } from "../services/transformations-static-data.service";
-import { DataLoadCompletedEvent } from '../../../common/components/grid/events/data-load-completed-event';
+import { GridColumns, PartialBy } from '../../common/components/grid/grid-columns';
+import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
+import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
+import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
 import { LightHouseApiService } from '../services/lighthouse-api.service';
 import { CommonModule } from '@angular/common';
 
@@ -13,18 +13,20 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, GridComponent],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
-  private readonly dashboardStaticData = inject(dashboardStaticDataService);
+  private readonly dashboardStaticData = inject(DashboardStaticDataService);
   private readonly transformationStaticData = inject(TransformationsStaticDataService);
   
   public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public dashboardGridVisibleColumns: string[] = [];
   public dashboardGridData: any[] = [];
+  
   public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public transformationGridVisibleColumns: string[] = [];
   public transformationGridData: any[] = [];
+  
   public isTransformationPopUpVisible = false;
 
   constructor(private httpApiService: LightHouseApiService) {}
@@ -47,27 +49,14 @@ export class DashboardComponent implements OnInit {
 
   getDashboardGridData(): void {
     this.httpApiService.fetchFlattenFieldData().subscribe(res => {
-      let newDashboardGridData = [];
-      for (let item of res) {
-        newDashboardGridData.push(item);
-      }
-      this.dashboardGridData = newDashboardGridData;
+      this.dashboardGridData = res;
     });
   }
 
   getTransformationGridData(): void {
     this.httpApiService.fetchTransformationFieldData().subscribe(res => {
-      let newTransformationGridData = [];
-      for (let item of res) {
-        newTransformationGridData.push(item);
-      }
-      this.transformationGridData = newTransformationGridData;
-      console.log(newTransformationGridData);
+      this.transformationGridData = res;
     });
-  }
-
-  onDetailsButtonClick(): void {
-    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
   }
 
   onTransformationGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
@@ -75,68 +64,58 @@ export class DashboardComponent implements OnInit {
       window.parent[event.eventData.gridId] = event.eventData.gridComponent;
     }
   }
+
+  onDetailsButtonClick(): void {
+    // Toggle the visibility of the popup
+    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
+    console.log(this.isTransformationPopUpVisible); // Debugging log
+  }
 }
+
 
 
 <div class="dashboard-div">
   <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid
-      gridId="dashboard-grid"
-      [columns]="dashboardGridColumns"
-      [visibleColumnsList]="dashboardGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+    <app-grid 
+      gridId="dashboard-grid" 
+      [columns]="dashboardGridColumns" 
+      [visibleColumnsList]="dashboardGridVisibleColumns" 
+      [reloadData]="true" 
+      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)" 
       [dataProvider]="dashboardGridData">
     </app-grid>
   </div>
-
+  
   <h3>Transformations</h3>
+  
   <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid
-      gridId="transformation-grid"
-      [columns]="transformationGridColumns"
-      [visibleColumnsList]="transformationGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+    <app-grid 
+      gridId="transformation-grid" 
+      [columns]="transformationGridColumns" 
+      [visibleColumnsList]="transformationGridVisibleColumns" 
+      [reloadData]="true" 
+      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)" 
       [dataProvider]="transformationGridData">
     </app-grid>
   </div>
-
+  
   <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
+</div>
 
-  <panther-dialog
-    header="Transformation Details"
-    [(visible)]="isTransformationPopUpVisible"
-    [modal]="true"
-    [responsive]="true"
-    [width]="800"
-    [minWidth]="200"
-    [minY]="70"
-    [maximizable]="true"
+<!-- Transformation Popup -->
+<panther-dialog 
+    header="Transformation Details" 
+    [(visible)]="isTransformationPopUpVisible" 
+    [modal]="true" 
+    [responsive]="true" 
+    [width]="800" 
+    [minWidth]="200" 
+    [minY]="70" 
+    [maximizable]="true" 
     [baseZIndex]="18000">
     
     <div dialog-content>
-      <div>Transformation Details Content</div>
+        <!-- Your transformation popup content here -->
+        <div>Transformation Details Content</div>
     </div>
-  </panther-dialog>
-</div>
-
-
-
-.dashboard-div {
-  padding: 20px;
-}
-
-.details-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.details-button:hover {
-  background-color: #0056b3;
-}
+</panther-dialog>
