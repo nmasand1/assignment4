@@ -1,37 +1,36 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { GridComponent } from '../../common/components/grid/grid.component';
-import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
+import { Component, inject, OnInit } from '@angular/core';
+import { GridComponent } from '../../../common/components/grid/grid.component';
+import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
+import { GridColumns, PartialBy } from '../../../common/components/grid/grid-columns';
+import { dashboardStaticDataService } from '../services/dashboard-static-data.service';
 import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
-import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
-import { LightHouseApiService } from '../../services/lighthouse-api.service';
+import { DataLoadCompletedEvent } from '../../../common/components/grid/events/data-load-completed-event';
+import { LightHouseApiService } from '../../../services/lighthouse-api.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, GridComponent],
+  imports: [GridComponent],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
+  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  public isTransformationPopUpVisible = false;
-
-  // Inject the necessary services
-  private readonly dashboardStaticData = inject(DashboardStaticDataService);
+  private readonly dashboardStaticData = inject(dashboardStaticDataService);
   private readonly transformationStaticData = inject(TransformationsStaticDataService);
 
-  // Grid Data
-  public dashboardGridColumns: any[] = [];
+  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public dashboardGridVisibleColumns: string[] = [];
   public dashboardGridData: any[] = [];
-
-  public transformationGridColumns: any[] = [];
+  
+  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
   public transformationGridVisibleColumns: string[] = [];
   public transformationGridData: any[] = [];
 
+  public isTransformationPopUpVisible = false;
+
   constructor(private httpApiService: LightHouseApiService) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
     this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
     this.getDashboardGridData();
@@ -41,27 +40,26 @@ export class DashboardComponent implements OnInit {
     this.getTransformationGridData();
   }
 
-  // Fetch data for the dashboard grid
   getDashboardGridData(): void {
-    this.httpApiService.fetchFlattenFieldData().subscribe((res) => {
-      this.dashboardGridData = res;
+    this.httpApiService.fetchFlattenFieldData().subscribe(res => {
+      let newDashboardGridData = [];
+      for (let item in res) {
+        newDashboardGridData.push(res[item]);
+      }
+      this.dashboardGridData = newDashboardGridData;
     });
   }
 
-  // Fetch data for the transformation grid
   getTransformationGridData(): void {
-    this.httpApiService.fetchTransformationFieldData().subscribe((res) => {
-      this.transformationGridData = res;
+    this.httpApiService.fetchTransformationFieldData().subscribe(res => {
+      let newTransformationGridData = [];
+      for (let item in res) {
+        newTransformationGridData.push(res[item]);
+      }
+      this.transformationGridData = newTransformationGridData;
     });
   }
 
-  // Toggle visibility of the popup
-  onDetailsButtonClick(): void {
-    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
-    console.log('Popup visibility:', this.isTransformationPopUpVisible); // Debug log
-  }
-
-  // Grid data load completed event
   onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
     if (event.eventData) {
       window.parent[event.eventData.gridId] = event.eventData.gridComponent;
@@ -73,56 +71,10 @@ export class DashboardComponent implements OnInit {
       window.parent[event.eventData.gridId] = event.eventData.gridComponent;
     }
   }
+
+  onDetailsButtonClick(): void {
+    // Toggle the visibility of the popup
+    this.isTransformationPopUpVisible = !this.isTransformationPopUpVisible;
+    console.log(this.isTransformationPopUpVisible);  // Debugging log
+  }
 }
-
-
-
-<div class="dashboard-div">
-  <!-- Dashboard Grid -->
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em 0.1em 0.1em 0.1em; padding: 10px;">
-    <app-grid
-      gridId="dashboard-grid"
-      [columns]="dashboardGridColumns"
-      [visiblecolumnsList]="dashboardGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-      [dataProvider]="dashboardGridData"
-    ></app-grid>
-  </div>
-
-  <h3>Transformations</h3>
-  <!-- Transformation Grid -->
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em 0.1em 6.1em 8.1em; padding: 10px;">
-    <app-grid
-      gridId="transformation-grid"
-      [columns]="transformationGridColumns"
-      [visibleColumnsList]="transformationGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
-      [dataProvider]="transformationGridData"
-    ></app-grid>
-  </div>
-
-  <!-- Button to open popup -->
-  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
-
-  <!-- Popup for Transformation Details -->
-  <ng-template [ngIf]="isTransformationPopUpVisible">
-    <panther-dialog
-      header="Transformation Details"
-      [(visible)]="isTransformationPopUpVisible"
-      [modal]="true"
-      [responsive]="true"
-      [width]="800"
-      [minWidth]="200"
-      [minY]="70"
-      [maximizable]="true"
-      [baseZIndex]="99999" <!-- Ensures a high z-index -->
-    >
-      <div dialog-content>
-        <div>Transformation Details Content</div>
-      </div>
-    </panther-dialog>
-  </ng-template>
-</div>
-
