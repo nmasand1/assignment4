@@ -1,68 +1,36 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { GridComponent } from '../../../common/components/grid/grid.component';
-import { DashboardGridHelper } from '../dashboard/util/dashboard-grid-helper';
-import { GridColumns, PartialBy } from '../../../common/components/grid/grid-columns';
-import { DashboardStaticDataService } from '../services/dashboard-static-data.service';
-import { TransformationsStaticDataService } from '../services/transformations-static-data.service';
-import { DataLoadCompletedEvent } from '../../../common/components/grid/events/data-load-completed-event';
-import { LightHouseApiService } from '../../../services/lighthouse-api.service';
+<div class="dashboard-div">
+  <h3>Dashboard</h3>
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
+    <app-grid 
+      gridId="dashboard-grid"
+      [columns]="dashboardGridColumns"
+      [visibleColumnsList]="dashboardGridVisibleColumns"
+      [reloadData]="true"
+      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+      [dataProvider]="dashboardGridData">
+    </app-grid>
+  </div>
 
-@Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, GridComponent],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
-})
-export class DashboardComponent implements OnInit {
-  private readonly dashboardStaticData = inject(DashboardStaticDataService);
-  private readonly transformationStaticData = inject(TransformationsStaticDataService);
-  
-  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
-  public dashboardGridVisibleColumns: string[] = [];
-  public dashboardGridData: any[] = [];
-  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
-  public transformationGridVisibleColumns: string[] = [];
-  public transformationGridData: any[] = [];
-  
-  public isTransformationPopUpVisible = false; // Flag for popup visibility
+  <h3>Transformations</h3>
+  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
+    <app-grid 
+      gridId="transformation-grid"
+      [columns]="transformationGridColumns"
+      [visibleColumnsList]="transformationGridVisibleColumns"
+      [reloadData]="true"
+      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+      [dataProvider]="transformationGridData">
+    </app-grid>
+  </div>
 
-  constructor(private httpApiService: LightHouseApiService) {}
+  <button (click)="onDetailsButtonClick()" class="details-button">Details</button>
 
-  ngOnInit(): void {
-    this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
-    this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
-    this.getDashboardGridData();
-    
-    this.transformationGridColumns = this.transformationStaticData.transformationsGridMetaData;
-    this.transformationGridVisibleColumns = this.transformationStaticData.transformationsGridVisibleColumns;
-    this.getTransformationGridData();
-  }
-
-  onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
-    if (event.eventData) {
-      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
-    }
-  }
-
-  getDashboardGridData(): void {
-    this.httpApiService.fetchFlattenFieldData().subscribe(res => {
-      this.dashboardGridData = res;
-    });
-  }
-
-  getTransformationGridData(): void {
-    this.httpApiService.fetchTransformationFieldData().subscribe(res => {
-      this.transformationGridData = res;
-    });
-  }
-
-  onDetailsButtonClick(): void {
-    this.isTransformationPopUpVisible = true; // Show the popup
-  }
-
-  closePopup(): void {
-    this.isTransformationPopUpVisible = false; // Hide the popup
-  }
-}
+  <!-- Transformation Popup -->
+  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+    <div class="popup-content">
+      <h2>Transformation Details</h2>
+      <p>This is where you would put your transformation details content.</p>
+      <button (click)="closePopup()" class="close-button">Close</button>
+    </div>
+  </div>
+</div>
