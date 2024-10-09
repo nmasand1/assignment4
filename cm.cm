@@ -1,25 +1,6 @@
 <div class="dashboard-div">
   <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid
-      gridId="dashboard-grid"
-      [columns]="dashboardGridColumns"
-      [visibleColumnsList]="dashboardGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-      [dataProvider]="dashboardGridData">
-    </app-grid>
-  </div>
-
-  <h3>Transformations</h3>
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid
-      gridId="transformation-grid"
-      [columns]="transformationGridColumns"
-      [visibleColumnsList]="transformationGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
-      [dataProvider]="transformationGridData">
-    </app-grid>
+    <!-- Existing app-grid content for your dashboard -->
   </div>
 
   <!-- Details Button to trigger popup -->
@@ -30,13 +11,16 @@
     <div class="popup-content">
       <h2>Transformation Details</h2>
 
-      <!-- Displaying transformation details -->
-      <div *ngIf="transformationDetails">
-        <p><strong>Field Link ID:</strong> {{transformationDetails.fieldLinkId}}</p>
-        <p><strong>Reporting Requirement:</strong> {{transformationDetails.reportingReq || 'N/A'}}</p>
-        <p><strong>Transformation Type:</strong> {{transformationDetails.transformationType}}</p>
-        <p><strong>Asset Class:</strong> {{transformationDetails.assetclass}}</p>
-        <p><strong>Product Type:</strong> {{transformationDetails.producttype}}</p>
+      <!-- Display transformation details -->
+      <div *ngIf="transformationDetails && transformationDetails.length > 0">
+        <div *ngFor="let detail of transformationDetails">
+          <p><strong>Field Link ID:</strong> {{ detail.fieldLinkId || 'N/A' }}</p>
+          <p><strong>Reporting Requirement:</strong> {{ detail.reportingReq || 'N/A' }}</p>
+          <p><strong>Transformation Type:</strong> {{ detail.transformationType || 'N/A' }}</p>
+          <p><strong>Asset Class:</strong> {{ detail.assetclass || 'N/A' }}</p>
+          <p><strong>Product Type:</strong> {{ detail.producttype || 'N/A' }}</p>
+          <hr />
+        </div>
       </div>
 
       <!-- Close Popup Button -->
