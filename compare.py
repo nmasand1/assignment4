@@ -1,10 +1,10 @@
 def compare_columns(self, df1, df2):
-    # Ensure the columns being compared are of the same type (convert to string)
     try:
-        # Convert all relevant columns to strings to avoid data type mismatches
-        df1[self.columns] = df1[self.columns].astype(str)
-        df2[self.columns] = df2[self.columns].astype(str)
+        # Convert all relevant columns to strings and handle NaN values
+        df1[self.columns] = df1[self.columns].fillna('').astype(str).apply(lambda x: x.str.strip().str.lower())
+        df2[self.columns] = df2[self.columns].fillna('').astype(str).apply(lambda x: x.str.strip().str.lower())
 
+        # Drop duplicates to make the comparison more efficient
         df1_deduped = df1.drop_duplicates(subset=self.columns)
         df2_deduped = df2.drop_duplicates(subset=self.columns)
         
