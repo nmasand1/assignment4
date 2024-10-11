@@ -38,8 +38,8 @@ def compare_variation_portfolio(tsr_df, msr_df, portfolio_code_col):
 
 def main():
     # File paths
-    tsr_file = 'path/to/tsr.csv'
-    msr_file = 'path/to/msr.csv'
+    tsr_file = 'path/to/tsr.csv'  # Update with your actual path
+    msr_file = 'path/to/msr.csv'  # Update with your actual path
     
     # Column names
     uti_col = 'uti'
