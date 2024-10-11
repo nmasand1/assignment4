@@ -1,68 +1,75 @@
 import pandas as pd
 
-def load_and_filter_tsr(file_path, uti_col):
-    """
-    Load TSR CSV and filter out rows where UTI has 'NOAP' value.
-    """
-    tsr_df = pd.read_csv(file_path)
-    # Filter out rows where UTI is 'NOAP'
-    filtered_tsr_df = tsr_df[tsr_df[uti_col] != 'NOAP']
-    return filtered_tsr_df
+class CSVComparator:
+    def __init__(self, columns):
+        self.columns = columns  # List of columns to compare
 
-def compare_variation_portfolio(tsr_df, msr_df, portfolio_code_col):
-    """
-    Compare variationportfoliocode from TSR and MSR.
-    TSR is already filtered to include only rows with valid UTI.
-    """
-    # Extract the variationportfoliocode columns for comparison
-    tsr_codes = tsr_df[portfolio_code_col].unique()  # Unique codes from TSR
-    msr_codes = msr_df[portfolio_code_col].unique()  # Unique codes from MSR
-    
-    # Find matching and non-matching codes
-    matching_codes = set(tsr_codes).intersection(set(msr_codes))
-    only_in_tsr = set(tsr_codes) - set(msr_codes)
-    only_in_msr = set(msr_codes) - set(tsr_codes)
-    
-    # Calculate statistics
-    stats = {
-        "Total TSR Codes": len(tsr_codes),
-        "Total MSR Codes": len(msr_codes),
-        "Matching Codes": len(matching_codes),
-        "Only in TSR": len(only_in_tsr),
-        "Only in MSR": len(only_in_msr),
-        "Percentage Matching": (len(matching_codes) / len(tsr_codes)) * 100 if len(tsr_codes) > 0 else 0,
-        "Percentage Non-Matching (TSR or MSR)": ((len(only_in_tsr) + len(only_in_msr)) / (len(tsr_codes) + len(msr_codes))) * 100
-    }
-    
-    return stats, matching_codes, only_in_tsr, only_in_msr
+    def compare_columns(self, df1, df2):
+        try:
+            # Ensure the data types for all comparison columns are consistent (string type)
+            df1[self.columns] = df1[self.columns].fillna('').astype(str)
+            df2[self.columns] = df2[self.columns].fillna('').astype(str)
 
-def main():
-    # File paths
-    tsr_file = 'path/to/tsr.csv'  # Update with your actual path
-    msr_file = 'path/to/msr.csv'  # Update with your actual path
-    
-    # Column names
-    uti_col = 'uti'
-    portfolio_code_col = 'variationportfoliocode'
-    
-    # Load and filter TSR file (ignoring NOAP values in UTI column)
-    tsr_df = load_and_filter_tsr(tsr_file, uti_col)
-    
-    # Load MSR file (we only care about the variationportfoliocode column)
-    msr_df = pd.read_csv(msr_file)
-    
-    # Compare variationportfoliocode between TSR and MSR
-    stats, matching_codes, only_in_tsr, only_in_msr = compare_variation_portfolio(tsr_df, msr_df, portfolio_code_col)
-    
-    # Output statistics
-    print("Comparison Statistics:")
-    for key, value in stats.items():
-        print(f"{key}: {value}")
-    
-    # Optionally, save the results to CSV files
-    pd.DataFrame(matching_codes, columns=[portfolio_code_col]).to_csv('matching_codes.csv', index=False)
-    pd.DataFrame(only_in_tsr, columns=[portfolio_code_col]).to_csv('only_in_tsr.csv', index=False)
-    pd.DataFrame(only_in_msr, columns=[portfolio_code_col]).to_csv('only_in_msr.csv', index=False)
+            # Print the dtypes to confirm consistent data types
+            print("Data types in df1 after conversion:")
+            print(df1[self.columns].dtypes)
+            print("Data types in df2 after conversion:")
+            print(df2[self.columns].dtypes)
 
+            # Perform the merge operation
+            comparison_df = pd.merge(df1, df2, on=self.columns, how='outer', indicator=True)
+
+            # Get the rows only in df1, only in df2, and present in both
+            only_in_df1 = comparison_df[comparison_df['_merge'] == 'left_only']
+            only_in_df2 = comparison_df[comparison_df['_merge'] == 'right_only']
+            in_both = comparison_df[comparison_df['_merge'] == 'both']
+
+            # Calculate statistics
+            total_df1 = len(df1)
+            total_df2 = len(df2)
+            matching_rows = len(in_both)
+            non_matching_rows = len(only_in_df1) + len(only_in_df2)
+
+            stats = {
+                "Total Rows in DF1": total_df1,
+                "Total Rows in DF2": total_df2,
+                "Matching Rows": matching_rows,
+                "Non-Matching Rows": non_matching_rows,
+                "Percentage Matching": (matching_rows / total_df1) * 100 if total_df1 > 0 else 0,
+                "Percentage Non-Matching": (non_matching_rows / (total_df1 + total_df2)) * 100 if (total_df1 + total_df2) > 0 else 0
+            }
+
+            print("\nComparison Statistics:")
+            for key, value in stats.items():
+                print(f"{key}: {value}")
+
+            return only_in_df1, only_in_df2, in_both
+
+        except KeyError as e:
+            print(f"KeyError: {e}. One or more specified columns are missing.")
+            return None, None, None
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None, None, None
+
+# Example usage
 if __name__ == "__main__":
-    main()
+    # Load your CSV files
+    tsr_file = 'path/to/tsr.csv'  # Update with actual path
+    msr_file = 'path/to/msr.csv'  # Update with actual path
+    
+    # Load the dataframes
+    tsr_df = pd.read_csv(tsr_file)
+    msr_df = pd.read_csv(msr_file)
+
+    # Filter the TSR DataFrame to exclude rows with 'NOAP' UTI
+    filtered_tsr_df = tsr_df[tsr_df['uti'] != 'NOAP']
+
+    # Define the columns to compare
+    columns_to_compare = ['uti', 'variationportfoliocode']
+
+    # Create an instance of the CSVComparator
+    comparator = CSVComparator(columns_to_compare)
+
+    # Perform the comparison
+    only_in_tsr, only_in_msr, in_both = comparator.compare_columns(filtered_tsr_df, msr_df)
