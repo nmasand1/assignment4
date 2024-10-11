@@ -1,101 +1,64 @@
-import pandas as pd
+def compare_columns(self, df1, df2):
+    try:
+        # Cast all comparison columns to string to avoid type mismatch errors
+        df1[self.columns] = df1[self.columns].astype(str)
+        df2[self.columns] = df2[self.columns].astype(str)
 
-def get_record_type(filename):
-    # Ensure the filename is treated as a string
-    if isinstance(filename, str):
-        # Determine RecordType based on the filename
-        if 'OnPrem' in filename:
-            return 1  # Map to RecordType 1
-        elif 'Original' in filename:
-            return 2  # Map to RecordType 2
-        else:
-            return 0  # Default RecordType for other cases
-    return None  # Return None if filename is not a string
+        # Deduplicate dataframes based on the columns to compare
+        df1_deduped = df1.drop_duplicates(subset=self.columns)
+        df2_deduped = df2.drop_duplicates(subset=self.columns)
 
-def compare_csvs(file1_path, file2_path, output_path):
-    # Read the CSV files
-    df1 = pd.read_csv(file1_path)
-    df2 = pd.read_csv(file2_path)
+        # Perform the merge to find matches and non-matches
+        comparison_df = df1_deduped.merge(
+            df2_deduped, on=self.columns, how='outer', indicator=True
+        )
+        
+        # Separate into dataframes based on the merge result
+        only_in_df1 = comparison_df[comparison_df['_merge'] == 'left_only']
+        only_in_df2 = comparison_df[comparison_df['_merge'] == 'right_only']
+        in_both = comparison_df[comparison_df['_merge'] == 'both']
 
-    # Print the original column names before processing
-    print("Original First CSV Columns:", df1.columns.tolist())
-    print("Original Second CSV Columns:", df2.columns.tolist())
+        return only_in_df1, only_in_df2, in_both
+    except KeyError as e:
+        print(f"KeyError: {e}. One or more specified columns are missing.")
+        return None, None, None
+    except Exception as e:
+        print(f"An error occurred during column comparison: {e}")
+        return None, None, None
 
-    # Convert column names to lowercase and strip whitespace
-    df1.columns = df1.columns.str.lower().str.replace(' ', '')
-    df2.columns = df2.columns.str.lower().str.replace(' ', '')
 
-    # Print processed column names
-    print("Processed First CSV Columns:", df1.columns.tolist())
-    print("Processed Second CSV Columns:", df2.columns.tolist())
 
-    # Check if required columns are present
-    required_columns_df1 = ['filename', 'businessdate', 'rowsextracted']
-    required_columns_df2 = ['upstreamcount', 'businessdate', 'recordtype']
-    
-    for col in required_columns_df1:
-        if col not in df1.columns:
-            print(f"Error: '{col}' column not found in the first CSV. Available columns are:", df1.columns.tolist())
-            return
 
-    for col in required_columns_df2:
-        if col not in df2.columns:
-            print(f"Error: '{col}' column not found in the second CSV. Available columns are:", df2.columns.tolist())
-            return
 
-    # Convert numeric columns to appropriate types, handling errors
-    df1['rowsextracted'] = pd.to_numeric(df1['rowsextracted'], errors='coerce')
-    df2['upstreamcount'] = pd.to_numeric(df2['upstreamcount'], errors='coerce')
+def run_comparison(self):
+    try:
+        self.load_config()
+        dataframes = self.load_csv_files()
+        dataframes = self.reorder_files(dataframes)
+        
+        # Check if any DataFrame is empty or does not exist
+        if any(df.empty for df in dataframes.values()):
+            raise ValueError("One or more DataFrames are empty or could not be loaded properly.")
+        
+        if self.check_missing_columns(dataframes):
+            keys = list(dataframes.keys())
+            only_in_df1, only_in_df2, in_both = self.compare_columns(dataframes[keys[0]], dataframes[keys[1]])
 
-    # Create a list to hold the results
-    results = []
+            if only_in_df1 is not None and only_in_df2 is not None:
+                result_df = self.create_result_df(only_in_df1, only_in_df2, keys[0], keys[1])
+                match_both = self.match_result_df(in_both, keys[0], keys[1])
 
-    # Iterate through the first DataFrame
-    for index, row in df1.iterrows():
-        business_date = row['businessdate']
-        rows_extracted = row['rowsextracted']
-        filename = row['filename']  # Get the filename
+                self.save_and_print_csv(result_df, 'non_matching_recon_intraday.csv')
+                self.save_and_print_csv(match_both, 'matching_row_recon_intraday.csv')
 
-        # Get the corresponding RecordType based on the filename
-        record_type = get_record_type(filename)
+                stats_df = self.calculate_stats(in_both, only_in_df1, only_in_df2)
+                self.save_and_print_csv(stats_df, 'comparison_stat_recon_intraday.csv')
 
-        if record_type is not None:  # Proceed only if a valid record_type is returned
-            # Filter the second DataFrame for matching BusinessDate and RecordType
-            matching_rows = df2[(df2['businessdate'] == business_date) & (df2['recordtype'] == record_type)]
-
-            # Check for upstream counts
-            if not matching_rows.empty:
-                for _, match_row in matching_rows.iterrows():
-                    upstream_count = match_row['upstreamcount']
-                    
-                    # Prepare the output row
-                    output_row = {
-                        'BusinessDate': business_date,
-                        'RowsExtracted': rows_extracted,
-                        'UpstreamCount': upstream_count,
-                        'RecordType': record_type,
-                        'Match': 'Match' if rows_extracted == upstream_count else 'Mismatch'
-                    }
-                    results.append(output_row)
+                print(f'Matching recon file saved with {in_both.shape[0]} rows.')
+                print(f'Non-matching recon saved with {result_df.shape[0]} rows.')
             else:
-                print(f"No matching upstream counts found for {business_date} with RecordType {record_type}.")
+                print("Comparison could not be completed due to missing columns.")
         else:
-            print(f"Invalid filename detected: {filename}. Skipping this entry.")
-
-    # Check if results are empty
-    if not results:
-        print("No matches found. Please check the input data.")
-    else:
-        # Create a DataFrame for results
-        results_df = pd.DataFrame(results)
-
-        # Write results to output CSV
-        results_df.to_csv(output_path, index=False)
-        print(f"Output saved to {output_path}")
-
-# Usage
-file1_path = 'csv1.csv'  # Update with your first CSV file path
-file2_path = 'csv2.csv'  # Update with your second CSV file path
-output_path = 'output.csv'      # Update with desired output file path
-
-compare_csvs(file1_path, file2_path, output_path)
+            print("One or more specified columns are missing in one or both CSV files.")
+    except Exception as e:
+        print(f"An error occurred during the comparison process: {e}")
