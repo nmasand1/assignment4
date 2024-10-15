@@ -1,113 +1,52 @@
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+<div class="container-fluid root" style="position: relative;">
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <!-- Existing grid code -->
+      <div #panthergridDiv></div>
+    </div>
+  </div>
 
-.popup-content {
-  background-color: white;
-  padding: 40px; /* Increase padding for more space */
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 1000px; /* Increased max-width for a larger window */
-  width: 90%; /* Keeps responsive design */
-  max-height: 80%; /* Limits the height of the popup */
-  overflow-y: auto; /* Enables vertical scrolling */
-}
+  <!-- New buttons added below the grid -->
+  <div class="row" style="margin-top: 10px;">
+    <div class="col-md-12 text-right">
+      <button class="btn btn-primary" (click)="openJiraIdsPopup()">JIRA IDS</button>
+      <button class="btn btn-secondary" (click)="openUpstreamLineagePopup()">UPSTREAM LINEAGE</button>
+    </div>
+  </div>
+</div>
 
-.tabs {
-  display: flex;
-  margin-bottom: 20px;
-}
+<!-- Popup content for JIRA IDS -->
+<div class="modal" id="jiraIdsModal" tabindex="-1" *ngIf="showJiraIdsPopup">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">JIRA IDS</h5>
+        <button type="button" class="close" (click)="closeJiraIdsPopup()">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Add the content for the JIRA IDS popup here -->
+        <p>Content related to JIRA IDS goes here...</p>
+      </div>
+    </div>
+  </div>
+</div>
 
-.tab {
-  flex: 1;
-  padding: 15px; /* Increase tab padding */
-  text-align: center;
-  cursor: pointer;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 5px 5px 0 0;
-  transition: background-color 0.3s;
-}
-
-.tab:hover {
-  background-color: #e0e0e0;
-}
-
-.tab.active {
-  background-color: #007bff;
-  color: white;
-  border-bottom: 1px solid white; /* Keeps the border consistent */
-}
-
-.details-container {
-  margin-top: 20px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  padding: 15px; /* Increase detail item padding */
-  background-color: #f9f9f9;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.detail-label {
-  font-weight: bold;
-  color: #333;
-}
-
-.detail-value {
-  color: #555;
-}
-
-.details-button,
-.close-button {
-  padding: 10px 15px;
-  margin-top: 10px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
-}
-
-.details-button:hover,
-.close-button:hover {
-  background-color: #0056b3;
-}
-
-/* Table Styles */
-.input-fields-table {
-  width: 100%; /* Full width */
-  border-collapse: collapse; /* Remove space between borders */
-  margin-top: 20px; /* Space above the table */
-}
-
-.input-fields-table th, .input-fields-table td {
-  border: 1px solid #ccc; /* Border for cells */
-  padding: 10px; /* Padding for cells */
-  text-align: left; /* Align text to the left */
-}
-
-.input-fields-table th {
-  background-color: #f2f2f2; /* Light grey background for header */
-  font-weight: bold; /* Bold header text */
-}
-
-.input-fields-table tr:nth-child(even) {
-  background-color: #f9f9f9; /* Zebra striping for rows */
-}
-
-.input-fields-table tr:hover {
-  background-color: #f1f1f1; /* Highlight row on hover */
-}
+<!-- Popup content for UPSTREAM LINEAGE -->
+<div class="modal" id="upstreamLineageModal" tabindex="-1" *ngIf="showUpstreamLineagePopup">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">UPSTREAM LINEAGE</h5>
+        <button type="button" class="close" (click)="closeUpstreamLineagePopup()">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Add the content for the UPSTREAM LINEAGE popup here -->
+        <p>Content related to UPSTREAM LINEAGE goes here...</p>
+      </div>
+    </div>
+  </div>
+</div>
