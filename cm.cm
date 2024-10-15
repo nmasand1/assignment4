@@ -1,23 +1,34 @@
-<!-- Buttons for JIRA IDS and UPSTREAM LINEAGE -->
-<div class="button-container">
-  <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
-  <button (click)="toggleUpstreamLineagePopup()">UPSTREAM LINEAGE</button>
-</div>
-
-<!-- JIRA IDS Popup -->
-<div *ngIf="showJiraIdsPopup" class="popup">
-  <div class="popup-content">
-    <h2>JIRA IDS</h2>
-    <!-- Add your content for JIRA IDS popup here -->
-    <button (click)="toggleJiraIdsPopup()">Close</button>
+<div class="container-fluid root" style="position: relative;">
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <!-- Existing grid code -->
+      <div #panthergridDiv></div>
+    </div>
   </div>
-</div>
 
-<!-- UPSTREAM LINEAGE Popup -->
-<div *ngIf="showUpstreamLineagePopup" class="popup">
-  <div class="popup-content">
-    <h2>UPSTREAM LINEAGE</h2>
-    <!-- Add your content for Upstream Lineage popup here -->
-    <button (click)="toggleUpstreamLineagePopup()">Close</button>
+  <!-- Buttons for JIRA IDS and UPSTREAM LINEAGE -->
+  <div class="button-container">
+    <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
+    <button (click)="toggleUpstreamLineagePopup()">UPSTREAM LINEAGE</button>
+  </div>
+
+  <!-- JIRA IDS Popup -->
+  <div *ngIf="showJiraIdsPopup" class="popup">
+    <div class="popup-content">
+      <h2>JIRA IDS</h2>
+      <!-- Add your JIRA IDS content here -->
+      <p>This is the content for the JIRA IDS popup.</p>
+      <button (click)="toggleJiraIdsPopup()">Close</button>
+    </div>
+  </div>
+
+  <!-- UPSTREAM LINEAGE Popup -->
+  <div *ngIf="showUpstreamLineagePopup" class="popup">
+    <div class="popup-content">
+      <h2>UPSTREAM LINEAGE</h2>
+      <!-- Add your Upstream Lineage content here -->
+      <p>This is the content for the Upstream Lineage popup.</p>
+      <button (click)="toggleUpstreamLineagePopup()">Close</button>
+    </div>
   </div>
 </div>
