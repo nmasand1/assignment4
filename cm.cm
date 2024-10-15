@@ -1,34 +1,54 @@
-<div class="container-fluid root" style="position: relative;">
-  <div class="row">
-    <div id="gridContainer" class="col-md-12 grid-container">
-      <!-- Existing grid code -->
-      <div #panthergridDiv></div>
-    </div>
-  </div>
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
-  <!-- Buttons to trigger popups (kept in one place) -->
-  <div class="row">
-    <div class="col-md-12">
-      <button (click)="toggleJiraIdsPopup()">Show JIRA IDS Popup</button>
-      <button (click)="toggleUpstreamLineagePopup()">Show Upstream Lineage Popup</button>
-    </div>
-  </div>
+.popup-content {
+  background-color: white;
+  padding: 40px;
+  border-radius: 8px;
+  width: 600px;
+  height: 400px;
+  text-align: center;
+  z-index: 1001;
+  position: relative;
+  overflow-y: auto;
+}
 
-  <!-- JIRA IDS Popup -->
-  <div *ngIf="showJiraIdsPopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
-      <h2>JIRA IDS Popup</h2>
-      <p>This is the content of the JIRA IDS popup.</p>
-    </div>
-  </div>
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333;
+}
 
-  <!-- Upstream Lineage Popup -->
-  <div *ngIf="showUpstreamLineagePopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">&times;</button>
-      <h2>Upstream Lineage Popup</h2>
-      <p>This is the content of the Upstream Lineage popup.</p>
-    </div>
-  </div>
-</div>
+.close-btn:hover {
+  color: #ff0000;
+}
+
+button {
+  margin: 10px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
