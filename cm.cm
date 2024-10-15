@@ -1,39 +1,32 @@
-.button-container {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
+<div class="container-fluid root" style="position: relative;">
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <!-- Existing grid code -->
+      <div #panthergridDiv></div>
+    </div>
+  </div>
 
-button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
+  <!-- Buttons for JIRA IDS and UPSTREAM LINEAGE -->
+  <div class="button-container">
+    <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
+    <button (click)="toggleUpstreamLineagePopup()">UPSTREAM LINEAGE</button>
+  </div>
 
-button:hover {
-  background-color: #0056b3;
-}
+  <!-- JIRA IDS Popup -->
+  <div *ngIf="showJiraIdsPopup" class="popup">
+    <div class="popup-content">
+      <h2>JIRA IDS</h2>
+      <p>This is the content for the JIRA IDS popup.</p>
+      <button (click)="toggleJiraIdsPopup()">Close</button>
+    </div>
+  </div>
 
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.popup-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  text-align: center;
-}
+  <!-- UPSTREAM LINEAGE Popup -->
+  <div *ngIf="showUpstreamLineagePopup" class="popup">
+    <div class="popup-content">
+      <h2>UPSTREAM LINEAGE</h2>
+      <p>This is the content for the Upstream Lineage popup.</p>
+      <button (click)="toggleUpstreamLineagePopup()">Close</button>
+    </div>
+  </div>
+</div>
