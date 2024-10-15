@@ -1,26 +1,21 @@
-<div class="container-fluid root" style="position: relative;">
-  <div class="row">
-    <div id="gridContainer" class="col-md-12 grid-container">
-      <!-- Existing grid code -->
-      <div #panthergridDiv></div>
-    </div>
-  </div>
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
-  <!-- JIRA IDS Popup -->
-  <div *ngIf="showJiraIdsPopup" class="popup">
-    <div class="popup-content">
-      <h2>JIRA IDS Popup</h2>
-      <p>This is the content of the JIRA IDS popup.</p>
-      <button (click)="toggleJiraIdsPopup()">Close</button>
-    </div>
-  </div>
-
-  <!-- Upstream Lineage Popup -->
-  <div *ngIf="showUpstreamLineagePopup" class="popup">
-    <div class="popup-content">
-      <h2>Upstream Lineage Popup</h2>
-      <p>This is the content of the Upstream Lineage popup.</p>
-      <button (click)="toggleUpstreamLineagePopup()">Close</button>
-    </div>
-  </div>
-</div>
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+  z-index: 1001;
+}
