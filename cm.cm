@@ -1,55 +1,23 @@
-<!-- Your existing grid component HTML -->
-
-<!-- Add the two buttons -->
-<div class="action-buttons">
+<!-- Buttons for JIRA IDS and UPSTREAM LINEAGE -->
+<div class="button-container">
   <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
   <button (click)="toggleUpstreamLineagePopup()">UPSTREAM LINEAGE</button>
 </div>
 
-<!-- Popup for JIRA IDS -->
-<div *ngIf="showJiraIdsPopup" class="popup-overlay">
+<!-- JIRA IDS Popup -->
+<div *ngIf="showJiraIdsPopup" class="popup">
   <div class="popup-content">
     <h2>JIRA IDS</h2>
-    <p>This is the JIRA IDS popup content.</p>
+    <!-- Add your content for JIRA IDS popup here -->
     <button (click)="toggleJiraIdsPopup()">Close</button>
   </div>
 </div>
 
-<!-- Popup for UPSTREAM LINEAGE -->
-<div *ngIf="showUpstreamLineagePopup" class="popup-overlay">
+<!-- UPSTREAM LINEAGE Popup -->
+<div *ngIf="showUpstreamLineagePopup" class="popup">
   <div class="popup-content">
     <h2>UPSTREAM LINEAGE</h2>
-    <p>This is the UPSTREAM LINEAGE popup content.</p>
+    <!-- Add your content for Upstream Lineage popup here -->
     <button (click)="toggleUpstreamLineagePopup()">Close</button>
   </div>
 </div>
-
-<!-- Style the popup screens -->
-<style>
-  .action-buttons {
-    margin-top: 10px;
-  }
-  
-  .action-buttons button {
-    margin-right: 10px;
-  }
-  
-  .popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .popup-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-  }
-</style>
