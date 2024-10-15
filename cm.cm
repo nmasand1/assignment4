@@ -1,3 +1,40 @@
+<div class="container-fluid root" style="position: relative;">
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <!-- Existing grid code -->
+      <div #panthergridDiv></div>
+    </div>
+  </div>
+
+  <!-- Buttons to trigger popups -->
+  <div class="row">
+    <div class="col-md-12">
+      <button (click)="toggleJiraIdsPopup()">Show JIRA IDS Popup</button>
+      <button (click)="toggleUpstreamLineagePopup()">Show Upstream Lineage Popup</button>
+    </div>
+  </div>
+
+  <!-- JIRA IDS Popup -->
+  <div *ngIf="showJiraIdsPopup" class="popup">
+    <div class="popup-content">
+      <h2>JIRA IDS Popup</h2>
+      <p>This is the content of the JIRA IDS popup.</p>
+      <button (click)="toggleJiraIdsPopup()">Close</button>
+    </div>
+  </div>
+
+  <!-- Upstream Lineage Popup -->
+  <div *ngIf="showUpstreamLineagePopup" class="popup">
+    <div class="popup-content">
+      <h2>Upstream Lineage Popup</h2>
+      <p>This is the content of the Upstream Lineage popup.</p>
+      <button (click)="toggleUpstreamLineagePopup()">Close</button>
+    </div>
+  </div>
+</div>
+
+
+
 .popup {
   position: fixed;
   top: 0;
@@ -18,4 +55,18 @@
   width: 300px;
   text-align: center;
   z-index: 1001;
+}
+
+button {
+  margin: 10px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
