@@ -1,86 +1,24 @@
-SQL> create view CS_Courses as
-  2  select * from courses
-  3  where dept_code='CS';
-
-View created.
-
-SQL> /* a) */
-SQL> insert into CS_Course values('CS', 537, 'TDS');
-insert into CS_Course values('CS', 537, 'TDS')
-            *
-ERROR at line 1:
-ORA-00942: table or view does not exist 
-
-
-SQL> insert into CS_Courses values('CS', 537, 'TDS');
-
-1 row created.
-
-SQL> select * from CS_Courses;
-
-DEPT    COURSE# TITLE                                                           
----- ---------- --------------------                                            
-CS          240 data structure                                                  
-CS          432 database systems                                                
-CS          532 database systems                                                
-CS          536 machine learning                                                
-CS          537 TDS                                                             
-CS          550 operating systems                                               
-CS          575 algorithms                                                      
-
-7 rows selected.
-
-SQL> /* before deletion */
-SQL> select * from CS_Courses;
-
-DEPT    COURSE# TITLE                                                           
----- ---------- --------------------                                            
-CS          240 data structure                                                  
-CS          432 database systems                                                
-CS          532 database systems                                                
-CS          536 machine learning                                                
-CS          537 TDS                                                             
-CS          550 operating systems                                               
-CS          575 algorithms                                                      
-
-7 rows selected.
-
-SQL> delete from CS_Courses where DEPT_CODE='CS' AND COURSE#=537;
-
-1 row deleted.
-
-SQL> /* after deletion */
-SQL> select * from CS_Courses;
-
-DEPT    COURSE# TITLE                                                           
----- ---------- --------------------                                            
-CS          240 data structure                                                  
-CS          432 database systems                                                
-CS          532 database systems                                                
-CS          536 machine learning                                                
-CS          550 operating systems                                               
-CS          575 algorithms                                                      
-
-6 rows selected.
-
-SQL> /* b) */
-SQL> /* Here we are entering the course that is logically not a part of CS_Courses view */
-SQL> insert into CS_Courses values('PHY', 569, 'GRAVITY');
-
-1 row created.
-
-SQL> select * from CS_Courses;
-
-DEPT    COURSE# TITLE                                                           
----- ---------- --------------------                                            
-CS          240 data structure                                                  
-CS          432 database systems                                                
-CS          532 database systems                                                
-CS          536 machine learning                                                
-CS          550 operating systems                                               
-CS          575 algorithms                                                      
-
-6 rows selected.
-
-SQL> /* insertion is not successful */
-SQL> spool off
+SELECT 
+    CTJD.TRADEJURISDICTIONDETAILSBUYERSELLERMIFID2ID,
+    CTJDM.TRADEJURISDICTIONDETAILSMIFID2ID,
+    CTJ.TRADEJURISDICTIONID,
+    CT.TRADEID,
+    CT.CTYSDSID,
+    CT.BOOK
+FROM 
+    CASH_TRADEJURISDICTIONDETAILSBUYERSELLERMIFID2 CTJD
+JOIN 
+    CASH_TRADEJURISDICTIONDETAILSMIFID2 CTJDM
+    ON CTJD.TRADEJURISDICTIONDETAILSMIFID2ID = CTJDM.TRADEJURISDICTIONDETAILSMIFID2ID
+JOIN 
+    CASH_TRADEJURISDICTION CTJ
+    ON CTJDM.TRADEJURISDICTIONID = CTJ.TRADEJURISDICTIONID
+JOIN 
+    CASH_TRADE CT
+    ON CTJ.TRADEID = CT.TRADEID
+WHERE 
+    CT.brr_load_dt BETWEEN '2023-01-01' AND '2023-03-31'
+    AND CTJD.onpremflag = 1
+    AND CTJDM.onpremflag = 1
+    AND CTJ.onpremflag = 1
+    AND CT.onpremflag = 1;
