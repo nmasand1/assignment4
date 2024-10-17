@@ -20,28 +20,25 @@
       <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
       <h2>JIRA IDS Popup</h2>
 
-      <!-- Render the meta and data fields dynamically if they exist -->
+      <!-- Render the JSON data if it exists -->
       <div *ngIf="jiraFieldData">
-        <h3>Meta Information</h3>
-        <div *ngFor="let key of getObjectKeys(jiraFieldData.meta)">
-          <p><strong>{{ key }}:</strong> {{ jiraFieldData.meta[key] }}</p>
-        </div>
+        <h3>Request Information</h3>
+        <p><strong>Request ID:</strong> {{ jiraFieldData.meta.requestId }}</p>
+        <p><strong>Requested System:</strong> {{ jiraFieldData.meta.requestedSystem }}</p>
+        <p><strong>Status:</strong> {{ jiraFieldData.meta.status }}</p>
 
+        <!-- Loop through the JIRA Fields in the data array -->
         <h3>JIRA Fields</h3>
         <ul>
           <li *ngFor="let field of jiraFieldData.data">
-            <div *ngFor="let key of getObjectKeys(field)">
-              <!-- If the field is testScenarios, display it as a list -->
-              <ng-container *ngIf="key !== 'testScenarios'; else scenariosBlock">
-                <p><strong>{{ key }}:</strong> {{ field[key] }}</p>
-              </ng-container>
-              <ng-template #scenariosBlock>
-                <p><strong>{{ key }}:</strong></p>
-                <ul>
-                  <li *ngFor="let scenario of field.testScenarios">{{ scenario }}</li>
-                </ul>
-              </ng-template>
-            </div>
+            <strong>JIRA ID:</strong> {{ field.jirald }}<br>
+            <strong>Summary:</strong> {{ field.summary }}<br>
+            <strong>Description:</strong> {{ field.description }}<br>
+            <strong>Code:</strong> {{ field.code }}<br>
+            <strong>Test Scenarios:</strong>
+            <ul>
+              <li *ngFor="let scenario of field.testScenarios">{{ scenario }}</li>
+            </ul>
           </li>
         </ul>
       </div>
