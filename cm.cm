@@ -17,32 +17,41 @@
   <!-- JIRA IDS Popup -->
   <div *ngIf="showJiraIdsPopup" class="popup">
     <div class="popup-content">
+      <span class="close" (click)="toggleJiraIdsPopup()">&times;</span>
       <h2>JIRA IDS Popup</h2>
-      
+
+      <!-- Display fetched JSON data -->
       <div *ngIf="jiraFieldData">
+        <h3>Request Information</h3>
         <p><strong>Request ID:</strong> {{ jiraFieldData.meta?.requestId }}</p>
         <p><strong>Status:</strong> {{ jiraFieldData.meta?.status }}</p>
 
-        <div *ngFor="let item of jiraFieldData.data">
-          <h3>JIRA ID: {{ item.jirald }}</h3>
-          <p><strong>Summary:</strong> {{ item.summary }}</p>
-          <p><strong>Description:</strong> {{ item.description }}</p>
-          <ul>
-            <li *ngFor="let scenario of item.testScenarios">{{ scenario }}</li>
-          </ul>
-        </div>
+        <h3>JIRA Fields</h3>
+        <ul>
+          <li *ngFor="let field of jiraFieldData.data">
+            <strong>ID:</strong> {{ field.jirald }}<br>
+            <strong>Summary:</strong> {{ field.summary }}<br>
+            <strong>Description:</strong> {{ field.description }}<br>
+            <strong>Test Scenarios:</strong> 
+            <ul>
+              <li *ngFor="let scenario of field.testScenarios">{{ scenario }}</li>
+            </ul>
+          </li>
+        </ul>
       </div>
 
-      <button (click)="toggleJiraIdsPopup()">Close</button>
+      <div *ngIf="!jiraFieldData">
+        <p>Loading data...</p>
+      </div>
     </div>
   </div>
 
   <!-- Upstream Lineage Popup -->
   <div *ngIf="showUpstreamLineagePopup" class="popup">
     <div class="popup-content">
+      <span class="close" (click)="toggleUpstreamLineagePopup()">&times;</span>
       <h2>Upstream Lineage Popup</h2>
       <p>This is the content of the Upstream Lineage popup.</p>
-      <button (click)="toggleUpstreamLineagePopup()">Close</button>
     </div>
   </div>
 </div>
