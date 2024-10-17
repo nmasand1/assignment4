@@ -1,61 +1,42 @@
-<div class="container-fluid root" style="position: relative;">
-  <div class="row">
-    <div id="gridContainer" class="col-md-12 grid-container">
-      <!-- Existing grid code -->
-      <div #panthergridDiv></div>
+<!-- JIRA IDS Popup -->
+<div *ngIf="showJiraIdsPopup" class="popup">
+  <div class="popup-content">
+    <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
+    <h2>JIRA IDS Popup</h2>
+
+    <!-- Render the JSON data as a table if it exists -->
+    <div *ngIf="jiraFieldData && jiraFieldData.data.length">
+      <table>
+        <thead>
+          <tr>
+            <th>Field Link ID</th>
+            <th>JIRA ID</th>
+            <th>Summary</th>
+            <th>Description</th>
+            <th>Code</th>
+            <th>Test Scenarios</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of jiraFieldData.data">
+            <td>{{ item.fieldLinkId }}</td>
+            <td>{{ item.jirald }}</td>
+            <td>{{ item.summary }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.code }}</td>
+            <td>
+              <ul>
+                <li *ngFor="let scenario of item.testScenarios">{{ scenario }}</li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-  </div>
 
-  <!-- Conditionally display buttons based on showButtons value -->
-  <div class="row" *ngIf="showButtons">
-    <div class="col-md-12">
-      <button (click)="toggleJiraIdsPopup()">Show JIRA IDS Popup</button>
-      <button (click)="toggleUpstreamLineagePopup()">Show Upstream Lineage Popup</button>
-    </div>
-  </div>
-
-  <!-- JIRA IDS Popup -->
-  <div *ngIf="showJiraIdsPopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
-      <h2>JIRA IDS Popup</h2>
-
-      <!-- Render the JSON data if it exists -->
-      <div *ngIf="jiraFieldData">
-        <h3>Request Information</h3>
-        <p><strong>Request ID:</strong> {{ jiraFieldData.meta.requestId }}</p>
-        <p><strong>Requested System:</strong> {{ jiraFieldData.meta.requestedSystem }}</p>
-        <p><strong>Status:</strong> {{ jiraFieldData.meta.status }}</p>
-
-        <!-- Loop through the JIRA Fields in the data array -->
-        <h3>JIRA Fields</h3>
-        <ul>
-          <li *ngFor="let field of jiraFieldData.data">
-            <strong>JIRA ID:</strong> {{ field.jirald }}<br>
-            <strong>Summary:</strong> {{ field.summary }}<br>
-            <strong>Description:</strong> {{ field.description }}<br>
-            <strong>Code:</strong> {{ field.code }}<br>
-            <strong>Test Scenarios:</strong>
-            <ul>
-              <li *ngFor="let scenario of field.testScenarios">{{ scenario }}</li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Show a loading message if data is still being fetched -->
-      <div *ngIf="!jiraFieldData">
-        <p>Loading JIRA data...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Upstream Lineage Popup -->
-  <div *ngIf="showUpstreamLineagePopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">&times;</button>
-      <h2>Upstream Lineage Popup</h2>
-      <p>This is the content of the Upstream Lineage popup.</p>
+    <!-- Show a loading message if data is still being fetched -->
+    <div *ngIf="!jiraFieldData">
+      <p>Loading JIRA data...</p>
     </div>
   </div>
 </div>
