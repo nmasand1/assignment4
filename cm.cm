@@ -1,25 +1,72 @@
+<!-- JIRA IDS Popup -->
+<div *ngIf="showJiraIdsPopup" class="popup">
+  <div class="popup-content">
+    <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
+    <h2>JIRA IDS Popup</h2>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <div *ngFor="let item of jiraFieldData?.data; let i = index" 
+           class="tab" 
+           [class.active]="i === selectedTabIndex" 
+           (click)="selectTab(i)">
+        JIRA ID: {{ item.jirald }}
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <ng-container *ngFor="let item of jiraFieldData?.data; let i = index">
+        <div *ngIf="i === selectedTabIndex">
+          <h3>Details for JIRA ID: {{ item.jirald }}</h3>
+          <p><strong>Field Link ID:</strong> {{ item.fieldLinkId }}</p>
+          <p><strong>Summary:</strong> {{ item.summary }}</p>
+          <p><strong>Description:</strong> {{ item.description }}</p>
+          <p><strong>Code:</strong> {{ item.code }}</p>
+          <p><strong>Test Scenarios:</strong></p>
+          <ul>
+            <li *ngFor="let scenario of item.testScenarios">{{ scenario }}</li>
+          </ul>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Show a loading message if data is still being fetched -->
+    <div *ngIf="!jiraFieldData">
+      <p>Loading JIRA data...</p>
+    </div>
+  </div>
+</div>
+
+
+
+
 .tabs {
   display: flex;
-  cursor: pointer;
+  margin-bottom: 10px; /* Space between tabs and content */
 }
 
 .tab {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background: #f2f2f2;
-  margin-right: 5px;
-  border-radius: 5px 5px 0 0;
+  padding: 15px 20px; /* Increase padding for larger tabs */
+  cursor: pointer;
+  border: 1px solid #007bff; /* Blue border */
+  border-radius: 5px 5px 0 0; /* Rounded corners on top */
+  background-color: #f0f0f0; /* Light gray background */
+  transition: background-color 0.3s; /* Smooth transition */
+  font-weight: bold; /* Make text bold */
+}
+
+.tab:hover {
+  background-color: #e0e0e0; /* Darker gray on hover */
 }
 
 .tab.active {
-  background: #fff;
-  border-bottom: none;
-  font-weight: bold;
+  background-color: #007bff; /* Blue background for active tab */
+  color: white; /* White text for active tab */
 }
 
 .tab-content {
-  border: 1px solid #ddd;
-  border-radius: 0 0 5px 5px;
-  padding: 15px;
-  background: #fff;
+  border: 1px solid #007bff; /* Blue border around content */
+  border-radius: 0 0 5px 5px; /* Rounded corners at the bottom */
+  padding: 20px; /* Space inside content */
 }
