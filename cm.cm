@@ -16,18 +16,19 @@
 
     <!-- Tab Content -->
     <div class="tab-content">
-      <div *ngFor="let item of jiraFieldData?.data; let i = index" 
-           *ngIf="i === selectedTabIndex">
-        <h3>Details for {{ item.jirald }}</h3>
-        <p><strong>Field Link ID:</strong> {{ item.fieldLinkId }}</p>
-        <p><strong>Summary:</strong> {{ item.summary }}</p>
-        <p><strong>Description:</strong> {{ item.description }}</p>
-        <p><strong>Code:</strong> {{ item.code }}</p>
-        <p><strong>Test Scenarios:</strong></p>
-        <ul>
-          <li *ngFor="let scenario of item.testScenarios">{{ scenario }}</li>
-        </ul>
-      </div>
+      <ng-container *ngFor="let item of jiraFieldData?.data; let i = index">
+        <div *ngIf="i === selectedTabIndex">
+          <h3>Details for {{ item.jirald }}</h3>
+          <p><strong>Field Link ID:</strong> {{ item.fieldLinkId }}</p>
+          <p><strong>Summary:</strong> {{ item.summary }}</p>
+          <p><strong>Description:</strong> {{ item.description }}</p>
+          <p><strong>Code:</strong> {{ item.code }}</p>
+          <p><strong>Test Scenarios:</strong></p>
+          <ul>
+            <li *ngFor="let scenario of item.testScenarios">{{ scenario }}</li>
+          </ul>
+        </div>
+      </ng-container>
     </div>
 
     <!-- Show a loading message if data is still being fetched -->
