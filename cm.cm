@@ -1,18 +1,141 @@
-  <!-- Input Fields Table -->
-        <h3>Input Fields</h3>
-        <table class="input-fields-table">
-          <thead>
-            <tr>
-              <th>Data Source Name</th>
-              <th>Field ID</th>
-              <th>Field Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let field of transformationDetails[selectedTabIndex].inputFieldDataList">
-              <td>{{ field.dataSource }}</td>
-              <td>{{ field.dependentfieldID }}</td>
-              <td>{{ field.xpath }}</td>
-            </tr>
-          </tbody>
-        
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* General Grid Styling */
+.dashboard-div, .col-md-10 {
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+    border-radius: 8px;
+    border: 2px solid #d3d3d3;
+    margin: 0.5em 0;
+    background-color: #f9f9f9;
+}
+
+.app-grid {
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* Button Styling */
+button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 0.5em 0;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Popup Content */
+.popup-content {
+    background-color: #fff;
+    padding: 2em;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.popup-content h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+/* Tab Navigation */
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 1em;
+}
+
+.tab {
+    padding: 0.5em 1em;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tab.active {
+    background-color: #007BFF;
+    color: white;
+}
+
+/* Transformation Details Styling */
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em 0;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #555;
+}
+
+.detail-value {
+    color: #333;
+}
+
+/* Input Fields Table */
+.input-fields-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+.input-fields-table th, 
+.input-fields-table td {
+    border: 1px solid #d3d3d3;
+    padding: 0.5em;
+    text-align: left;
+}
+
+.input-fields-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+/* Close Button */
+.close-button {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    background-color: #dc3545;
+}
+
+.close-button:hover {
+    background-color: #c82333;
+}
