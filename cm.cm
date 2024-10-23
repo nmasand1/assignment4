@@ -1,4 +1,3 @@
-/* Global reset to remove default margins and paddings */
 body, html {
     margin: 0;
     padding: 0;
