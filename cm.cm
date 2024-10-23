@@ -1,64 +1,46 @@
 /* Global Styles */
-body {
-    font-family: 'Arial', sans-serif;
+body, html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
-/* General Grid Styling */
+/* Dashboard Div and Grid Styling */
 .dashboard-div, .col-md-10 {
-    display: flex;
-    flex-direction: column;
-    padding: 1em;
-    border-radius: 8px;
-    border: 2px solid #d3d3d3;
-    margin: 0.5em 0;
+    margin: 0;
+    padding: 0.5em;  /* Reduced padding */
+    border: 2px solid gray;
     background-color: #f9f9f9;
-    max-width: 100%; /* Prevent horizontal scrolling */
-    min-height: 200px; /* Prevent the grid from collapsing */
+    border-radius: 8px;
 }
 
 .app-grid {
     width: 100%;
-    margin-bottom: 0; /* Remove space below the grid */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    min-height: 300px; /* Set a minimum height for the grids */
-    padding: 1em;
+    margin-bottom: 0 !important; /* Ensure no extra space below */
+    padding: 0;
+    min-height: 300px;
 }
 
-/* Title Styling */
+/* Remove Unnecessary Space */
 h3 {
-    font-size: 1.5em;
-    color: #333;
-    margin-top: 1em;
-    margin-bottom: 0.5em; /* Reduce the space after the title */
+    margin: 0.5em 0; /* Keep titles closer to the content */
 }
 
-/* Button Styling */
+/* Details Button Styling */
 button {
     background-color: #007BFF;
     color: #fff;
     border: none;
-    padding: 8px 16px; /* Slight padding to keep button size reasonable */
+    padding: 8px 16px; /* Keeping button size consistent */
     font-size: 1em;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
-    margin: 1em 0;
+    margin: 1em 0; /* Keep button spacing consistent */
 }
 
-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-button:hover:not(:disabled) {
-    background-color: #0056b3;
-}
-
-/* Popup Overlay */
+/* Popup and Content */
 .popup-overlay {
     position: fixed;
     top: 0;
@@ -71,18 +53,16 @@ button:hover:not(:disabled) {
     align-items: center;
 }
 
-/* Popup Content */
 .popup-content {
     background-color: #fff;
     padding: 1.5em;
     border-radius: 8px;
-    max-width: 600px;
     width: 90%;
+    max-width: 800px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    position: relative;
 }
 
-/* Tab Navigation */
+/* Tabs and Transformation Details */
 .tabs {
     display: flex;
     justify-content: space-between;
@@ -101,23 +81,7 @@ button:hover:not(:disabled) {
     color: white;
 }
 
-/* Transformation Details Styling */
-.detail-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5em 0;
-}
-
-.detail-label {
-    font-weight: bold;
-    color: #555;
-}
-
-.detail-value {
-    color: #333;
-}
-
-/* Input Fields Table */
+/* Input Fields Table Styling */
 .input-fields-table {
     width: 100%;
     border-collapse: collapse;
@@ -138,13 +102,21 @@ button:hover:not(:disabled) {
 
 /* Close Button */
 .close-button {
-    position: absolute;
-    top: 1em;
-    right: 1em;
     background-color: #dc3545;
     color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .close-button:hover {
     background-color: #c82333;
 }
+
+/* Minimize Space Below Grid */
+.col-md-10 {
+    margin-bottom: 0 !important; /* Ensure no space at bottom of grid */
+    padding-bottom: 0 !important;
+}
+
