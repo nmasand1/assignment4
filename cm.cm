@@ -1,34 +1,12 @@
-/* Reset all margins and paddings */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box; /* Ensures padding and borders are included in the element's total width and height */
-}
-
-/* Container styling */
-.dashboard-div {
-    padding: 0; /* Remove padding from the outer container */
-}
-
-/* Grid container styling */
-.grid-container {
-    border: 2px solid gray; /* Keep your border styling */
-    margin: 0.1em; /* Minimal margin around grid */
-    padding: 0; /* Eliminate padding */
-}
-
-/* Heading styling */
-h3 {
-    margin: 10px 0; /* Minimal margin for headings */
-}
-
-/* General app grid styling */
-app-grid {
-    width: 100%; /* Make sure grid fills container */
-    display: block; /* Ensures proper rendering */
-}
-
-/* Button styling */
-button {
-    margin-top: 10px; /* Adjust button spacing if needed */
+loadJiraFieldData() {
+    const requestData = { /* Your request parameters */ }; // Define your request data structure
+    this.lighthouseApiService.fetchJiraDetails(requestData).subscribe(
+        data => {
+            console.log('JIRA DATA:', data);
+            this.jiraFieldData = data;
+        },
+        error => {
+            console.log('Error loading JIRA data:', error);
+        }
+    );
 }
