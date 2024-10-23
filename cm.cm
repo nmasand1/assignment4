@@ -1,61 +1,18 @@
-<div class="dashboard-div">
-  <!-- Dashboard Grid -->
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid
-      [showButtons]="true"
-      gridId="dashboard-grid"
-      [columns]="dashboardGridColumns"
-      [visiblecolumnstist]="dashboardGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-      [dataProvider]="dashboardGridData">
-    </app-grid>
-  </div>
-
-  <h3>Transformations</h3>
-
-  <!-- Transformation Grid -->
-  <div class="col-md-10" style="border: 2px solid gray; margin: 0.1em; padding: 10px;">
-    <app-grid
-      gridId="transformation-grid"
-      [columns]="transformationGridColumns"
-      [visibleColumnsList]="transformationGridVisibleColumns"
-      [reloadData]="true"
-      (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
-      [dataProvider]="transformationGridData"
-      (selectionChange)="onTransformationGridSelection($event)">
-    </app-grid>
-  </div>
-
-  <!-- Details Button to trigger popup -->
-  <button (click)="onDetailsButtonClick()" [disabled]="transformationDetailsButtonDisabled">Details</button>
-
-  <!-- Transformation Details Popup -->
-  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
-    <div class="popup-content">
-      <h2>Transformation Details</h2>
-
-      <!-- Input Fields -->
-      <h3>Input Fields</h3>
-      <table class="input-fields-table">
-        <thead>
-          <tr>
-            <th>Data Source Name</th>
-            <th>Field ID</th>
-            <th>Field Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let field of inputFieldDataList">
-            <td>{{ field.datasource }}</td>
-            <td>{{ field.dependentfieldID }}</td>
-            <td>{{ field.dependentfieldname }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Close Popup Button -->
-      <button (click)="closePopup()" class="close-button">Close</button>
-    </div>
-  </div>
-</div>
+  <!-- Input Fields Table -->
+        <h3>Input Fields</h3>
+        <table class="input-fields-table">
+          <thead>
+            <tr>
+              <th>Data Source Name</th>
+              <th>Field ID</th>
+              <th>Field Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let field of transformationDetails[selectedTabIndex].inputFieldDataList">
+              <td>{{ field.dataSource }}</td>
+              <td>{{ field.dependentfieldID }}</td>
+              <td>{{ field.xpath }}</td>
+            </tr>
+          </tbody>
+        
