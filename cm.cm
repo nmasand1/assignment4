@@ -36,3 +36,74 @@
     </div>
   </div>
 </div>
+
+
+
+
+.popup-content {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: auto;
+  text-align: left; /* Left-align all content */
+}
+
+h2 {
+  text-align: left; /* Align the title to the left */
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 15px; /* Add more space between tabs and content */
+  text-align: left;
+}
+
+.tab {
+  padding: 10px 15px; /* Adjust padding for a better look */
+  cursor: pointer;
+  border: 1px solid #007bff;
+  border-radius: 5px 5px 0 0;
+  background-color: #f7f7f7;
+  margin-right: 5px; /* Space between tabs */
+  transition: background-color 0.3s ease-in-out;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tab:hover {
+  background-color: #e0e0e0;
+}
+
+.tab.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.tab-content {
+  border: 1px solid #007bff;
+  border-radius: 0 0 5px 5px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  margin-top: -1px; /* To align the border with active tab */
+}
+
+.jira-details h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.jira-details p {
+  font-size: 1em;
+  margin: 5px 0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background
