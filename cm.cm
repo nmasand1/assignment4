@@ -1,12 +1,47 @@
-loadJiraFieldData() {
-    const requestData = { /* Your request parameters */ }; // Define your request data structure
-    this.lighthouseApiService.fetchJiraDetails(requestData).subscribe(
-        data => {
-            console.log('JIRA DATA:', data);
-            this.jiraFieldData = data;
-        },
-        error => {
-            console.log('Error loading JIRA data:', error);
-        }
-    );
-}
+Here’s how you can structure the Jira ticket for the MAS outstanding report requirement. 
+
+### **One-line Summary (Topic of Jira):**
+"Requirement to Pull Latest Records by Reporting Timestamp for MAS Outstanding Report"
+
+### **Issue Type:**
+- Requirement
+- Technology
+
+### **Operations and Technology Requirements:**
+
+#### **Operations Requirements:**
+1. **Data Retrieval:**
+   - Ensure that the MAS Outstanding Report retrieves only the most recent records based on the latest `Reporting Timestamp`.
+   
+2. **Data Accuracy:**
+   - All data pulled for the MAS report must adhere to regulatory compliance, reflecting accurate and up-to-date reporting figures.
+   
+3. **Schedule and Automation:**
+   - Implement a mechanism for automatically pulling the data at the required intervals, ensuring the latest timestamp is always used.
+   - Ensure manual retrieval is available as a fallback for audit or emergency purposes.
+
+4. **Audit Trail:**
+   - Maintain an audit trail for the records retrieved to verify which `Reporting Timestamp` was used for generating the reports.
+
+5. **Access and Controls:**
+   - Ensure proper access controls are in place, limiting report generation to authorized personnel only.
+
+#### **Technology Requirements:**
+1. **Data Query Enhancement:**
+   - Modify the existing data retrieval query or ETL process to filter and pull records based on the latest `Reporting Timestamp` for MAS Outstanding Report.
+   - Ensure the query efficiently handles large datasets.
+
+2. **Database and System Integration:**
+   - Confirm that the reporting database contains a field for `Reporting Timestamp` and that this field is indexed to optimize performance for querying the latest records.
+
+3. **Performance Monitoring:**
+   - Implement system monitoring to ensure that the query is performant and that pulling the latest records doesn't impact the system's response time.
+
+4. **Automation Support:**
+   - Automate the extraction of the latest records at scheduled intervals through scheduled jobs or scripts.
+   - Create a rollback mechanism for manual data extraction in case of system failures.
+
+5. **Error Handling:**
+   - Set up error handling and alerting in case there are issues with fetching the latest `Reporting Timestamp` or if the process fails to retrieve data.
+
+Would this align with the requirements you're looking for?
