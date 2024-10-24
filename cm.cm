@@ -1,28 +1,38 @@
-this.lighthouseApiService.fetchJiraDetails().subscribe(
-  data => {
-    console.log('JIRA DATA: ', data);
+<!-- JIRA IDS Popup -->
+<div *ngIf="showJiraIdsPopup" class="popup">
+  <div class="popup-content">
+    <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
+    <h2>JIRA IDS Popup</h2>
 
-    // Process the description field to split it into sections
-    this.jiraFieldData = data.map(item => {
-      const description = item.description || '';
-      const operationsRequirements = this.extractSection(description, 'Operations Requirements');
-      const technologyRequirements = this.extractSection(description, 'Technology Requirements');
-      
-      return {
-        ...item,
-        operationsRequirements,
-        technologyRequirements
-      };
-    });
-  },
-  error => {
-    console.log('Error loading JIRA data:', error);
-  }
-);
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <div *ngFor="let item of jiraFieldData; let i = index" 
+           class="tab" 
+           [class.active]="i === selectedTabIndex" 
+           (click)="selectTab(i)">
+        {{ item.key }} <!-- Display the JIRA key as the tab title -->
+      </div>
+    </div>
 
-// Utility function to extract a section based on a heading marker
-extractSection(description: string, sectionName: string): string {
-  const regex = new RegExp(`\\*\\+\\*${sectionName}:\\*\\+\\*\\s*(.*?)\\*\\+`, 's');
-  const match = description.match(regex);
-  return match ? match[1].trim() : '';
-}
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <ng-container *ngFor="let item of jiraFieldData; let i = index">
+        <div *ngIf="i === selectedTabIndex" class="jira-details">
+          <h3>Details for JIRA: {{ item.key }}</h3>
+          <p><strong>Type:</strong> {{ item.type }}</p>
+          <p><strong>Status:</strong> {{ item.status }}</p>
+          <p><strong>Summary:</strong> {{ item.summary }}</p>
+          <p><strong>Reporter:</strong> {{ item.reporter }}</p>
+          <p><strong>Labels:</strong> {{ item.labels }}</p>
+          <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
+          <p><strong>Description:</strong> {{ item.description }}</p>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Show a loading message if data is still being fetched -->
+    <div *ngIf="!jiraFieldData">
+      <p>Loading JIRA data...</p>
+    </div>
+  </div>
+</div>
