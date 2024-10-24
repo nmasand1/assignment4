@@ -85,4 +85,37 @@
 }
 
 .input-fields-table {
-  width: 100
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.input-fields-table th,
+.input-fields-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.input-fields-table th {
+  background-color: #f5f5f5;
+}
+
+/* Footer and Close Button */
+.popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.close-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.close-button:hover {
+  background-color: #c82333;
+}
