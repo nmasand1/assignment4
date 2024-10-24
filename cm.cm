@@ -10,7 +10,7 @@
            class="tab" 
            [class.active]="i === selectedTabIndex" 
            (click)="selectTab(i)">
-        JIRA ID: {{ item.key }} <!-- Display JIRA ID in tabs -->
+        {{ item.key }} <!-- Display the JIRA key as the tab title -->
       </div>
     </div>
 
@@ -18,14 +18,22 @@
     <div class="tab-content">
       <ng-container *ngFor="let item of jiraFieldData; let i = index">
         <div *ngIf="i === selectedTabIndex">
-          <h3>Details for JIRA ID: {{ item.key }}</h3>
+          <h3>Details for JIRA: {{ item.key }}</h3>
           <p><strong>Type:</strong> {{ item.type }}</p>
           <p><strong>Status:</strong> {{ item.status }}</p>
           <p><strong>Summary:</strong> {{ item.summary }}</p>
           <p><strong>Reporter:</strong> {{ item.reporter }}</p>
           <p><strong>Labels:</strong> {{ item.labels }}</p>
           <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
-          <p><strong>Description:</strong> {{ item.description }}</p>
+          
+          <!-- Render the Operations and Technology Requirements -->
+          <div *ngIf="item.description">
+            <h4>Operations Requirements:</h4>
+            <p>{{ extractRequirements(item.description, 'Operations Requirements') }}</p>
+
+            <h4>Technology Requirements:</h4>
+            <p>{{ extractRequirements(item.description, 'Technology Requirements') }}</p>
+          </div>
         </div>
       </ng-container>
     </div>
