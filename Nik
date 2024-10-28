@@ -1,14 +1,14 @@
-# Open the file and read its contents
-with open('yourfile.txt', 'r') as file:
+import csv
+
+# Open the cleaned file and read its contents
+with open('cleaned_file.txt', 'r') as file:
     lines = file.readlines()
 
-# Process each line to remove the XML part
-processed_lines = []
-for line in lines:
-    # Split by '|', keep everything except the last part
-    parts = line.strip().split('|')[:-1]
-    processed_lines.append('|'.join(parts))
+# Open a new CSV file to write the data
+with open('output.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile)
 
-# Write the cleaned data back to a new file
-with open('cleaned_file.txt', 'w') as file:
-    file.write('\n'.join(processed_lines))
+    # Process each line to split by '|'
+    for line in lines:
+        parts = line.strip().split('|')
+        writer.writerow(parts)
