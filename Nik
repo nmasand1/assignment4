@@ -1,0 +1,14 @@
+# Open the file and read its contents
+with open('yourfile.txt', 'r') as file:
+    lines = file.readlines()
+
+# Process each line to remove the XML part
+processed_lines = []
+for line in lines:
+    # Split by '|', keep everything except the last part
+    parts = line.strip().split('|')[:-1]
+    processed_lines.append('|'.join(parts))
+
+# Write the cleaned data back to a new file
+with open('cleaned_file.txt', 'w') as file:
+    file.write('\n'.join(processed_lines))
