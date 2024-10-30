@@ -37,12 +37,12 @@ INNER JOIN
 LEFT JOIN 
     esmpuri AS eu ON eu.publishertradeid = t.PUBLISHERTRADEID
 WHERE 
-    tmj.jurisdiction IN ('CFTC', 'SEC') 
-    OR tmj.jurisdiction LIKE 'CA.%'
+    (tmj.jurisdiction IN ('CFTC', 'SEC') 
+    OR tmj.jurisdiction LIKE 'CA.%')
     AND tm.msgtype NOT IN ('REAL_TIME')
     AND tmj.srfmsgstate = 'rep'
     AND t.assetclassid = 6
-    AND CAST(tm.arrivaldatetime AS DATE) = DATE '2024-07-31'
+    AND CAST(date_parse(tm.arrivaldatetime, '%Y-%m-%d') AS DATE) = DATE '2024-07-31'
     AND alt.alternatetradeidtype IN (
         'atlasCompositeReference', 'barxFxTsTradeId', 'charmsTradeId', 
         'delta1TradeId', 'echelonTradeId', 'emTmsTradeId', 
