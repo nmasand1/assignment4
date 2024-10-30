@@ -42,7 +42,7 @@ WHERE
     AND tm.msgtype NOT IN ('REAL_TIME')
     AND tmj.srfmsgstate = 'rep'
     AND t.assetclassid = 6
-    AND CAST(date_parse(tm.arrivaldatetime, '%Y-%m-%d') AS DATE) = DATE '2024-07-31'
+    AND CAST(tm.arrivaldatetime AS STRING) = '2024-07-31'
     AND alt.alternatetradeidtype IN (
         'atlasCompositeReference', 'barxFxTsTradeId', 'charmsTradeId', 
         'delta1TradeId', 'echelonTradeId', 'emTmsTradeId', 
