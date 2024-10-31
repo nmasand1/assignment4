@@ -1,127 +1,73 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
-import { LightHouseApiService } from '../services/lighthouse-api.service';
-import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust path as needed
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
-import { FiltersModule } from './filters.module';
+<div class="container-fluid root" style="position: relative;">
+  <!-- Filters Panel -->
+  <app-filters-panel (searchFiltersEvent)="onFiltersSearch($event)"></app-filters-panel>
 
-@Component({
-  selector: 'app-filters-panel',
-  templateUrl: './filters-panel.component.html',
-  styleUrls: ['./filters-panel.component.css'],
-  standalone: true,
-  imports: [CommonModule, HttpClientModule, FormsModule, FiltersModule]
-})
-export class FiltersPanelComponent implements OnInit {
-  regulations: MultiSelectOption[] = [];
-  reportableDatasets: MultiSelectOption[] = [];
-  reportableFields: MultiSelectOption[] = [];
-  assetClasses: MultiSelectOption[] = [];
-  productType: MultiSelectOption[] = [];
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <div #panthergridDiv></div>
+    </div>
+  </div>
 
-  selectedRegulations: MultiSelectOption[] = [];
-  selectedReportableDatasets: MultiSelectOption[] = [];
-  selectedReportableFields: MultiSelectOption[] = [];
-  selectedAssetClasses: MultiSelectOption[] = [];
-  selectedProductType: MultiSelectOption[] = [];
-  selectedDate: string = '';
+  <div class="row" *ngIf="showButtons">
+    <div class="col-md-12">
+      <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
+      <button (click)="toggleUpstreamLineagePopup()">Upstream Lineage</button>
+    </div>
+  </div>
 
-  // Output event emitter for search
-  @Output() filtersChanged = new EventEmitter<any>();
+  <!-- JIRA IDs Popup -->
+  <div *ngIf="showJiraIdsPopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" (click)="toggleJiraIdsPopup()">×</button>
+      <h2>JIRA IDS Popup</h2>
+      <!-- Tabs Navigation -->
+      <div class="tabs">
+        <div
+          *ngFor="let item of jiraFieldData; let i = index"
+          (click)="selectTab(i)"
+          class="tab"
+          [class.active]="i === selectedTabIndex"
+        >
+          {{ item.key }}
+        </div>
+      </div>
 
-  constructor(private lightHouseApiService: LightHouseApiService) {}
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <ng-container *ngFor="let item of jiraFieldData; let i = index">
+          <div *ngIf="i === selectedTabIndex" class="jira-details">
+            <h3>Details for JIRA: {{ item.key }}</h3>
+            <p><strong>Type:</strong> {{ item.type }}</p>
+            <p><strong>Status:</strong> {{ item.status }}</p>
+            <p><strong>Summary:</strong> {{ item.summary }}</p>
+            <p><strong>Reporter:</strong> {{ item.reporter }}</p>
+            <p><strong>Labels:</strong> {{ item.labels }}</p>
+            <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
 
-  ngOnInit(): void {
-    this.loadFiltersData();
-  }
+            <!-- Formatted Description Sections -->
+            <div *ngIf="item.formattedDescription">
+              <h4>Operations Requirements:</h4>
+              <p>{{ item.formattedDescription.operations }}</p>
+              <h4>Technology Requirements:</h4>
+              <p>{{ item.formattedDescription.technology }}</p>
+            </div>
+          </div>
+        </ng-container>
 
-  loadFiltersData(): void {
-    this.lightHouseApiService.getFiltersMetaData().subscribe(
-      (response) => {
-        console.log(response);
-        this.regulations = response["data"]["regulations"].map((item: any) => ({
-          id: item['id'],
-          name: item['regulationname'],
-          selected: false
-        }));
-        this.reportableDatasets = response["data"]["reportType"].map((item: any) => ({
-          id: item['id'],
-          name: item['messagetype'],
-          selected: false
-        }));
-        this.reportableFields = response["data"]["reportableField"].map((item: any) => ({
-          id: item['id'],
-          name: item['fieldName'],
-          selected: false
-        }));
-        this.assetClasses = response["data"]["assetClasses"].map((item: any) => ({
-          id: item['id'],
-          name: item['assetclass'],
-          selected: false
-        }));
-        this.productType = response["data"]["productType"].map((item: any) => ({
-          id: item['id'],
-          name: item['producttype'],
-          selected: false
-        }));
-      },
-      (error) => {
-        console.error('Error fetching filters data:', error);
-      }
-    );
-  }
+        <!-- Loading Message if Data is Still Fetching -->
+        <div *ngIf="!jiraFieldData.length">
+          <p>Loading JIRA data...</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  searchFilters(): void {
-    const payload = {
-      selectedDate: this.selectedDate,
-      selectedRegulations: this.selectedRegulations.map(option => option.name),
-      selectedReportableDatasets: this.selectedReportableDatasets.map(option => option.name),
-      selectedReportableFields: this.selectedReportableFields.map(option => option.name),
-      selectedAssetClasses: this.selectedAssetClasses.map(option => option.name),
-      selectedProductType: this.selectedProductType.map(option => option.name)
-    };
-    
-    console.log("Search Payload", payload);
-    
-    // Emit the selected filters to parent component
-    this.filtersChanged.emit(payload);
-  }
-
-  resetFilters(): void {
-    this.selectedRegulations = [];
-    this.selectedReportableDatasets = [];
-    this.selectedReportableFields = [];
-    this.selectedAssetClasses = [];
-    this.selectedProductType = [];
-    this.selectedDate = '';
-
-    this.regulations.forEach(option => (option.selected = false));
-    this.reportableDatasets.forEach(option => (option.selected = false));
-    this.reportableFields.forEach(option => (option.selected = false));
-    this.assetClasses.forEach(option => (option.selected = false));
-    this.productType.forEach(option => (option.selected = false));
-
-    console.log("Filters have been reset!");
-  }
-
-  onRegulationsChange(selected: MultiSelectOption[]): void {
-    this.selectedRegulations = selected;
-  }
-
-  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
-    this.selectedReportableDatasets = selected;
-  }
-
-  onReportableFieldsChange(selected: MultiSelectOption[]): void {
-    this.selectedReportableFields = selected;
-  }
-
-  onAssetClassesChange(selected: MultiSelectOption[]): void {
-    this.selectedAssetClasses = selected;
-  }
-
-  onProductTypeChange(selected: MultiSelectOption[]): void {
-    this.selectedProductType = selected;
-  }
-}
+  <!-- Upstream Lineage Popup -->
+  <div *ngIf="showUpstreamLineagePopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">×</button>
+      <h2>Upstream Lineage Popup</h2>
+      <p>This is the content of the Upstream Lineage popup.</p>
+    </div>
+  </div>
+</div>
