@@ -1,86 +1,222 @@
-export class GridComponent implements OnInit {
-  showJiraIdsPopup = false;
-  selectedTabIndex = 0;
-  jiraFieldData: any[] = [];
-
-  constructor(private lighthouseApiService: LightHouseApiService) {}
-
-  ngOnInit() {
-    this.loadJiraFieldData();
-  }
-
-  loadJiraFieldData() {
-    this.lighthouseApiService.fetchJiraDetails().subscribe(
-      data => {
-        this.jiraFieldData = data.map(item => ({
-          ...item,
-          formattedDescription: this.formatDescription(item.description)
-        }));
-        console.log('JIRA DATA:', this.jiraFieldData);
-      },
-      error => {
-        console.log('Error loading JIRA data:', error);
-      }
-    );
-  }
-
-  // Method to format the description
-  private formatDescription(description: string) {
-    const operationsMatch = description.match(/\*Operations Requirements:\*([\s\S]*?)(\*|$)/);
-    const technologyMatch = description.match(/\*Technology Requirements:\*([\s\S]*)/);
-
-    return {
-      operations: operationsMatch ? operationsMatch[1].trim() : 'Not available',
-      technology: technologyMatch ? technologyMatch[1].trim() : 'Not available'
-    };
-  }
-
-  selectTab(index: number) {
-    this.selectedTabIndex = index;
-  }
-
-  toggleJiraIdsPopup() {
-    this.showJiraIdsPopup = !this.showJiraIdsPopup;
-    console.log('Jira Ids popup toggled', this.showJiraIdsPopup);
-  }
+/* General Styling */
+:host {
+  font-family: Arial, sans-serif;
 }
 
-<!-- Tabs Navigation -->
-<div class="tabs">
-  <div
-    *ngFor="let item of jiraFieldData; let i = index"
-    (click)="selectTab(i)"
-    class="tab"
-    [class.active]="i === selectedTabIndex"
-  >
-    {{ item.key }}
-  </div>
-</div>
+/* Count Panel */
+count-panel {
+  line-height: 2.6em;
+}
 
-<!-- Tab Content -->
-<div class="tab-content">
-  <ng-container *ngFor="let item of jiraFieldData; let i = index">
-    <div *ngIf="i === selectedTabIndex" class="jira-details">
-      <h3>Details for JIRA: {{ item.key }}</h3>
-      <p><strong>Type:</strong> {{ item.type }}</p>
-      <p><strong>Status:</strong> {{ item.status }}</p>
-      <p><strong>Summary:</strong> {{ item.summary }}</p>
-      <p><strong>Reporter:</strong> {{ item.reporter }}</p>
-      <p><strong>Labels:</strong> {{ item.labels }}</p>
-      <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
+/* Grid Container */
+.grid-container {
+  padding: 0;
+  height: 100%;
+}
 
-      <!-- Formatted Description Sections -->
-      <div *ngIf="item.formattedDescription">
-        <h4>Operations Requirements:</h4>
-        <p>{{ item.formattedDescription.operations }}</p>
-        <h4>Technology Requirements:</h4>
-        <p>{{ item.formattedDescription.technology }}</p>
-      </div>
-    </div>
-  </ng-container>
+.grid-refresh {
+  cursor: pointer;
+  font-size: 17px;
+  vertical-align: middle;
+}
 
-  <!-- Loading Message if Data is Still Fetching -->
-  <div *ngIf="!jiraFieldData.length">
-    <p>Loading JIRA data...</p>
-  </div>
-</div>
+/* Quick Search Panel */
+.quick-search-panel {
+  display: inline-block;
+  margin-left: 10px;
+  line-height: 1.5;
+}
+
+/* Export Template */
+.export-template {
+  position: relative;
+  display: inline-block;
+}
+
+.export-template ul,
+.export-template li {
+  list-style: none;
+}
+
+.export-template-list {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  padding: 5px 0;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  width: max-content;
+  z-index: 1;
+}
+
+.export-template-list a {
+  color: #666;
+  line-height: 1;
+  padding: 8px 20px;
+  text-decoration: none;
+}
+
+.export-template-list a:focus,
+.export-template-list a:hover {
+  color: #262626;
+  background-color: #f5f5f5;
+}
+
+.export-template-list a.disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Excel Export Icon */
+.excel-export {
+  background: url('/assets/svg/excel-export.svg') no-repeat;
+  background-size: 16px 16px;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: top;
+}
+
+/* Buttons */
+button {
+  font-size: 12px;
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 1px solid #285e8e;
+  background-color: #0d7bab;
+  color: white;
+  cursor: pointer;
+}
+
+button.btn-primary {
+  border-color: #285e8e;
+  background-color: #0d7bab;
+}
+
+button:hover {
+  background-color: #0b6c94;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: center;
+  position: relative;
+  z-index: 1001;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #ff0000;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.tab {
+  padding: 10px 15px;
+  cursor: pointer;
+  border: 1px solid #007bff;
+  border-radius: 5px 5px 0 0;
+  background-color: #f0f0f0;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.tab:hover {
+  background-color: #e0e0e0;
+}
+
+.tab.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.tab-content {
+  border: 1px solid #007bff;
+  border-radius: 0 0 5px 5px;
+  padding: 20px;
+  background-color: #fff;
+  margin-top: -1px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+/* Jira Details */
+.jira-details h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.jira-details p {
+  font-size: 1em;
+  margin: 5px 0;
+  color: #555;
+}
+
+.jira-details p strong {
+  color: #333;
+}
+
+/* Loading Message */
+.loading-message {
+  text-align: center;
+  font-size: 1.2em;
+  color: #666;
+}
