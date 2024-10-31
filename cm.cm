@@ -1,11 +1,28 @@
+parseDescription(description: string) {
+  const sections: { [key: string]: string } = {};
+
+  const operationsMatch = description.match(/\*+\s*Operations Requirements:\s*([\s\S]*?)\s*\*+/);
+  const technologyMatch = description.match(/\*+\s*Technology Requirements:\s*([\s\S]*)/);
+
+  if (operationsMatch) {
+    sections['Operations Requirements'] = operationsMatch[1].trim();
+  }
+
+  if (technologyMatch) {
+    sections['Technology Requirements'] = technologyMatch[1].trim();
+  }
+
+  return sections;
+}
+
 loadJiraFieldData() {
   this.lighthouseApiService.fetchJiraDetails().subscribe(
     data => {
       console.log('JIRA DATA:', data);
-      this.jiraFieldData = data.map(item => {
-        const descriptionSections = this.parseDescription(item.description);
-        return { ...item, descriptionSections };
-      });
+      this.jiraFieldData = data.map((item: any) => ({
+        ...item,
+        parsedDescription: this.parseDescription(item.description),
+      }));
     },
     error => {
       console.log('Error loading JIRA data:', error);
@@ -13,44 +30,35 @@ loadJiraFieldData() {
   );
 }
 
-// Helper function to parse the description field
-private parseDescription(description: string): any {
-  const sections = {
-    operationsRequirements: '',
-    technologyRequirements: ''
-  };
 
-  // Regex to identify sections within the description
-  const operationsMatch = description.match(/\*Operations Requirements:\*\s*([\s\S]*?)(?=\*Technology Requirements:|\*|$)/);
-  const technologyMatch = description.match(/\*Technology Requirements:\*\s*([\s\S]*?)(?=\*|$)/);
-
-  if (operationsMatch) {
-    sections.operationsRequirements = operationsMatch[1].trim();
-  }
-  if (technologyMatch) {
-    sections.technologyRequirements = technologyMatch[1].trim();
-  }
-
-  return sections;
-}
-
-<!-- JIRA Details Rendering -->
-<div *ngFor="let item of jiraFieldData; let i = index" class="jira-details" [class.active]="i === selectedTabIndex">
-  <h3>Details for JIRA: {{ item.key }}</h3>
-  <p><strong>Type:</strong> {{ item.type }}</p>
-  <p><strong>Status:</strong> {{ item.status }}</p>
-  <p><strong>Summary:</strong> {{ item.summary }}</p>
-  <p><strong>Reporter:</strong> {{ item.reporter }}</p>
-  <p><strong>Labels:</strong> {{ item.labels }}</p>
-  <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
-  
-  <!-- Render Operations Requirements and Technology Requirements -->
-  <div *ngIf="item.descriptionSections.operationsRequirements">
-    <h4>Operations Requirements:</h4>
-    <p>{{ item.descriptionSections.operationsRequirements }}</p>
-  </div>
-  <div *ngIf="item.descriptionSections.technologyRequirements">
-    <h4>Technology Requirements:</h4>
-    <p>{{ item.descriptionSections.technologyRequirements }}</p>
+<div *ngIf="showJiraIdsPopup" class="popup">
+  <div class="popup-content">
+    <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
+    <h2>JIRA IDS Popup</h2>
+    <div class="tabs">
+      <div
+        *ngFor="let item of jiraFieldData; let i = index"
+        class="tab"
+        [class.active]="i === selectedTabIndex"
+      >
+        <div class="tab-content">
+          <ng-container *ngIf="i === selectedTabIndex">
+            <h3>Details for JIRA: {{ item.key }}</h3>
+            <p><strong>Type:</strong> {{ item.type }}</p>
+            <p><strong>Status:</strong> {{ item.status }}</p>
+            <p><strong>Summary:</strong> {{ item.summary }}</p>
+            <p><strong>Reporter:</strong> {{ item.reporter }}</p>
+            <p><strong>Labels:</strong> {{ item.labels }}</p>
+            <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
+            <div *ngIf="item.parsedDescription">
+              <h4>Operations Requirements</h4>
+              <p>{{ item.parsedDescription['Operations Requirements'] }}</p>
+              <h4>Technology Requirements</h4>
+              <p>{{ item.parsedDescription['Technology Requirements'] }}</p>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
