@@ -1,127 +1,184 @@
-/* General Styling */
-:host {
-  font-family: Arial, sans-serif;
-  color: #333;
-  padding: 20px;
+/* General Layout Styling */
+body {
+    font-family: Arial, sans-serif;
+    color: #333;
+    background-color: #f7f8fa;
+    margin: 0;
 }
 
-/* Tabs */
+/* Tabs Styling */
 .tabs {
-  display: flex;
-  gap: 10px;
+    display: flex;
+    border-bottom: 2px solid #007bff;
+    margin-bottom: 15px;
 }
 
 .tab {
-  padding: 10px 20px;
-  cursor: pointer;
-  background-color: #e0e0e0;
-  border: 1px solid #b3b3b3;
-  border-radius: 5px;
-  font-weight: bold;
-  color: #333;
-  transition: background-color 0.3s ease;
-}
-
-.tab.active {
-  background-color: #007bff;
-  color: white;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border: 1px solid transparent;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .tab:hover {
-  background-color: #c7c7c7;
+    background-color: #e0e0e0;
 }
 
-/* Containers */
-.container {
-  margin-top: 20px;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+.tab.active {
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px 5px 0 0;
+    border: 1px solid #007bff;
 }
 
-.section-title {
-  font-weight: bold;
-  color: #007bff;
-  margin-bottom: 10px;
-  font-size: 1.1em;
+.tab-content {
+    border: 1px solid #007bff;
+    border-top: none;
+    padding: 20px;
+    background-color: white;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 0 0 5px 5px;
 }
 
-/* Input Fields */
-.input-fields {
-  margin-top: 10px;
+/* Header Styling */
+.jira-details h3 {
+    color: #333;
+    margin-bottom: 15px;
 }
 
-.input-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.jira-details p {
+    font-size: 1em;
+    color: #555;
 }
 
-.input-label {
-  width: 120px;
-  font-weight: bold;
+.jira-details p strong {
+    color: #333;
 }
 
-.input-value {
-  flex-grow: 1;
-  padding: 8px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-/* Code Section */
-.code-section {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f4f4f4;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-family: Consolas, monospace;
-  color: #444;
-  font-size: 0.9em;
-  white-space: pre-wrap;
-}
-
-/* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-th, td {
-  padding: 10px;
-  border: 1px solid #ddd;
-}
-
-th {
-  background-color: #f0f0f0;
-  font-weight: bold;
-  text-align: left;
-}
-
-td {
-  background-color: #fff;
-}
-
-tr:hover td {
-  background-color: #f5f5f5;
-}
-
-/* Buttons */
+/* Button Styling */
 button {
-  font-size: 12px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #285e8e;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #0056b3;
+    background-color: #0056b3;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #333;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Pop-up Styling */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    width: 600px;
+    max-width: 90%;
+    text-align: center;
+    position: relative;
+    overflow-y: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s;
+}
+
+.close-btn:hover {
+    color: #ff0000;
+}
+
+/* Loading Message */
+.loading-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: #666;
+}
+
+/* Export Template Button */
+.export-template {
+    display: inline-block;
+    position: relative;
+    margin: 0 10px;
+    font-size: 17px;
+    vertical-align: middle;
+}
+
+.excel-export {
+    background: url('/assets/svg/excel-export.svg') no-repeat;
+    background-size: 16px 16px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: top;
+}
+
+export-template-list {
+    position: absolute;
+    top: 18px;
+    right: 0px;
+    padding: 5px 0;
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 4px;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Improve Accessibility */
+button:focus, .tab:focus, .close-btn:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 3px;
 }
