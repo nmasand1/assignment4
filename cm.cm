@@ -1,121 +1,56 @@
-/* Popup Overlay */
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+loadJiraFieldData() {
+  this.lighthouseApiService.fetchJiraDetails().subscribe(
+    data => {
+      console.log('JIRA DATA:', data);
+      this.jiraFieldData = data.map(item => {
+        const descriptionSections = this.parseDescription(item.description);
+        return { ...item, descriptionSections };
+      });
+    },
+    error => {
+      console.log('Error loading JIRA data:', error);
+    }
+  );
 }
 
-/* Popup Container */
-.popup-container {
-  background: white;
-  border-radius: 8px;
-  width: 80%;
-  max-width: 900px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  position: relative;
+// Helper function to parse the description field
+private parseDescription(description: string): any {
+  const sections = {
+    operationsRequirements: '',
+    technologyRequirements: ''
+  };
+
+  // Regex to identify sections within the description
+  const operationsMatch = description.match(/\*Operations Requirements:\*\s*([\s\S]*?)(?=\*Technology Requirements:|\*|$)/);
+  const technologyMatch = description.match(/\*Technology Requirements:\*\s*([\s\S]*?)(?=\*|$)/);
+
+  if (operationsMatch) {
+    sections.operationsRequirements = operationsMatch[1].trim();
+  }
+  if (technologyMatch) {
+    sections.technologyRequirements = technologyMatch[1].trim();
+  }
+
+  return sections;
 }
 
-/* Header */
-.popup-header h2 {
-  text-align: center;
-  font-size: 1.5em;
-  margin-bottom: 20px;
-}
-
-/* Tabs Container */
-.tabs-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.tabs-list {
-  display: flex;
-  list-style: none;
-  padding: 0;
-}
-
-.tab-item {
-  padding: 10px 20px;
-  margin: 0 5px;
-  border: 1px solid #ddd;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.tab-item.active {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-/* Details Section */
-.details-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.details-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.details-label {
-  font-weight: bold;
-  color: #333;
-}
-
-.details-value {
-  color: #555;
-  font-style: italic;
-}
-
-/* Input Fields Table */
-.input-fields-section {
-  margin-top: 20px;
-}
-
-.input-fields-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.input-fields-table th,
-.input-fields-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: left;
-}
-
-.input-fields-table th {
-  background-color: #f5f5f5;
-}
-
-/* Footer and Close Button */
-.popup-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-.close-button {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-.close-button:hover {
-  background-color: #c82333;
-}
+<!-- JIRA Details Rendering -->
+<div *ngFor="let item of jiraFieldData; let i = index" class="jira-details" [class.active]="i === selectedTabIndex">
+  <h3>Details for JIRA: {{ item.key }}</h3>
+  <p><strong>Type:</strong> {{ item.type }}</p>
+  <p><strong>Status:</strong> {{ item.status }}</p>
+  <p><strong>Summary:</strong> {{ item.summary }}</p>
+  <p><strong>Reporter:</strong> {{ item.reporter }}</p>
+  <p><strong>Labels:</strong> {{ item.labels }}</p>
+  <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
+  
+  <!-- Render Operations Requirements and Technology Requirements -->
+  <div *ngIf="item.descriptionSections.operationsRequirements">
+    <h4>Operations Requirements:</h4>
+    <p>{{ item.descriptionSections.operationsRequirements }}</p>
+  </div>
+  <div *ngIf="item.descriptionSections.technologyRequirements">
+    <h4>Technology Requirements:</h4>
+    <p>{{ item.descriptionSections.technologyRequirements }}</p>
+  </div>
+</div>
