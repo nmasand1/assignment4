@@ -1,19 +1,127 @@
-loadGridData(filters?: any): void {
-    // Make an API call to fetch data with or without filters
-    this.lightHouseApiService.fetchGridData(filters).subscribe(
-      (data) => {
-        console.log('Grid Data:', data);
-        // Update your grid with the new data
-        // Assuming you have a method to set grid data
-        this.updateGridData(data);
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { LightHouseApiService } from '../services/lighthouse-api.service';
+import { MultiSelectOption } from 'src/app/models/multi-select-options'; // Adjust path as needed
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { FiltersModule } from './filters.module';
+
+@Component({
+  selector: 'app-filters-panel',
+  templateUrl: './filters-panel.component.html',
+  styleUrls: ['./filters-panel.component.css'],
+  standalone: true,
+  imports: [CommonModule, HttpClientModule, FormsModule, FiltersModule]
+})
+export class FiltersPanelComponent implements OnInit {
+  regulations: MultiSelectOption[] = [];
+  reportableDatasets: MultiSelectOption[] = [];
+  reportableFields: MultiSelectOption[] = [];
+  assetClasses: MultiSelectOption[] = [];
+  productType: MultiSelectOption[] = [];
+
+  selectedRegulations: MultiSelectOption[] = [];
+  selectedReportableDatasets: MultiSelectOption[] = [];
+  selectedReportableFields: MultiSelectOption[] = [];
+  selectedAssetClasses: MultiSelectOption[] = [];
+  selectedProductType: MultiSelectOption[] = [];
+  selectedDate: string = '';
+
+  // Output event emitter for search
+  @Output() filtersChanged = new EventEmitter<any>();
+
+  constructor(private lightHouseApiService: LightHouseApiService) {}
+
+  ngOnInit(): void {
+    this.loadFiltersData();
+  }
+
+  loadFiltersData(): void {
+    this.lightHouseApiService.getFiltersMetaData().subscribe(
+      (response) => {
+        console.log(response);
+        this.regulations = response["data"]["regulations"].map((item: any) => ({
+          id: item['id'],
+          name: item['regulationname'],
+          selected: false
+        }));
+        this.reportableDatasets = response["data"]["reportType"].map((item: any) => ({
+          id: item['id'],
+          name: item['messagetype'],
+          selected: false
+        }));
+        this.reportableFields = response["data"]["reportableField"].map((item: any) => ({
+          id: item['id'],
+          name: item['fieldName'],
+          selected: false
+        }));
+        this.assetClasses = response["data"]["assetClasses"].map((item: any) => ({
+          id: item['id'],
+          name: item['assetclass'],
+          selected: false
+        }));
+        this.productType = response["data"]["productType"].map((item: any) => ({
+          id: item['id'],
+          name: item['producttype'],
+          selected: false
+        }));
       },
       (error) => {
-        console.error('Error fetching grid data:', error);
+        console.error('Error fetching filters data:', error);
       }
     );
   }
 
-  onFiltersApplied(filters: any): void {
-    // When filters are applied, load the grid data with the filters
-    this.loadGridData(filters);
+  searchFilters(): void {
+    const payload = {
+      selectedDate: this.selectedDate,
+      selectedRegulations: this.selectedRegulations.map(option => option.name),
+      selectedReportableDatasets: this.selectedReportableDatasets.map(option => option.name),
+      selectedReportableFields: this.selectedReportableFields.map(option => option.name),
+      selectedAssetClasses: this.selectedAssetClasses.map(option => option.name),
+      selectedProductType: this.selectedProductType.map(option => option.name)
+    };
+    
+    console.log("Search Payload", payload);
+    
+    // Emit the selected filters to parent component
+    this.filtersChanged.emit(payload);
   }
+
+  resetFilters(): void {
+    this.selectedRegulations = [];
+    this.selectedReportableDatasets = [];
+    this.selectedReportableFields = [];
+    this.selectedAssetClasses = [];
+    this.selectedProductType = [];
+    this.selectedDate = '';
+
+    this.regulations.forEach(option => (option.selected = false));
+    this.reportableDatasets.forEach(option => (option.selected = false));
+    this.reportableFields.forEach(option => (option.selected = false));
+    this.assetClasses.forEach(option => (option.selected = false));
+    this.productType.forEach(option => (option.selected = false));
+
+    console.log("Filters have been reset!");
+  }
+
+  onRegulationsChange(selected: MultiSelectOption[]): void {
+    this.selectedRegulations = selected;
+  }
+
+  onReportableDatasetsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableDatasets = selected;
+  }
+
+  onReportableFieldsChange(selected: MultiSelectOption[]): void {
+    this.selectedReportableFields = selected;
+  }
+
+  onAssetClassesChange(selected: MultiSelectOption[]): void {
+    this.selectedAssetClasses = selected;
+  }
+
+  onProductTypeChange(selected: MultiSelectOption[]): void {
+    this.selectedProductType = selected;
+  }
+}
