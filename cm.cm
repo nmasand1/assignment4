@@ -1,73 +1,48 @@
-<div class="container-fluid root" style="position: relative;">
-  <!-- Filters Panel -->
-  <app-filters-panel (searchFiltersEvent)="onFiltersSearch($event)"></app-filters-panel>
+<div class="filters-panel">
+  <div class="filters-container">
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="regulations"
+      [label]="'Regulations'"
+      (selectionChange)="onRegulationsChange($event)"
+    ></app-multi-select>
 
-  <div class="row">
-    <div id="gridContainer" class="col-md-12 grid-container">
-      <div #panthergridDiv></div>
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="reportableDatasets"
+      [label]="'Reportable Datasets'"
+      (selectionChange)="onReportableDatasetsChange($event)"
+    ></app-multi-select>
+
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="reportableFields"
+      [label]="'Reportable Fields'"
+      (selectionChange)="onReportableFieldsChange($event)"
+    ></app-multi-select>
+
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="assetClasses"
+      [label]="'Asset Classes'"
+      (selectionChange)="onAssetClassesChange($event)"
+    ></app-multi-select>
+
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="productType"
+      [label]="'Product Type'"
+      (selectionChange)="onProductTypeChange($event)"
+    ></app-multi-select>
+
+    <div class="date-container">
+      <label for="date">Date:</label>
+      <input type="date" [(ngModel)]="selectedDate" id="date" />
     </div>
-  </div>
 
-  <div class="row" *ngIf="showButtons">
-    <div class="col-md-12">
-      <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
-      <button (click)="toggleUpstreamLineagePopup()">Upstream Lineage</button>
-    </div>
-  </div>
-
-  <!-- JIRA IDs Popup -->
-  <div *ngIf="showJiraIdsPopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleJiraIdsPopup()">×</button>
-      <h2>JIRA IDS Popup</h2>
-      <!-- Tabs Navigation -->
-      <div class="tabs">
-        <div
-          *ngFor="let item of jiraFieldData; let i = index"
-          (click)="selectTab(i)"
-          class="tab"
-          [class.active]="i === selectedTabIndex"
-        >
-          {{ item.key }}
-        </div>
-      </div>
-
-      <!-- Tab Content -->
-      <div class="tab-content">
-        <ng-container *ngFor="let item of jiraFieldData; let i = index">
-          <div *ngIf="i === selectedTabIndex" class="jira-details">
-            <h3>Details for JIRA: {{ item.key }}</h3>
-            <p><strong>Type:</strong> {{ item.type }}</p>
-            <p><strong>Status:</strong> {{ item.status }}</p>
-            <p><strong>Summary:</strong> {{ item.summary }}</p>
-            <p><strong>Reporter:</strong> {{ item.reporter }}</p>
-            <p><strong>Labels:</strong> {{ item.labels }}</p>
-            <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
-
-            <!-- Formatted Description Sections -->
-            <div *ngIf="item.formattedDescription">
-              <h4>Operations Requirements:</h4>
-              <p>{{ item.formattedDescription.operations }}</p>
-              <h4>Technology Requirements:</h4>
-              <p>{{ item.formattedDescription.technology }}</p>
-            </div>
-          </div>
-        </ng-container>
-
-        <!-- Loading Message if Data is Still Fetching -->
-        <div *ngIf="!jiraFieldData.length">
-          <p>Loading JIRA data...</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Upstream Lineage Popup -->
-  <div *ngIf="showUpstreamLineagePopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">×</button>
-      <h2>Upstream Lineage Popup</h2>
-      <p>This is the content of the Upstream Lineage popup.</p>
+    <div class="filters-buttons">
+      <button class="btn btn-search" (click)="searchFilters()">Search</button>
+      <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
     </div>
   </div>
 </div>
