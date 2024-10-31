@@ -1,103 +1,85 @@
-/* General Layout Styling */
-body {
-    font-family: Arial, sans-serif;
+/* Container for grid layout */
+.grid-container {
+    padding: 0;
+    height: 100%;
+    font-size: 14px;
     color: #333;
-    background-color: #f7f8fa;
-    margin: 0;
+    background-color: #f7f9fc;
 }
 
-/* Tabs Styling */
+/* Tabs styling */
 .tabs {
     display: flex;
-    border-bottom: 2px solid #007bff;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
 }
 
 .tab {
-    padding: 12px 20px;
+    padding: 15px 20px;
     cursor: pointer;
-    font-weight: bold;
     border: 1px solid transparent;
-    transition: background-color 0.3s, color 0.3s;
+    border-radius: 5px 5px 0 0;
+    background-color: #f0f0f0;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    font-weight: bold;
+    color: #333;
 }
 
 .tab:hover {
-    background-color: #e0e0e0;
+    background-color: #e8e8e8;
 }
 
 .tab.active {
     background-color: #007bff;
-    color: white;
-    border-radius: 5px 5px 0 0;
-    border: 1px solid #007bff;
+    color: #fff;
+    border-color: #007bff;
 }
 
+/* Tab content styling */
 .tab-content {
     border: 1px solid #007bff;
-    border-top: none;
-    padding: 20px;
-    background-color: white;
-    max-height: 60vh;
-    overflow-y: auto;
     border-radius: 0 0 5px 5px;
+    padding: 20px;
+    background-color: #ffffff;
+    margin-top: -1px;
+    max-height: 50vh;
+    overflow-y: auto;
 }
 
-/* Header Styling */
-.jira-details h3 {
-    color: #333;
-    margin-bottom: 15px;
+/* Export button styling */
+.export-template {
+    position: relative;
+    display: inline-block;
 }
 
-.jira-details p {
-    font-size: 1em;
-    color: #555;
+.export-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.jira-details p strong {
-    color: #333;
+.export-template-list {
+    position: absolute;
+    top: 18px;
+    right: 0;
+    padding: 5px 0;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    width: max-content;
+    z-index: 1;
 }
 
-/* Button Styling */
-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+.excel-export {
+    background: url('/assets/svg/excel-export.svg') no-repeat;
+    background-size: 16px 16px;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    vertical-align: top;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
-/* Table Styling */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    font-size: 14px;
-    color: #333;
-}
-
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
-
-th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-
-tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* Pop-up Styling */
+/* Popup styling */
 .popup {
     position: fixed;
     top: 0;
@@ -113,12 +95,11 @@ tr:hover {
 
 .popup-content {
     background-color: #fff;
-    padding: 30px;
+    padding: 40px;
     border-radius: 8px;
     width: 600px;
-    max-width: 90%;
+    max-height: 90vh;
     text-align: center;
-    position: relative;
     overflow-y: auto;
 }
 
@@ -132,53 +113,71 @@ tr:hover {
     font-weight: bold;
     cursor: pointer;
     color: #333;
-    transition: color 0.3s;
+    transition: color 0.2s ease;
 }
 
 .close-btn:hover {
     color: #ff0000;
 }
 
-/* Loading Message */
+/* Button styling */
+button {
+    margin: 10px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* JIRA details styling */
+.jira-details h3 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.jira-details p {
+    font-size: 1em;
+    margin: 5px 0;
+    color: #555;
+}
+
+.jira-details p strong {
+    color: #333;
+}
+
+/* Loading message styling */
 .loading-message {
     text-align: center;
     font-size: 1.2em;
     color: #666;
-}
-
-/* Export Template Button */
-.export-template {
-    display: inline-block;
-    position: relative;
-    margin: 0 10px;
-    font-size: 17px;
-    vertical-align: middle;
-}
-
-.excel-export {
-    background: url('/assets/svg/excel-export.svg') no-repeat;
-    background-size: 16px 16px;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    vertical-align: top;
-}
-
-export-template-list {
-    position: absolute;
-    top: 18px;
-    right: 0px;
-    padding: 5px 0;
-    background-color: #fff;
-    border: 1px solid rgba(0,0,0,0.15);
-    border-radius: 4px;
-    color: #666;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-/* Improve Accessibility */
-button:focus, .tab:focus, .close-btn:focus {
-    outline: 2px solid #0056b3;
-    outline-offset: 3px;
 }
