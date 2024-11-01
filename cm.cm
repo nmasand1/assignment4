@@ -1,48 +1,120 @@
-<div class="filters-panel">
-  <div class="filters-container">
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="regulations"
-      [label]="'Regulations'"
-      (selectionChange)="onRegulationsChange($event)"
-    ></app-multi-select>
+@use 'variable' as divar;
+@use 'mixins' as diComponent;
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="reportableDatasets"
-      [label]="'Reportable Datasets'"
-      (selectionChange)="onReportableDatasetsChange($event)"
-    ></app-multi-select>
+.full-height {
+  height: divar.$h100pr;
+}
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="reportableFields"
-      [label]="'Reportable Fields'"
-      (selectionChange)="onReportableFieldsChange($event)"
-    ></app-multi-select>
+.panel-shell-main-container {
+  @include diComponent.display-flex-direction(divar.$column);
+  @include diComponent.overflow(divar.$hidden, divar.$auto);
+  height: divar.$h100pr;
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="assetClasses"
-      [label]="'Asset Classes'"
-      (selectionChange)="onAssetClassesChange($event)"
-    ></app-multi-select>
+  .top-panel {
+    @include diComponent.height-minHeight(calc(100% - 145px), divar.$minH454px);
+    @include diComponent.display-flex-direction(divar.$column);
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="productType"
-      [label]="'Product Type'"
-      (selectionChange)="onProductTypeChange($event)"
-    ></app-multi-select>
+    header {
+      @include diComponent.width-height-bg(divar.$w100pr, divar.$h40px, divar.$bgColorHeader);
+    }
 
-    <div class="date-container">
-      <label for="date">Date:</label>
-      <input type="date" [(ngModel)]="selectedDate" id="date" />
-    </div>
+    @include diComponent.color-font(rgb(0, 57, 93), divar.$font-size-18px, divar.$font-weight-700, divar.$font-family-Sans-Serif);
+    @include diComponent.paddingMargin(10px 20px 5px 24px, 0);
 
-    <div class="filters-buttons">
-      <button class="btn btn-search" (click)="searchFilters()">Search</button>
-      <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
-    </div>
-  </div>
-</div>
+    .dropdown-list {
+      float: left;
+      @include diComponent.margin(divar.$m-7px, null, null, divar.$m-10px);
+
+      .fa-repeat {
+        @include diComponent.repeat-icon(divar.$repeat-color, divar.$font-size-18px, divar.$m-4px);
+      }
+    }
+
+    .divided-horizontal {
+      @include diComponent.display-flex-direction(divar.$column);
+      clear: both;
+      flex: 1;
+    }
+
+    .completeness-accuracy {
+      @include diComponent.display-flex-direction(divar.$column);
+      width: divar.$w55pr;
+
+      h3 {
+        flex-shrink: 0;
+        @include diComponent.color-font(rgb(155, 155, 155), divar.$font-size-21px, null, null);
+        @include diComponent.border-string(bottom, divar.$border1px, divar.$bottom-color);
+        @include diComponent.paddingMargin(8px 0px 8px 24px, 0);
+      }
+
+      .nav-link {
+        border: none;
+      }
+
+      .timeliness {
+        @include diComponent.width-height-bg(divar.$w45pr, null, divar.$bgColorTimeliness);
+        @include diComponent.display-flex-direction(divar.$column);
+
+        app-timeliness {
+          display: flex;
+          height: divar.$h100pr;
+
+          :host ::ng-deep {
+            .top-panel {
+              .dropdown-list {
+                .panther-dropdown {
+                  width: divar.$w138px;
+                }
+                
+                .panther-datetimepicker {
+                  .input-group {
+                    .panther-c-datetimepicker-input {
+                      @include diComponent.paddingMargin(4px 10px, null);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px; // Adjusts the gap between elements
+  align-items: center; // Vertically aligns dropdowns and buttons
+
+  .filter-dropdown {
+    flex: 1;
+    min-width: 16px; // Ensures dropdowns have a minimum width
+  }
+
+  .filters-buttons {
+    display: flex;
+    gap: 10px; // Gap between buttons
+
+    .btn {
+      padding: 8px 16px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+
+      &-search {
+        background-color: #28a745;
+      }
+
+      &-reset {
+        background-color: #dc3545;
+      }
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+}
