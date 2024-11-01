@@ -1,129 +1,48 @@
-.filters-panel {
-  /* Full-height class */
-  height: var(--h100pr);
-}
+<div class="filters-panel">
+  <div class="filters-container">
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="regulations"
+      [label]="'Regulations'"
+      (selectionChange)="onRegulationsChange($event)"
+    ></app-multi-select>
 
-.filters-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px; /* Adjusts the gap between the elements */
-  align-items: center; /* Vertically align dropdowns and buttons */
-}
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="reportableDatasets"
+      [label]="'Reportable Datasets'"
+      (selectionChange)="onReportableDatasetsChange($event)"
+    ></app-multi-select>
 
-.filter-dropdown {
-  flex: 1;
-  min-width: 160px; /* Ensure dropdowns have a minimum width */
-}
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="reportableFields"
+      [label]="'Reportable Fields'"
+      (selectionChange)="onReportableFieldsChange($event)"
+    ></app-multi-select>
 
-.date-container {
-  display: flex;
-  align-items: center;
-  margin-left: 10px; /* Add some spacing */
-}
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="assetClasses"
+      [label]="'Asset Classes'"
+      (selectionChange)="onAssetClassesChange($event)"
+    ></app-multi-select>
 
-.date-container label {
-  margin-right: 8px; /* Spacing between label and input */
-}
+    <app-multi-select
+      class="filter-dropdown"
+      [options]="productType"
+      [label]="'Product Type'"
+      (selectionChange)="onProductTypeChange($event)"
+    ></app-multi-select>
 
-.filters-buttons {
-  display: flex;
-  gap: 10px; /* Gap between the buttons */
-}
+    <div class="date-container">
+      <label for="date">Date:</label>
+      <input type="date" [(ngModel)]="selectedDate" id="date" />
+    </div>
 
-.btn {
-  padding: 8px 16px;
-  background-color: #007bff; /* Default button color */
-  border: none;
-  color: white;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.btn-search {
-  background-color: #28a745; /* Search button color */
-}
-
-.btn-reset {
-  background-color: #dc3545; /* Reset button color */
-}
-
-.btn:hover {
-  opacity: 0.9; /* Hover effect */
-}
-
-/* Top Panel Styles */
-.top-panel {
-  display: flex;
-  flex-direction: column;
-  height: calc(100% - 145px);
-}
-
-.header {
-  width: 100%;
-  height: 40px;
-  background-color: var(--bgColorHeader);
-}
-
-.dropdown-list {
-  float: left;
-  margin: -7px 0 0 -10px;
-}
-
-.fa-repeat {
-  color: var(--repeat-color);
-  font-size: 18px;
-  margin: -4px 0;
-}
-
-.divided-horizontal {
-  display: flex;
-  clear: both;
-  flex: 1;
-}
-
-.completeness-accuracy {
-  display: flex;
-  flex-direction: column;
-}
-
-.completeness-accuracy h3 {
-  flex-shrink: 0;
-  color: rgb(155, 155, 155);
-  font-size: 21px;
-  border-bottom: 1px solid var(--bottom-color);
-  padding: 8px 0 8px 24px;
-}
-
-.nav-link {
-  border: none;
-}
-
-.timeliness {
-  width: 45%;
-  background-color: var(--bgColorTimliness);
-  display: flex;
-  flex-direction: column;
-}
-
-.app-timeliness {
-  display: flex;
-  height: var(--h100pr);
-}
-
-:host ::ng-deep {
-  .top-panel {
-    .dropdown-list {
-      .panther-dropdown {
-        width: var(--w138px);
-      }
-
-      .panther-datetimepicker {
-        .input-group {
-          .panther-c-datetimepicker-input {
-            padding: 4px 10px;
-          }
-        }
-      }
-    }
-  }
-}
+    <div class="filters-buttons">
+      <button class="btn btn-search" (click)="searchFilters()">Search</button>
+      <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
+    </div>
+  </div>
+</div>
