@@ -1,90 +1,45 @@
-/* Main Container */
-.full-height {
-  height: 100%;
-}
-
-.panel-shell-main-container {
+.filters-container {
   display: flex;
-  flex-direction: column;
-  overflow: hidden auto;
-  height: 100%;
+  flex-wrap: wrap;
+  gap: 5px; /* Adjusts the gap between the elements */
+  align-items: center; /* Vertically align dropdowns and buttons */
 }
 
-.panel-shell-main-container .top-panel {
-  min-height: calc(100% - 145px);
-  display: flex;
-  flex-direction: column;
-}
-
-.panel-shell-main-container .top-panel header {
-  width: 100%;
-  height: 40px;
-  background-color: #f5f5f5; /* Replace with your header background color */
-}
-
-.panel-shell-main-container .top-panel {
-  color: rgb(0, 57, 93);
-  font-size: 18px;
-  font-weight: 700;
-  font-family: Sans-Serif;
-  padding: 10px 20px 5px 24px;
-  margin: 0;
-}
-
-.panel-shell-main-container .top-panel .dropdown-list {
-  float: left;
-  margin-top: -7px;
-  margin-left: -10px;
-}
-
-.panel-shell-main-container .top-panel .dropdown-list .fa-repeat {
-  color: #000; /* Replace with your repeat icon color */
-  font-size: 18px;
-  margin-top: -4px;
-}
-
-.panel-shell-main-container .top-panel .dropdown-list .divided-horizontal {
-  display: flex;
-  flex-direction: row;
-  clear: both;
+.filter-dropdown {
   flex: 1;
+  min-width: 160px; /* Ensure dropdowns have a minimum width */
 }
 
-.panel-shell-main-container .top-panel .dropdown-list .divided-horizontal .completeness-accuracy {
+.date-container {
   display: flex;
-  flex-direction: column;
-  width: 55%;
+  align-items: center;
 }
 
-.panel-shell-main-container .top-panel .dropdown-list .divided-horizontal .completeness-accuracy h3 {
-  flex-shrink: 0;
-  color: rgb(155, 155, 155);
-  font-size: 21px;
-  border-bottom: 1px solid #ddd; /* Replace with your bottom border color */
-  padding: 8px 0px 8px 24px;
-  margin: 0;
+.date-container label {
+  margin-right: 10px;
 }
 
-.panel-shell-main-container .nav-link {
+.filters-buttons {
+  display: flex;
+  gap: 10px; /* Gap between the buttons */
+}
+
+.btn {
+  padding: 8px 16px;
+  background-color: #007bff; /* Default button color */
   border: none;
+  color: white;
+  cursor: pointer;
 }
 
-.panel-shell-main-container .timeliness {
-  width: 45%;
-  background-color: #f5f5f5; /* Replace with your timeliness background color */
-  display: flex;
-  flex-direction: column;
+.btn-search {
+  background-color: #28a745; /* Green background for search button */
 }
 
-.panel-shell-main-container .timeliness .app-timeliness {
-  display: flex;
-  height: 100%;
+.btn-reset {
+  background-color: #dc3545; /* Red background for reset button */
 }
 
-.panel-shell-main-container .timeliness .app-timeliness .top-panel .dropdown-list .panther-dropdown {
-  width: 138px;
-}
-
-.panel-shell-main-container .timeliness .app-timeliness .top-panel .dropdown-list .panther-datetimepicker .input-group .panther-c-datetimepicker-input {
-  padding: 4px 10px;
+.btn:hover {
+  opacity: 0.9; /* Slightly decrease opacity on hover */
 }
