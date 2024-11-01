@@ -1,83 +1,106 @@
-<div class="filters-panel">
-  <div class="filters-container">
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="regulations"
-      [label]="'Regulations'"
-      (selectionChange)="onRegulationsChange($event)"
-    ></app-multi-select>
+<div class="panel-shell-main-container">
+  <div class="top-panel">
+    <header>Filters Panel</header>
+    <div class="filters-container">
+      <app-multi-select
+        class="filter-dropdown"
+        [options]="regulations"
+        [label]="'Regulations'"
+        (selectionChange)="onRegulationsChange($event)"
+      ></app-multi-select>
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="reportableDatasets"
-      [label]="'Reportable Datasets'"
-      (selectionChange)="onReportableDatasetsChange($event)"
-    ></app-multi-select>
+      <app-multi-select
+        class="filter-dropdown"
+        [options]="reportableDatasets"
+        [label]="'Reportable Datasets'"
+        (selectionChange)="onReportableDatasetsChange($event)"
+      ></app-multi-select>
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="reportableFields"
-      [label]="'Reportable Fields'"
-      (selectionChange)="onReportableFieldsChange($event)"
-    ></app-multi-select>
+      <app-multi-select
+        class="filter-dropdown"
+        [options]="reportableFields"
+        [label]="'Reportable Fields'"
+        (selectionChange)="onReportableFieldsChange($event)"
+      ></app-multi-select>
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="assetClasses"
-      [label]="'Asset Classes'"
-      (selectionChange)="onAssetClassesChange($event)"
-    ></app-multi-select>
+      <app-multi-select
+        class="filter-dropdown"
+        [options]="assetClasses"
+        [label]="'Asset Classes'"
+        (selectionChange)="onAssetClassesChange($event)"
+      ></app-multi-select>
 
-    <app-multi-select
-      class="filter-dropdown"
-      [options]="productType"
-      [label]="'Product Type'"
-      (selectionChange)="onProductTypeChange($event)"
-    ></app-multi-select>
+      <app-multi-select
+        class="filter-dropdown"
+        [options]="productType"
+        [label]="'Product Type'"
+        (selectionChange)="onProductTypeChange($event)"
+      ></app-multi-select>
 
-    <div class="date-container">
-      <label for="date">Date:</label>
-      <input type="date" [(ngModel)]="selectedDate" id="date" />
-    </div>
+      <div class="date-container">
+        <label for="date">Date:</label>
+        <input type="date" [(ngModel)]="selectedDate" id="date" />
+      </div>
 
-    <div class="filters-buttons">
-      <button class="btn btn-search" (click)="searchFilters()">Search</button>
-      <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
+      <div class="filters-buttons">
+        <button class="btn btn-search" (click)="searchFilters()">Search</button>
+        <button class="btn btn-reset" (click)="resetFilters()">Reset</button>
+      </div>
     </div>
   </div>
 </div>
 
 
-
-
-.filters-panel {
-  height: 100%;
+.panel-shell-main-container {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.top-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100% - 145px);
+}
+
+header {
+  background-color: rgb(0, 57, 93);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: Sans-Serif;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
 }
 
 .filters-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  align-items: center;
+  gap: 10px;
   padding: 10px;
+  align-items: center;
 }
 
 .filter-dropdown {
-  flex: 1;
-  min-width: 16px;
+  flex: 1 1 100px; /* Allows dropdowns to shrink if needed */
+  min-width: 150px; /* Ensures dropdowns have a minimum width */
 }
 
 .date-container {
   display: flex;
   align-items: center;
   gap: 5px;
+  min-width: 150px;
 }
 
 .filters-buttons {
   display: flex;
   gap: 10px;
+  padding-top: 10px;
 }
 
 .btn {
@@ -86,6 +109,7 @@
   border: none;
   color: white;
   cursor: pointer;
+  min-width: 100px;
 }
 
 .btn-search {
@@ -99,4 +123,3 @@
 .btn:hover {
   opacity: 0.9;
 }
-
