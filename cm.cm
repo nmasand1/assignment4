@@ -1,90 +1,90 @@
-// Importing modules with namespaces
-@use 'variables' as divar;
-@use 'mixins' as diComponent;
-
-// Main Container
+/* Main Container */
 .full-height {
-  height: divar.$h100pr;
+  height: 100%;
 }
 
 .panel-shell-main-container {
-  @include diComponent.display-flex-direction(divar.$column);
-  @include diComponent.overflow(divar.$hidden, divar.$auto);
-  height: divar.$h100pr;
-  
-  .top-panel {
-    @include diComponent.height-minHeight(calc(100% - 145px), divar.$minH454px);
-    @include diComponent.display-flex-direction(divar.$column);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden auto;
+  height: 100%;
+}
 
-    header {
-      @include diComponent.width-height-bg(divar.$w100pr, divar.$h40px, divar.$bgColorHeader);
-    }
+.panel-shell-main-container .top-panel {
+  min-height: calc(100% - 145px);
+  display: flex;
+  flex-direction: column;
+}
 
-    @include diComponent.color-font(
-      rgb(0, 57, 93),
-      divar.$font-size-18px,
-      divar.$font-weight-700,
-      divar.$font-family-Sans-Serif
-    );
-    @include diComponent.paddingMargin(10px 20px 5px 24px, 0);
+.panel-shell-main-container .top-panel header {
+  width: 100%;
+  height: 40px;
+  background-color: #f5f5f5; /* Replace with your header background color */
+}
 
-    .dropdown-list {
-      float: left;
-      @include diComponent.margin(divar.$m-7px, null, null, divar.$m-10px);
+.panel-shell-main-container .top-panel {
+  color: rgb(0, 57, 93);
+  font-size: 18px;
+  font-weight: 700;
+  font-family: Sans-Serif;
+  padding: 10px 20px 5px 24px;
+  margin: 0;
+}
 
-      .fa-repeat {
-        @include diComponent.repeat-icon(divar.$repeat-color, divar.$font-size-18px, divar.$m-4px);
-      }
+.panel-shell-main-container .top-panel .dropdown-list {
+  float: left;
+  margin-top: -7px;
+  margin-left: -10px;
+}
 
-      .divided-horizontal {
-        @include diComponent.display-flex-direction(divar.$row);
-        clear: both;
-        flex: 1;
+.panel-shell-main-container .top-panel .dropdown-list .fa-repeat {
+  color: #000; /* Replace with your repeat icon color */
+  font-size: 18px;
+  margin-top: -4px;
+}
 
-        .completeness-accuracy {
-          @include diComponent.display-flex-direction(divar.$column);
-          width: divar.$w55pr;
+.panel-shell-main-container .top-panel .dropdown-list .divided-horizontal {
+  display: flex;
+  flex-direction: row;
+  clear: both;
+  flex: 1;
+}
 
-          h3 {
-            flex-shrink: 0;
-            @include diComponent.color-font(rgb(155, 155, 155), divar.$font-size-21px, null, null);
-            @include diComponent.border-string(bottom, divar.$border1px, divar.$bottom-color);
-            @include diComponent.paddingMargin(8px 0px 8px 24px, 0);
-          }
-        }
-      }
-    }
-  }
+.panel-shell-main-container .top-panel .dropdown-list .divided-horizontal .completeness-accuracy {
+  display: flex;
+  flex-direction: column;
+  width: 55%;
+}
 
-  .nav-link {
-    border: none;
-  }
+.panel-shell-main-container .top-panel .dropdown-list .divided-horizontal .completeness-accuracy h3 {
+  flex-shrink: 0;
+  color: rgb(155, 155, 155);
+  font-size: 21px;
+  border-bottom: 1px solid #ddd; /* Replace with your bottom border color */
+  padding: 8px 0px 8px 24px;
+  margin: 0;
+}
 
-  .timeliness {
-    @include diComponent.width-height-bg(divar.$w45pr, null, divar.$bgColorTimeliness);
-    @include diComponent.display-flex-direction(divar.$column);
+.panel-shell-main-container .nav-link {
+  border: none;
+}
 
-    .app-timeliness {
-      display: flex;
-      height: divar.$h100pr;
-      
-      :host ::ng-deep {
-        .top-panel {
-          .dropdown-list {
-            .panther-dropdown {
-              width: divar.$w138px;
-            }
+.panel-shell-main-container .timeliness {
+  width: 45%;
+  background-color: #f5f5f5; /* Replace with your timeliness background color */
+  display: flex;
+  flex-direction: column;
+}
 
-            .panther-datetimepicker {
-              .input-group {
-                .panther-c-datetimepicker-input {
-                  @include diComponent.paddingMargin(4px 10px, null);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+.panel-shell-main-container .timeliness .app-timeliness {
+  display: flex;
+  height: 100%;
+}
+
+.panel-shell-main-container .timeliness .app-timeliness .top-panel .dropdown-list .panther-dropdown {
+  width: 138px;
+}
+
+.panel-shell-main-container .timeliness .app-timeliness .top-panel .dropdown-list .panther-datetimepicker .input-group .panther-c-datetimepicker-input {
+  padding: 4px 10px;
 }
