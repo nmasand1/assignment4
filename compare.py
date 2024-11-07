@@ -11,21 +11,28 @@ class CSVComparator:
         Load TSR CSV and filter out rows where UTI has 'NOAP' value.
         """
         tsr_df = pd.read_csv(self.tsr_file)
+        # Check for column existence
+        if uti_col not in tsr_df.columns:
+            print(f"Error: Column '{uti_col}' not found in TSR file.")
+            print(f"Available columns in TSR file: {list(tsr_df.columns)}")
+            return None
+
         # Filter out rows where UTI is 'NOAP'
         filtered_tsr_df = tsr_df[tsr_df[uti_col] != 'NOAP']
         return filtered_tsr_df
+
+    def load_msr(self):
+        """
+        Load MSR CSV file.
+        """
+        msr_df = pd.read_csv(self.msr_file)
+        return msr_df
 
     def compare_columns(self, df1, df2):
         try:
             # Ensure the data types for all comparison columns are consistent (string type)
             df1[self.columns] = df1[self.columns].fillna('').astype(str)
             df2[self.columns] = df2[self.columns].fillna('').astype(str)
-
-            # Print the dtypes to confirm consistent data types
-            print("Data types in df1 after conversion:")
-            print(df1[self.columns].dtypes)
-            print("Data types in df2 after conversion:")
-            print(df2[self.columns].dtypes)
 
             # Perform the merge operation
             comparison_df = pd.merge(df1, df2, on=self.columns, how='outer', indicator=True)
@@ -47,9 +54,22 @@ class CSVComparator:
     def run_comparison(self, uti_col, portfolio_code_col):
         # Load and filter TSR file (ignoring NOAP values in UTI column)
         tsr_df = self.load_and_filter_tsr(uti_col)
+        if tsr_df is None:
+            return  # Stop if TSR file could not be loaded properly
 
         # Load MSR file
-        msr_df = pd.read_csv(self.msr_file)
+        msr_df = self.load_msr()
+
+        # Verify portfolio_code_col in both data frames
+        if portfolio_code_col not in tsr_df.columns:
+            print(f"Error: Column '{portfolio_code_col}' not found in TSR file.")
+            print(f"Available columns in TSR file: {list(tsr_df.columns)}")
+            return
+
+        if portfolio_code_col not in msr_df.columns:
+            print(f"Error: Column '{portfolio_code_col}' not found in MSR file.")
+            print(f"Available columns in MSR file: {list(msr_df.columns)}")
+            return
 
         # Extract only the relevant columns for comparison
         tsr_filtered = tsr_df[[uti_col, portfolio_code_col]].drop_duplicates()
