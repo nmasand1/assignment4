@@ -1,118 +1,116 @@
 .filter-panel {
-  position: relative;
+    position: relative;
 }
 
 .dropdown-toggle::after {
-  content: none;
+    content: none;
 }
 
 .fa-cog {
-  color: #9fcbdd;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 18px 0 0 5px;
+    color: #9fcbdd;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 18px 0 0 5px;
 }
 
 .fa-cog:hover {
-  color: #fff;
+    color: #fff;
 }
 
 .publisher-btn {
-  border: 1px solid #2858e0;
-  background-color: #0d7bab;
-  box-shadow: inset 0 0 2px;
-  color: #fff;
-  cursor: pointer;
-  margin-top: 13px;
-  margin-left: 15px;
-  padding: 5px 15px;
-  outline: none;
+    border: 1px solid #2858e;
+    background-color: #0d7bab;
+    box-shadow: inset 0 0 2px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 13px;
+    margin-left: 15px;
+    padding: 5px 15px;
+    outline: none;
 }
 
 .publisher-btn:hover {
-  border-color: #357ebd;
+    border-color: #357ebd;
 }
 
 .filter-panel-container {
-  border: 1px solid #ccc;
-  padding: 5px;
-  width: 413px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    width: 413px;
 }
 
 form {
-  padding: 5px 10px;
+    padding: 5px 10px;
 }
 
 .form-group {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .fa-close {
-  cursor: pointer;
-  position: absolute;
-  right: 0;
-  top: 2px;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 2px;
 }
 
 label {
-  font-size: 11px;
+    font-size: 11px;
 }
 
 .apply {
-  background-color: #007eb6;
-  color: #fff;
-  outline: none;
-  border: 1px solid transparent;
-  font-size: 12px;
-  padding: 5px 15px;
-  font-weight: 700;
-  font-family: "Arial", sans-serif;
-  cursor: pointer;
+    background-color: #007eb6;
+    color: #fff;
+    outline: none;
+    border: 1px solid transparent;
+    font-size: 12px;
+    padding: 5px 15px;
+    font-weight: 700;
+    font-family: "Arial", sans-serif;
+    cursor: pointer;
 }
 
 .cancel {
-  background-color: transparent;
-  color: inherit;
-  outline: none;
-  border: 1px solid transparent;
-  font-size: 12px;
-  padding: 5px 15px;
-  font-weight: 700;
-  font-family: "Arial", sans-serif;
-  cursor: pointer;
-  margin-right: 15px;
+    outline: none;
+    border: 1px solid transparent;
+    font-size: 12px;
+    padding: 5px 15px;
+    font-weight: 700;
+    font-family: "Arial", sans-serif;
+    cursor: pointer;
+    margin-right: 15px;
 }
 
 input[type="checkbox"] {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 input[type="checkbox"]::after {
-  font-size: 12px;
-  line-height: 12px;
+    font-size: 12px;
+    line-height: 12px;
 }
 
 input[type="checkbox"]:checked::after {
-  content: '\2713';
-  font-weight: 700;
-  font-size: 10px;
-  line-height: 15px;
+    content: '\2713';
+    font-weight: 700;
+    font-size: 10px;
+    line-height: 15px;
 }
 
 :host ::ng-deep .filter-panel-container .input-group-append span:first-of-type {
-  pointer-events: none;
+    pointer-events: none;
 }
 
 .fa-close {
-  display: none;
+    display: none;
 }
 
 .input-group-text {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
 }
 
-.panther-datetimepicker .input-group {
-  font-size: 12px;
-  padding: 4px 10px;
+.panther-datetimepicker .input-group .panther-c-datetimepicker-input {
+    font-size: 12px;
+    padding: 4px 10px;
 }
