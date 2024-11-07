@@ -1,4 +1,4 @@
-.filter-panel {
+filter-Panel {
   position: relative;
 
   .dropdown-toggle::after {
@@ -32,7 +32,7 @@
     }
   }
 
-  .filter-panel-container {
+  .filter-panel-containter {
     border: 1px solid #ccc;
     padding: 5px;
     width: 413px;
@@ -80,7 +80,7 @@
     margin-right: 15px;
   }
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     cursor: pointer;
 
     &:after {
@@ -96,27 +96,25 @@
     }
   }
 
-  ::ng-deep {
-    .filter-panel-container .input-group-append span {
-      &:first-of-type {
-        pointer-events: none;
-      }
+  :host ::ng-deep .filter-panel-containter .input-group-append span {
+    &:first-of-type {
+      pointer-events: none;
     }
+  }
 
-    .fa-close {
-      display: none;
-    }
+  .fa-close {
+    display: none;
+  }
 
-    .input-group-text {
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-    }
+  .input-group-text {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
 
-    .panther-datetimepicker .input-group {
-      .panther-c-datetimepicker-input {
-        font-size: 12px;
-        padding: 4px 10px;
-      }
+  .panther-datetimepicker .input-group {
+    .panther-c-datetimepicker-input {
+      font-size: 12px;
+      padding: 4px 10px;
     }
   }
 }
