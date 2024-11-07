@@ -1,70 +1,63 @@
-@use 'variable' as divar;
-@use 'mixins' as diComponent;
+<div class="container-fluid root" style="position: relative;">
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <div #panthergridDiv></div>
+    </div>
+  </div>
 
-.panel-shell-main-container {
-  @include diComponent.display-flex-direction(divar.$column);
-  @include diComponent.overflow(divar.$hidden, divar.$auto);
-  height: divar.$h100pr;
+  <div class="row" *ngIf="showButtons">
+    <div class="col-md-12">
+      <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
+      <button (click)="toggleUpstreamLineagePopup()">Upstream Lineage</button>
+    </div>
+  </div>
 
-  .top-panel {
-    @include diComponent.height-minHeight(calc(100% - 145px), divar.$minH454px);
-    @include diComponent.display-flex-direction(divar.$column);
+  <!-- JIRA IDS Popup -->
+  <div *ngIf="showJiraIdsPopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
+      <h2>JIRA IDS Popup</h2>
 
-    header {
-      @include diComponent.width-height-bg(divar.$w100pr, divar.$h40px, divar.$bgColorHeader);
-      @include diComponent.color-font(rgb(0, 57, 93), divar.$font-size-18px, divar.$font-weight-700, divar.$font-family-Sans-Serif);
-      @include diComponent.paddingMargin(10px 20px 5px 24px, 0);
-    }
-  }
+      <div class="tabs">
+        <div *ngFor="let item of jiraFieldData; let i = index"
+             class="tab"
+             [class.active]="i === selectedTabIndex"
+             (click)="selectTab(i)">
+          {{ item.key }}
+        </div>
+      </div>
 
-  .filters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
-    align-items: center;
-    height: 100%;
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <ng-container *ngFor="let item of jiraFieldData; let i = index">
+          <div *ngIf="i === selectedTabIndex" class="jira-details">
+            <h3>Details for JIRA: {{ item.key }}</h3>
+            <p><strong>Type:</strong> {{ item.type }}</p>
+            <p><strong>Status:</strong> {{ item.status }}</p>
+            <p><strong>Summary:</strong> {{ item.summary }}</p>
+            <p><strong>Reporter:</strong> {{ item.reporter }}</p>
+            <p><strong>Labels:</strong> {{ item.labels }}</p>
+            <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
 
-    .filter-dropdown {
-      flex: 1 1 200px; /* Allows dropdowns to grow and shrink */
-      min-width: 200px;
-    }
+            <!-- Formatted Description Sections -->
+            <div *ngIf="item.formattedDescription">
+              <h4>Operations Requirements:</h4>
+              <p>{{ item.formattedDescription.operations }}</p>
+              <h4>Technology Requirements:</h4>
+              <p>{{ item.formattedDescription.technology }}</p>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
 
-    .date-container {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      min-width: 150px;
-
-      label {
-        font-weight: bold;
-      }
-    }
-
-    .filters-buttons {
-      display: flex;
-      gap: 10px;
-      padding-top: 10px;
-
-      .btn {
-        padding: 8px 16px;
-        background-color: #007bff;
-        border: none;
-        color: white;
-        cursor: pointer;
-
-        &-search {
-          background-color: #28a745;
-        }
-
-        &-reset {
-          background-color: #dc3545;
-        }
-
-        &:hover {
-          opacity: 0.9;
-        }
-      }
-    }
-  }
-}
+  <!-- Upstream Lineage Popup -->
+  <div *ngIf="showUpstreamLineagePopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">&times;</button>
+      <h2>Upstream Lineage Popup</h2>
+      <p>This is the content of the Upstream Lineage popup.</p>
+    </div>
+  </div>
+</div>
