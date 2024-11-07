@@ -1,63 +1,118 @@
-<div class="container-fluid root" style="position: relative;">
-  <div class="row">
-    <div id="gridContainer" class="col-md-12 grid-container">
-      <div #panthergridDiv></div>
-    </div>
-  </div>
+.filter-panel {
+  position: relative;
+}
 
-  <div class="row" *ngIf="showButtons">
-    <div class="col-md-12">
-      <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
-      <button (click)="toggleUpstreamLineagePopup()">Upstream Lineage</button>
-    </div>
-  </div>
+.dropdown-toggle::after {
+  content: none;
+}
 
-  <!-- JIRA IDS Popup -->
-  <div *ngIf="showJiraIdsPopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
-      <h2>JIRA IDS Popup</h2>
+.fa-cog {
+  color: #9fcbdd;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 18px 0 0 5px;
+}
 
-      <div class="tabs">
-        <div *ngFor="let item of jiraFieldData; let i = index"
-             class="tab"
-             [class.active]="i === selectedTabIndex"
-             (click)="selectTab(i)">
-          {{ item.key }}
-        </div>
-      </div>
+.fa-cog:hover {
+  color: #fff;
+}
 
-      <!-- Tab Content -->
-      <div class="tab-content">
-        <ng-container *ngFor="let item of jiraFieldData; let i = index">
-          <div *ngIf="i === selectedTabIndex" class="jira-details">
-            <h3>Details for JIRA: {{ item.key }}</h3>
-            <p><strong>Type:</strong> {{ item.type }}</p>
-            <p><strong>Status:</strong> {{ item.status }}</p>
-            <p><strong>Summary:</strong> {{ item.summary }}</p>
-            <p><strong>Reporter:</strong> {{ item.reporter }}</p>
-            <p><strong>Labels:</strong> {{ item.labels }}</p>
-            <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
+.publisher-btn {
+  border: 1px solid #2858e0;
+  background-color: #0d7bab;
+  box-shadow: inset 0 0 2px;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 13px;
+  margin-left: 15px;
+  padding: 5px 15px;
+  outline: none;
+}
 
-            <!-- Formatted Description Sections -->
-            <div *ngIf="item.formattedDescription">
-              <h4>Operations Requirements:</h4>
-              <p>{{ item.formattedDescription.operations }}</p>
-              <h4>Technology Requirements:</h4>
-              <p>{{ item.formattedDescription.technology }}</p>
-            </div>
-          </div>
-        </ng-container>
-      </div>
-    </div>
-  </div>
+.publisher-btn:hover {
+  border-color: #357ebd;
+}
 
-  <!-- Upstream Lineage Popup -->
-  <div *ngIf="showUpstreamLineagePopup" class="popup">
-    <div class="popup-content">
-      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">&times;</button>
-      <h2>Upstream Lineage Popup</h2>
-      <p>This is the content of the Upstream Lineage popup.</p>
-    </div>
-  </div>
-</div>
+.filter-panel-container {
+  border: 1px solid #ccc;
+  padding: 5px;
+  width: 413px;
+}
+
+form {
+  padding: 5px 10px;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+.fa-close {
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 2px;
+}
+
+label {
+  font-size: 11px;
+}
+
+.apply {
+  background-color: #007eb6;
+  color: #fff;
+  outline: none;
+  border: 1px solid transparent;
+  font-size: 12px;
+  padding: 5px 15px;
+  font-weight: 700;
+  font-family: "Arial", sans-serif;
+  cursor: pointer;
+}
+
+.cancel {
+  background-color: transparent;
+  color: inherit;
+  outline: none;
+  border: 1px solid transparent;
+  font-size: 12px;
+  padding: 5px 15px;
+  font-weight: 700;
+  font-family: "Arial", sans-serif;
+  cursor: pointer;
+  margin-right: 15px;
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+}
+
+input[type="checkbox"]::after {
+  font-size: 12px;
+  line-height: 12px;
+}
+
+input[type="checkbox"]:checked::after {
+  content: '\2713';
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 15px;
+}
+
+:host ::ng-deep .filter-panel-container .input-group-append span:first-of-type {
+  pointer-events: none;
+}
+
+.fa-close {
+  display: none;
+}
+
+.input-group-text {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.panther-datetimepicker .input-group {
+  font-size: 12px;
+  padding: 4px 10px;
+}
