@@ -1,23 +1,22 @@
 .filter-panel {
-    position: relative;
-}
+  position: relative;
 
-.dropdown-toggle::after {
+  .dropdown-toggle::after {
     content: none;
-}
+  }
 
-.fa-cog {
+  .fa-cog {
     color: #9fcbdd;
     cursor: pointer;
     font-size: 16px;
     margin: 18px 0 0 5px;
-}
 
-.fa-cog:hover {
-    color: #fff;
-}
+    &:hover {
+      color: #fff;
+    }
+  }
 
-.publisher-btn {
+  .publisher-btn {
     border: 1px solid #2858e;
     background-color: #0d7bab;
     box-shadow: inset 0 0 2px;
@@ -27,38 +26,38 @@
     margin-left: 15px;
     padding: 5px 15px;
     outline: none;
-}
 
-.publisher-btn:hover {
-    border-color: #357ebd;
-}
+    &:hover {
+      border-color: #357ebd;
+    }
+  }
 
-.filter-panel-container {
+  .filter-panel-container {
     border: 1px solid #ccc;
     padding: 5px;
     width: 413px;
-}
+  }
 
-form {
+  form {
     padding: 5px 10px;
-}
 
-.form-group {
-    margin-bottom: 0;
-}
+    .form-group {
+      margin-bottom: 0;
+    }
+  }
 
-.fa-close {
+  .fa-close {
     cursor: pointer;
     position: absolute;
     right: 0;
     top: 2px;
-}
+  }
 
-label {
+  label {
     font-size: 11px;
-}
+  }
 
-.apply {
+  .apply {
     background-color: #007eb6;
     color: #fff;
     outline: none;
@@ -68,9 +67,9 @@ label {
     font-weight: 700;
     font-family: "Arial", sans-serif;
     cursor: pointer;
-}
+  }
 
-.cancel {
+  .cancel {
     outline: none;
     border: 1px solid transparent;
     font-size: 12px;
@@ -79,38 +78,45 @@ label {
     font-family: "Arial", sans-serif;
     cursor: pointer;
     margin-right: 15px;
-}
+  }
 
-input[type="checkbox"] {
+  input[type="checkbox"] {
     cursor: pointer;
-}
 
-input[type="checkbox"]::after {
-    font-size: 12px;
-    line-height: 12px;
-}
+    &:after {
+      font-size: 12px;
+      line-height: 12px;
+    }
 
-input[type="checkbox"]:checked::after {
-    content: '\2713';
-    font-weight: 700;
-    font-size: 10px;
-    line-height: 15px;
-}
+    &:checked:after {
+      content: '\2713';
+      font-weight: 700;
+      font-size: 10px;
+      line-height: 15px;
+    }
+  }
 
-:host ::ng-deep .filter-panel-container .input-group-append span:first-of-type {
-    pointer-events: none;
-}
+  ::ng-deep {
+    .filter-panel-container .input-group-append span {
+      &:first-of-type {
+        pointer-events: none;
+      }
+    }
 
-.fa-close {
-    display: none;
-}
+    .fa-close {
+      display: none;
+    }
 
-.input-group-text {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
+    .input-group-text {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
 
-.panther-datetimepicker .input-group .panther-c-datetimepicker-input {
-    font-size: 12px;
-    padding: 4px 10px;
+    .panther-datetimepicker .input-group {
+      .panther-c-datetimepicker-input {
+        font-size: 12px;
+        padding: 4px 10px;
+      }
+    }
+  }
 }
