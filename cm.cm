@@ -1,15 +1,15 @@
 .filter-panel {
   position: relative;
-
   .dropdown-toggle::after {
     content: none;
   }
-
+  
   .fa-cog {
     color: #9fcbdd;
     cursor: pointer;
     font-size: 16px;
     margin: 18px 0 0 5px;
+    
     &:hover {
       color: #fff;
     }
@@ -25,6 +25,7 @@
     margin-left: 15px;
     padding: 5px 15px;
     outline: none;
+    
     &:hover {
       border-color: #357ebd;
     }
@@ -33,24 +34,26 @@
   .filter-panel-container {
     border: 1px solid #ccc;
     padding: 5px;
-    width: 413px;
+    width: 100%; // Adjusted width to maintain horizontal layout
+    display: flex;
+    flex-wrap: wrap;
   }
-
-  form {
+  
+  .form {
     padding: 5px 10px;
-
-    .form-group {
-      margin-bottom: 0;
-    }
   }
 
+  .form-group {
+    margin-bottom: 0;
+  }
+  
   .fa-close {
     cursor: pointer;
     position: absolute;
     right: 0;
     top: 2px;
   }
-
+  
   label {
     font-size: 11px;
   }
@@ -78,44 +81,20 @@
     margin-right: 15px;
   }
 
-  input[type='checkbox'] {
+  input[type="checkbox"] {
     cursor: pointer;
-
-    &:after {
-      font-size: 12px;
-      line-height: 12px;
-    }
-
-    &:checked:after {
-      content: '\2713';
-      font-weight: 700;
-      font-size: 10px;
-      line-height: 15px;
-    }
   }
 
-  ::ng-deep {
-    .filter-panel-container .input-group-append span {
-      &:first-of-type {
-        pointer-events: none;
-      }
-    }
+  input[type="checkbox"]:after {
+    font-size: 12px;
+    line-height: 12px;
+  }
 
-    .fa-close {
-      display: none;
-    }
-
-    .input-group-text {
-      padding-top: 0 !important;
-      padding-bottom: 0 !important;
-    }
-
-    .panther-datetimepicker .input-group {
-      .panther-c-datetimepicker-input {
-        font-size: 12px;
-        padding: 4px 10px;
-      }
-    }
+  input[type="checkbox"]:checked:after {
+    content: '\2713';
+    font-weight: 700;
+    font-size: 10px;
+    line-height: 15px;
   }
 
   .filters-container {
@@ -123,33 +102,34 @@
     flex-wrap: wrap;
     gap: 5px;
     align-items: center;
+  }
 
-    .filter-dropdown {
-      flex: 1;
-      min-width: 10px;
-    }
+  .filter-dropdown {
+    flex: 1;
+    min-width: 10px;
+  }
 
-    .filters-buttons {
-      display: flex;
-      gap: 10px;
+  .filters-buttons {
+    display: flex;
+    gap: 10px;
 
-      .btn {
-        padding: 8px 16px;
-        background-color: #007bff;
-        border: none;
-        color: white;
-        cursor: pointer;
-        &:hover {
-          opacity: 0.9;
-        }
+    .btn {
+      padding: 8px 16px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+      
+      &.btn-search {
+        background-color: #28a745;
+      }
+      
+      &.btn-reset {
+        background-color: #dc3545;
+      }
 
-        &.btn-search {
-          background-color: #28a745;
-        }
-
-        &.btn-reset {
-          background-color: #dc3545;
-        }
+      &:hover {
+        opacity: 0.9;
       }
     }
   }
