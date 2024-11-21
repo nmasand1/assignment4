@@ -1,115 +1,285 @@
-.filters-panel {
-  position: relative;
-
-  .fa-cog {
-    color: #9fcbdd;
-    cursor: pointer;
-    font-size: 16px;
-    margin: 18px 0 0 5px;
-
-    &:hover {
-      color: #fff;
-    }
-  }
-
-  .filters-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px; /* Adjusts the gap between elements */
-    align-items: center; /* Vertically aligns dropdowns and buttons */
-  }
-
-  .filter-dropdown {
-    flex: 1;
-    min-width: 10px; /* Ensures dropdowns have a minimum width */
-  }
-
-  .filters-buttons {
-    display: flex;
-    gap: 10px; /* Gap between buttons */
-  }
-
-  .btn {
-    padding: 8px 16px;
-    background-color: #007bff;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    font-family: "Arial", sans-serif;
-
-    &:hover {
-      opacity: 0.9;
-    }
-
-    &.btn-search {
-      background-color: #28a745;
-    }
-
-    &.btn-reset {
-      background-color: #dc3545;
-    }
-  }
-
-  .date-container {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .publisher-btn {
-    border: 1px solid #2858e;
-    background-color: #0d7bab;
-    box-shadow: inset 0 0 2px;
-    color: #fff;
-    cursor: pointer;
-    margin-top: 13px;
-    margin-left: 15px;
-    padding: 5px 15px;
-    outline: none;
-
-    &:hover {
-      border-color: #357ebd;
-    }
-  }
-
-  .apply {
-    background-color: #007eb6;
-    color: #fff;
-    outline: none;
-    border: 1px solid transparent;
-    font-size: 12px;
-    padding: 5px 15px;
-    font-weight: 700;
-    font-family: "Arial", sans-serif;
-    cursor: pointer;
-  }
-
-  .cancel {
-    outline: none;
-    border: 1px solid transparent;
-    font-size: 12px;
-    padding: 5px 15px;
-    font-weight: 700;
-    font-family: "Arial", sans-serif;
-    cursor: pointer;
-    margin-right: 15px;
-  }
-
-  input[type="checkbox"] {
-    cursor: pointer;
-
-    &:after {
-      font-size: 12px;
-      line-height: 12px;
-    }
-
-    &:checked:after {
-      content: '\2713';
-      font-weight: 700;
-      font-size: 10px;
-      line-height: 15px;
-    }
-  }
+/* General Styling */
+:host {
+  font-family: Arial, sans-serif;
 }
+
+/* Count Panel */
+.count-panel {
+  line-height: 2.6em;
+}
+
+/* Grid Container */
+.grid-container {
+  padding: 0;
+  height: 100%;
+}
+.grid-refresh {
+  cursor: pointer;
+  font-size: 17px;
+  vertical-align: middle;
+}
+
+/* Quick Search Panel */
+.quick-search-panel {
+  display: inline-block;
+  margin-left: 10px;
+  line-height: 1.5;
+}
+
+/* Export Template */
+.export-template {
+  position: relative;
+  display: inline-block;
+}
+
+.export-template ul,
+.export-template li {
+  list-style: none;
+}
+
+.export-template-list {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  padding: 5px 0;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  width: max-content;
+  z-index: 1;
+}
+
+.export-template-list a {
+  color: #666;
+  line-height: 1;
+  padding: 8px 20px;
+  text-decoration: none;
+}
+
+.export-template-list a:focus,
+.export-template-list a:hover {
+  color: #262626;
+  background-color: #f5f5f5;
+}
+
+.export-template-list a.disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Excel Export Icon */
+.excel-export {
+  background: url('/assets/svg/excel-export.svg') no-repeat;
+  background-size: 16px 16px;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  vertical-align: top;
+}
+
+/* Buttons */
+button.btn-primary {
+  border-color: #2858e0;
+  background-color: #0d7bab;
+}
+
+button:hover {
+  background-color: #0b6c94;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  width: 800px; /* Increased width */
+  height: 80vh; /* Increased height */
+  overflow-y: auto;
+  text-align: center;
+  position: relative;
+  z-index: 1001;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #ff0000;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.tab {
+  padding: 10px 15px;
+  cursor: pointer;
+  border: 1px solid #e9ecef;
+  border-radius: 5px 5px 0 0;
+  background-color: #fff;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+  color: #666;
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.tab:hover {
+  background-color: #e0e0e0;
+}
+
+.tab.active {
+  background-color: #0d7bab;
+  color: white;
+}
+
+.tab-content {
+  border: 1px solid #007bff;
+  border-radius: 0 0 5px 5px;
+  padding: 20px;
+  background-color: #fff;
+  margin-top: -1px;
+  max-height: 62vh;
+  overflow-y: auto;
+}
+
+/* Jira Details */
+.jira-details h3,
+.jira-details h4 {
+  color: #333;
+  margin: 0 0 10px;
+}
+
+.jira-details pre {
+  margin: 5px 0 0;
+}
+
+.jira-details p {
+  font-size: 1em;
+  margin: 5px 0;
+  color: #555;
+}
+
+.jira-details p strong {
+  color: #333;
+}
+
+/* Loading Message */
+.loading-message {
+  text-align: center;
+  font-size: 1.2em;
+  color: #666;
+}
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid root" style="position: relative;">
+  <div class="row">
+    <div id="gridContainer" class="col-md-12 grid-container">
+      <div #panthergridDiv></div>
+    </div>
+  </div>
+  <div class="row" *ngIf="showButtons">
+    <div class="col-md-12">
+      <button (click)="toggleJiraIdsPopup()">JIRA IDS</button>
+      <button (click)="toggleUpstreamLineagePopup()">Upstream Lineage</button>
+    </div>
+  </div>
+
+  <!-- JIRA IDS Popup -->
+  <div *ngIf="showJiraIdsPopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" (click)="toggleJiraIdsPopup()">&times;</button>
+      <div class="tabs">
+        <div
+          *ngFor="let item of jiraFieldData; let i = index"
+          class="tab"
+          [class.active]="i === selectedTabIndex"
+          (click)="selectTab(i)"
+        >
+          {{ item.key }}
+        </div>
+      </div>
+      <div class="tab-content">
+        <ng-container *ngFor="let item of jiraFieldData; let i = index">
+          <div *ngIf="i === selectedTabIndex" class="jira-details">
+            <p><strong>Status:</strong> {{ item.status }}</p>
+            <p><strong>Summary:</strong> {{ item.summary }}</p>
+            <p><strong>Reporter:</strong> {{ item.reporter }}</p>
+            <p><strong>Labels:</strong> {{ item.labels }}</p>
+            <p><strong>Created Date:</strong> {{ item.createdDate }}</p>
+            <div *ngIf="item.formattedDescription">
+              <h4>Operations Requirements:</h4>
+              <pre>{{ item.formattedDescription.operations }}</pre>
+              <h4>Technology Requirements:</h4>
+              <pre>{{ item.formattedDescription.technology }}</pre>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upstream Lineage Popup -->
+  <div *ngIf="showUpstreamLineagePopup" class="popup">
+    <div class="popup-content">
+      <button class="close-btn" (click)="toggleUpstreamLineagePopup()">&times;</button>
+      <h2>Upstream Lineage Popup</h2>
+      <p>This is the content of the Upstream Lineage popup.</p>
+    </div>
+  </div>
+</div>
