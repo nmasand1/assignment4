@@ -1,17 +1,17 @@
 .dashboard-div {
-  height: calc(100vh - 122px);
+  height: calc(100vh - 122px); /* Maintain existing height logic */
+  display: flex;
+  flex-direction: column;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
 }
 
 /* Splitter Panel */
 .splitter-panel {
-  margin: 0;
-  background-color: #007eb6; /* Match the header color from the right */
-  color: #fff;
+  background-color: inherit; /* No changes to existing colors */
   text-align: center;
   width: 100%;
-  padding: 10px; /* Adjust padding for better alignment */
+  padding: 10px; /* Ensure consistent padding */
 }
 
 /* Popup Overlay */
@@ -30,7 +30,7 @@
 /* Popup Content */
 .popup-content {
   background-color: #ffffff;
-  padding: 20px; /* Match the padding */
+  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   max-width: 800px;
@@ -39,15 +39,17 @@
   overflow-y: auto;
 }
 
-/* Tabs */
+/* Tabs - Horizontal Layout */
 .tabs {
   display: flex;
+  flex-direction: row; /* Ensure tabs are in a horizontal row */
+  justify-content: flex-start; /* Align tabs to the left */
+  gap: 10px; /* Add space between tabs */
   margin-bottom: 10px;
-  border-bottom: 2px solid #ccc; /* Add bottom border for cleaner look */
 }
 
 .tab {
-  flex: 1;
+  flex: none; /* Prevent tabs from stretching */
   padding: 10px;
   text-align: center;
   cursor: pointer;
@@ -58,96 +60,35 @@
   transition: background-color 0.3s;
 }
 
-.tab:hover {
-  background-color: #e0e0e0;
-}
-
 .tab.active {
-  background-color: #007eb6;
-  color: white;
-  border-bottom: 2px solid white;
+  border-bottom: 2px solid transparent; /* Prevent tab overlap */
 }
 
 /* Details Container */
 .details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Add spacing between detail items */
   margin-top: 20px;
 }
 
+/* Details Items */
 .detail-item {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Ensure label and value align horizontally */
+  align-items: center; /* Center items vertically */
   margin-bottom: 10px;
-  padding: 10px 15px;
-  background-color: #f9f9f9;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.detail-label {
-  font-weight: bold;
-  color: #333;
-}
-
-.detail-value {
-  color: #555;
-}
-
-/* Input Fields Table */
+/* Input Fields Table - Full Width */
 .input-fields-table {
   width: 100%;
-  border-collapse: collapse;
   margin-top: 20px;
 }
 
-.input-fields-table th, .input-fields-table td {
-  border: 1px solid #ccc;
-  padding: 10px;
-  text-align: left;
-}
-
-.input-fields-table th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
-
-.input-fields-table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.input-fields-table tr:hover {
-  background-color: #f1f1f1;
-}
-
-/* Code Section */
-.code-snippet {
-  background-color: #f9f9f9;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  white-space: pre-wrap;
-  overflow-x: auto;
-}
-
-/* Buttons */
-.details-button, .close-button {
-  padding: 10px 15px;
-  margin-top: 10px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
-}
-
-.details-button:hover, .close-button:hover {
-  background-color: #0056b3;
-}
-
-/* Adjust Upper and Lower Grids */
-.upper.grid-container {
-  height: calc(100vh - 40vh - 110px) !important;
-}
-
-.lower.grid-container {
-  height: calc(100vh - 60vh - 110px) !important;
+/* Buttons - Adjust Alignment */
+.details-button,
+.close-button {
+  align-self: flex-end; /* Right-align buttons */
+  margin-top: 20px;
 }
