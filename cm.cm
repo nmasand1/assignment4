@@ -6,3 +6,8 @@ const cleanContent = (content: string | null) => {
       .filter(line => line.length > 0) // Remove empty lines
       .join('\n'); // Join cleaned lines back into a string
   };
+
+ return {
+    operations: cleanContent(operationsMatch ? operationsMatch[1] : null),
+    technology: cleanContent(technologyMatch ? technologyMatch[1] : null),
+  };
