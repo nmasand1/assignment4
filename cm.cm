@@ -13,16 +13,20 @@
 
 .upper {
   margin: 10px 0;
+  background-color: #f7f7f9; /* Original color */
 }
 
 .lower {
   margin: 10px 0;
+  background-color: #f7f7f9; /* Original color */
 }
 
 .splitter-panel {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #e8e8e8; /* Original color */
+  color: #333; /* Original text color */
 }
 
 /* Angular Splitter */
@@ -40,14 +44,14 @@ as-split-area {
   font-size: 14px;
   cursor: pointer;
   border: none;
-  background-color: #007bff;
-  color: white;
+  background-color: #007bff; /* Original color */
+  color: white; /* Original text color */
   border-radius: 4px;
   transition: background-color 0.3s ease;
 }
 
 .details-button:disabled {
-  background-color: #c0c0c0;
+  background-color: #c0c0c0; /* Original disabled color */
   cursor: not-allowed;
 }
 
@@ -58,7 +62,7 @@ as-split-area {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,11 +72,11 @@ as-split-area {
 .popup-content {
   position: relative;
   padding: 20px;
-  background-color: white;
+  background-color: #fff; /* Original white background */
   border-radius: 8px;
   width: 60%;
   margin: auto;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Original shadow */
 }
 
 /* Close Button as Cross */
@@ -83,25 +87,30 @@ as-split-area {
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
-  border: none;
+  color: #333; /* Original text color */
   background: none;
+  border: none;
+  z-index: 1100;
 }
 
 /* Tabs Navigation */
 .tabs {
   display: flex;
   margin-bottom: 10px;
+  background-color: #f1f1f1; /* Original tabs background color */
 }
 
 .tab {
   margin-right: 10px;
   cursor: pointer;
   padding: 5px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #ccc; /* Original border color */
+  color: #333; /* Original text color */
+  background-color: #fff; /* Original tab color */
 }
 
 .tab.active {
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid #007bff; /* Original active tab color */
 }
 
 /* Details Container */
@@ -114,12 +123,15 @@ as-split-area {
 
 .details-container .detail-label {
   font-weight: bold;
+  color: #333; /* Original label color */
 }
 
 .detail-value-box {
   margin-top: 5px;
   padding: 5px;
   border: 1px solid black;
+  background-color: #f9f9f9; /* Original background color for value box */
+  color: #333; /* Original text color */
 }
 
 /* Input Fields Table */
@@ -131,26 +143,28 @@ as-split-area {
 
 .input-fields-table th,
 .input-fields-table td {
-  border: 1px solid #ccc;
+  border: 1px solid #ccc; /* Original border color */
   padding: 5px 10px;
   text-align: left;
 }
 
 .input-fields-table th {
-  background-color: #f4f4f4;
+  background-color: #f4f4f4; /* Original header background color */
   font-weight: bold;
+  color: #333; /* Original header text color */
 }
 
 /* Code Snippet Section */
 .code-snippet {
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
+  background-color: #f9f9f9; /* Original background color */
+  border: 1px solid #ccc; /* Original border color */
   padding: 10px;
   font-family: monospace;
   white-space: pre-wrap;
   overflow-x: auto;
+  color: #333; /* Original text color */
 }
 
 .code-snippet code {
-  color: #333;
+  color: #333; /* Original text color */
 }
