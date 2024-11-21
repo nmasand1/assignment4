@@ -1,78 +1,129 @@
-/* Dashboard Styling */
-.dashboard-div {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.splitter-panel p {
-  margin: 0;
-  padding: 10px;
-}
-
-/* Pop-up Content */
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.popup-content {
-  background: white;
-  padding: 20px;
-  position: relative;
-  max-width: 600px;
-  width: 90%;
-  border-radius: 5px;
-}
-
-/* Close Button */
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  border: none;
-  background: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-/* Detail Item Styling */
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-  padding: 5px 0;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-}
-
-.detail-key {
-  font-weight: bold;
-}
-
-.detail-value {
-  margin-top: 5px;
-}
-
-/* Tabs Styling */
-.tabs .tab {
-  cursor: pointer;
-  padding: 10px;
-  display: inline-block;
-}
-
-.tabs .tab.active {
-  font-weight: bold;
-}
-
-/* Splitter Area Styling */
-as-split-area {
-  overflow: auto;
-}
+<main class="dashboard-div">
+  <div class="master-list-panel">
+    <!-- Angular Splitter Panel -->
+    <as-split direction="vertical">
+      <!-- Angular Splitter Upper Panel Area Size 70 -->
+      <as-split-area [size]="70">
+        <div class="upper col-md-10">
+          <app-grid
+            [showButtons]="true"
+            gridId="dashboard-grid"
+            [columns]="dashboardGridColumns"
+            [visibleColumnsList]="dashboardGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+            [dataProvider]="dashboardGridData"
+          >
+          </app-grid>
+        </div>
+      </as-split-area>
+      <!-- Angular Splitter Lower Panel Area Size 30 -->
+      <as-split-area [size]="30">
+        <div class="splitter-panel">
+          <p>Transformations</p>
+        </div>
+        <div class="lower col-md-10">
+          <app-grid
+            gridId="transformation-grid"
+            [columns]="transformationGridColumns"
+            [visibleColumnsList]="transformationGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+            [dataProvider]="transformationGridData"
+            (selectionChange)="onTransformationGridSelection($event)"
+          >
+          </app-grid>
+        </div>
+        <div style="margin-top: 5px;">
+          <!-- Details Button to Trigger Popup -->
+          <button
+            (click)="onDetailsButtonClick()"
+            [disabled]="transformationDetailsButtonDisabled"
+            class="details-button"
+          >
+            Details
+          </button>
+        </div>
+        <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+          <div class="popup-content">
+            <!-- Close Popup Button as Cross -->
+            <span class="close-button" (click)="closePopup()">✖</span>
+            <h2>Transformation Details</h2>
+            <!-- Tabs Navigation -->
+            <div class="tabs">
+              <div
+                *ngFor="let detail of transformationDetails; let i = index"
+                [class.active]="selectedTabIndex === i"
+                (click)="selectTab(i)"
+                class="tab"
+              >
+                Transformation {{ transformationDetails[i].transformationID }}
+              </div>
+            </div>
+            <div class="details-container">
+              <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+                <!-- Reporting Requirement -->
+                <div class="detail-item">
+                  <span class="detail-label">Reporting Requirement:</span>
+                  <div class="detail-value-box">
+                    {{ transformationDetails[selectedTabIndex].reportingRequirement }}
+                  </div>
+                </div>
+                <!-- Transformation Type -->
+                <div class="detail-item">
+                  <span class="detail-label">Transformation Type:</span>
+                  <div class="detail-value-box">
+                    {{ transformationDetails[selectedTabIndex].transformationType }}
+                  </div>
+                </div>
+                <!-- Asset Class -->
+                <div class="detail-item">
+                  <span class="detail-label">Asset Class:</span>
+                  <div class="detail-value-box">
+                    {{ transformationDetails[selectedTabIndex].assetClass }}
+                  </div>
+                </div>
+                <!-- Product Type -->
+                <div class="detail-item">
+                  <span class="detail-label">Product Type:</span>
+                  <div class="detail-value-box">
+                    {{ transformationDetails[selectedTabIndex].productType }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Input Fields Section -->
+            <h3>Input Fields</h3>
+            <table class="input-fields-table">
+              <thead>
+                <tr>
+                  <th>Data Source Name</th>
+                  <th>Field ID</th>
+                  <th>Field Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let field of transformationDetails[selectedTabIndex].inputFieldDataList">
+                  <td>{{ field.dataSource }}</td>
+                  <td>{{ field.dependentFieldID }}</td>
+                  <td>{{ field.xpath }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Code Section -->
+            <h3>Code</h3>
+            <pre class="code-snippet">
+              <code>
+{ public fetchData(): void { 
+  this.httpApiService.getData().subscribe(data => {
+    this.transformationDetails = data;
+  });
+}}
+              </code>
+            </pre>
+          </div>
+        </div>
+      </as-split-area>
+    </as-split>
+  </div>
+</main>
