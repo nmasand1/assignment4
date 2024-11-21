@@ -2,7 +2,7 @@
   <div class="master-list-panel">
     <!-- Angular Splitter Panel -->
     <as-split direction="vertical">
-      <!-- Angular Splitter Upper Panel -->
+      <!-- Upper Panel (70%) -->
       <as-split-area [size]="70">
         <div class="upper col-md-10">
           <app-grid
@@ -12,12 +12,13 @@
             [visibleColumnsList]="dashboardGridVisibleColumns"
             [reloadData]="true"
             (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-            [dataProvider]="dashboardGridData">
+            [dataProvider]="dashboardGridData"
+          >
           </app-grid>
         </div>
       </as-split-area>
 
-      <!-- Angular Splitter Lower Panel -->
+      <!-- Lower Panel (30%) -->
       <as-split-area [size]="30">
         <div class="splitter-panel">
           <p>Transformations</p>
@@ -30,7 +31,8 @@
             [reloadData]="true"
             (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
             [dataProvider]="transformationGridData"
-            (selectionChange)="onTransformationGridSelection($event)">
+            (selectionChange)="onTransformationGridSelection($event)"
+          >
           </app-grid>
         </div>
         <div style="margin-top: 5px;">
@@ -38,7 +40,8 @@
           <button
             (click)="onDetailsButtonClick()"
             [disabled]="transformationDetailsButtonDisabled"
-            class="details-button">
+            class="details-button"
+          >
             Details
           </button>
         </div>
@@ -46,45 +49,49 @@
     </as-split>
   </div>
 
-  <!-- Popup Overlay -->
+  <!-- Popup -->
   <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
     <div class="popup-content">
+      <!-- Close Button (Top-Right Cross) -->
+      <span class="close-button" (click)="closePopup()">×</span>
+
       <h2>Transformation Details</h2>
 
-      <!-- Tabs Navigation -->
+      <!-- Tabs -->
       <div class="tabs">
         <div
           *ngFor="let detail of transformationDetails; let i = index"
           [class.active]="selectedTabIndex === i"
           (click)="selectTab(i)"
-          class="tab">
+          class="tab"
+        >
           Transformation {{ transformationDetails[i].transformationID }}
         </div>
       </div>
 
-      <!-- Details Section -->
       <div class="details-container">
+        <!-- Key-Value Pairs with Values Below Keys -->
         <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
           <div class="detail-item">
-            <span class="detail-label">Reporting Requirement:</span>
+            <span class="detail-label">Reporting Requirement</span>
             <div class="detail-value">{{ transformationDetails[selectedTabIndex].reportingRequirement }}</div>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Transformation Type:</span>
+            <span class="detail-label">Transformation Type</span>
             <div class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType }}</div>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Asset Class:</span>
+            <span class="detail-label">Asset Class</span>
             <div class="detail-value">{{ transformationDetails[selectedTabIndex].assetClass }}</div>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Product Type:</span>
+            <span class="detail-label">Product Type</span>
             <div class="detail-value">{{ transformationDetails[selectedTabIndex].productType }}</div>
           </div>
         </div>
       </div>
 
-      <!-- Input Fields Section -->
+      <!-- Input Fields -->
       <h3>Input Fields</h3>
       <table class="input-fields-table">
         <thead>
@@ -107,15 +114,13 @@
       <h3>Code</h3>
       <pre class="code-snippet">
         <code>
-{ public fetchData(): void { } }
-this.httpApiService.getData().subscribe(data => {
-this.transformationDetails = data;
-});
+          public fetchData(): void {
+            this.httpApiService.getData().subscribe(data => {
+              this.transformationDetails = data;
+            });
+          }
         </code>
       </pre>
-
-      <!-- Close Popup Cross -->
-      <span class="close-button" (click)="closePopup()">×</span>
     </div>
   </div>
 </main>
@@ -123,22 +128,7 @@ this.transformationDetails = data;
 
 
 
-
-.dashboard-div {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 122px);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 14px;
-}
-
-.splitter-panel {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-}
-
+/* Popup Styling */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -152,70 +142,67 @@ this.transformationDetails = data;
 }
 
 .popup-content {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
+  position: relative;
   width: 600px;
-  max-height: 80%;
-  overflow-y: auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  margin: 10px 0;
-}
-
-.tab {
-  flex: 1;
-  padding: 8px;
-  text-align: center;
+/* Close Button */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 18px;
   cursor: pointer;
+  font-weight: bold;
 }
 
-.details-container {
-  margin: 20px 0;
-}
-
+/* Details Key-Value Styling */
 .detail-item {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid black;
+  padding-bottom: 5px;
 }
 
 .detail-label {
   font-weight: bold;
   display: block;
+  margin-bottom: 5px;
 }
 
 .detail-value {
-  border: 1px dotted #ccc;
-  padding: 5px;
-  margin-top: 5px;
+  margin-left: 10px;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 15px;
+}
+
+.tab {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.tab.active {
+  border-bottom: 2px solid black;
+}
+
+/* Input Fields Table */
 .input-fields-table {
   width: 100%;
   border-collapse: collapse;
-  margin: 20px 0;
+  margin-top: 10px;
 }
 
 .input-fields-table th,
 .input-fields-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 1px solid black;
   text-align: left;
-}
-
-.code-snippet {
-  background: #f4f4f4;
-  border: 1px solid #ddd;
-  padding: 10px;
-  overflow-x: auto;
-}
-
-.close-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  font-size: 24px;
-  cursor: pointer;
+  padding: 5px;
 }
