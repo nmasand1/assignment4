@@ -2,7 +2,7 @@
   <div class="master-list-panel">
     <!-- Angular Splitter Panel -->
     <as-split direction="vertical">
-      <!-- Upper Panel (70%) -->
+      <!-- Angular Splitter Upper Panel Area Size 70 -->
       <as-split-area [size]="70">
         <div class="upper col-md-10">
           <app-grid
@@ -12,13 +12,11 @@
             [visibleColumnsList]="dashboardGridVisibleColumns"
             [reloadData]="true"
             (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-            [dataProvider]="dashboardGridData"
-          >
+            [dataProvider]="dashboardGridData">
           </app-grid>
         </div>
       </as-split-area>
-
-      <!-- Lower Panel (30%) -->
+      <!-- Angular Splitter Lower Panel Area Size 30 -->
       <as-split-area [size]="30">
         <div class="splitter-panel">
           <p>Transformations</p>
@@ -31,178 +29,96 @@
             [reloadData]="true"
             (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
             [dataProvider]="transformationGridData"
-            (selectionChange)="onTransformationGridSelection($event)"
-          >
+            (selectionChange)="onTransformationGridSelection($event)">
           </app-grid>
         </div>
         <div style="margin-top: 5px;">
-          <!-- Details Button -->
+          <!-- Details Button to Trigger Popup -->
           <button
             (click)="onDetailsButtonClick()"
             [disabled]="transformationDetailsButtonDisabled"
-            class="details-button"
-          >
-            Details
-          </button>
+            class="details-button">Details</button>
+        </div>
+        <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+          <div class="popup-content">
+            <!-- Cross Button at Top-Right -->
+            <button (click)="closePopup()" class="close-button">×</button>
+            <h2>Transformation Details</h2>
+            <!-- Tabs Navigation -->
+            <div class="tabs">
+              <div
+                *ngFor="let detail of transformationDetails; let i = index"
+                [class.active]="selectedTabIndex === i"
+                (click)="selectTab(i)"
+                class="tab">
+                Transformation {{ transformationDetails[i]?.transformationID }}
+              </div>
+            </div>
+            <div class="details-container">
+              <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+                <!-- Reporting Requirement -->
+                <div class="detail-item">
+                  <div class="detail-key">Reporting Requirement:</div>
+                  <div class="detail-value">
+                    {{ transformationDetails[selectedTabIndex]?.reportingRequirement }}
+                  </div>
+                </div>
+                <!-- Transformation Type -->
+                <div class="detail-item">
+                  <div class="detail-key">Transformation Type:</div>
+                  <div class="detail-value">
+                    {{ transformationDetails[selectedTabIndex]?.transformationType }}
+                  </div>
+                </div>
+                <!-- Asset Class -->
+                <div class="detail-item">
+                  <div class="detail-key">Asset Class:</div>
+                  <div class="detail-value">
+                    {{ transformationDetails[selectedTabIndex]?.assetClass }}
+                  </div>
+                </div>
+                <!-- Product Type -->
+                <div class="detail-item">
+                  <div class="detail-key">Product Type:</div>
+                  <div class="detail-value">
+                    {{ transformationDetails[selectedTabIndex]?.productType }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Input Fields Section -->
+            <h3>Input Fields</h3>
+            <table class="input-fields-table">
+              <thead>
+                <tr>
+                  <th>Data Source Name</th>
+                  <th>Field ID</th>
+                  <th>Field Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList">
+                  <td>{{ field.dataSource }}</td>
+                  <td>{{ field.dependentFieldID }}</td>
+                  <td>{{ field.xpath }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Code Section -->
+            <h3>Code</h3>
+            <pre class="code-snippet">
+              <code>
+{ public fetchData(): void {
+    this.httpApiService.getData().subscribe(data => {
+      this.transformationDetails = data;
+    });
+  }
+}
+              </code>
+            </pre>
+          </div>
         </div>
       </as-split-area>
     </as-split>
   </div>
-
-  <!-- Popup -->
-  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
-    <div class="popup-content">
-      <!-- Close Button (Top-Right Cross) -->
-      <span class="close-button" (click)="closePopup()">×</span>
-
-      <h2>Transformation Details</h2>
-
-      <!-- Tabs -->
-      <div class="tabs">
-        <div
-          *ngFor="let detail of transformationDetails; let i = index"
-          [class.active]="selectedTabIndex === i"
-          (click)="selectTab(i)"
-          class="tab"
-        >
-          Transformation {{ transformationDetails[i].transformationID }}
-        </div>
-      </div>
-
-      <div class="details-container">
-        <!-- Key-Value Pairs with Values Below Keys -->
-        <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
-          <div class="detail-item">
-            <span class="detail-label">Reporting Requirement</span>
-            <div class="detail-value">{{ transformationDetails[selectedTabIndex].reportingRequirement }}</div>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Transformation Type</span>
-            <div class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType }}</div>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Asset Class</span>
-            <div class="detail-value">{{ transformationDetails[selectedTabIndex].assetClass }}</div>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Product Type</span>
-            <div class="detail-value">{{ transformationDetails[selectedTabIndex].productType }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Input Fields -->
-      <h3>Input Fields</h3>
-      <table class="input-fields-table">
-        <thead>
-          <tr>
-            <th>Data Source Name</th>
-            <th>Field ID</th>
-            <th>Field Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList">
-            <td>{{ field.dataSource }}</td>
-            <td>{{ field.dependentFieldID }}</td>
-            <td>{{ field.xpath }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Code Section -->
-      <h3>Code</h3>
-      <pre class="code-snippet">
-        <code>
-          public fetchData(): void {
-            this.httpApiService.getData().subscribe(data => {
-              this.transformationDetails = data;
-            });
-          }
-        </code>
-      </pre>
-    </div>
-  </div>
 </main>
-
-
-
-
-/* Popup Styling */
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.popup-content {
-  position: relative;
-  width: 600px;
-  padding: 20px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Close Button */
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 18px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Details Key-Value Styling */
-.detail-item {
-  margin-bottom: 10px;
-  border-bottom: 1px solid black;
-  padding-bottom: 5px;
-}
-
-.detail-label {
-  font-weight: bold;
-  display: block;
-  margin-bottom: 5px;
-}
-
-.detail-value {
-  margin-left: 10px;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-}
-
-.tab {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.tab.active {
-  border-bottom: 2px solid black;
-}
-
-/* Input Fields Table */
-.input-fields-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.input-fields-table th,
-.input-fields-table td {
-  border: 1px solid black;
-  text-align: left;
-  padding: 5px;
-}
