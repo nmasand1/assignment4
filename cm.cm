@@ -1,94 +1,221 @@
+<main class="dashboard-div">
+  <div class="master-list-panel">
+    <!-- Angular Splitter Panel -->
+    <as-split direction="vertical">
+      <!-- Angular Splitter Upper Panel -->
+      <as-split-area [size]="70">
+        <div class="upper col-md-10">
+          <app-grid
+            [showButtons]="true"
+            gridId="dashboard-grid"
+            [columns]="dashboardGridColumns"
+            [visibleColumnsList]="dashboardGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+            [dataProvider]="dashboardGridData">
+          </app-grid>
+        </div>
+      </as-split-area>
+
+      <!-- Angular Splitter Lower Panel -->
+      <as-split-area [size]="30">
+        <div class="splitter-panel">
+          <p>Transformations</p>
+        </div>
+        <div class="lower col-md-10">
+          <app-grid
+            gridId="transformation-grid"
+            [columns]="transformationGridColumns"
+            [visibleColumnsList]="transformationGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+            [dataProvider]="transformationGridData"
+            (selectionChange)="onTransformationGridSelection($event)">
+          </app-grid>
+        </div>
+        <div style="margin-top: 5px;">
+          <!-- Details Button -->
+          <button
+            (click)="onDetailsButtonClick()"
+            [disabled]="transformationDetailsButtonDisabled"
+            class="details-button">
+            Details
+          </button>
+        </div>
+      </as-split-area>
+    </as-split>
+  </div>
+
+  <!-- Popup Overlay -->
+  <div *ngIf="isTransformationPopUpVisible" class="popup-overlay">
+    <div class="popup-content">
+      <h2>Transformation Details</h2>
+
+      <!-- Tabs Navigation -->
+      <div class="tabs">
+        <div
+          *ngFor="let detail of transformationDetails; let i = index"
+          [class.active]="selectedTabIndex === i"
+          (click)="selectTab(i)"
+          class="tab">
+          Transformation {{ transformationDetails[i].transformationID }}
+        </div>
+      </div>
+
+      <!-- Details Section -->
+      <div class="details-container">
+        <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+          <div class="detail-item">
+            <span class="detail-label">Reporting Requirement:</span>
+            <div class="detail-value">{{ transformationDetails[selectedTabIndex].reportingRequirement }}</div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Transformation Type:</span>
+            <div class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType }}</div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Asset Class:</span>
+            <div class="detail-value">{{ transformationDetails[selectedTabIndex].assetClass }}</div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Product Type:</span>
+            <div class="detail-value">{{ transformationDetails[selectedTabIndex].productType }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Fields Section -->
+      <h3>Input Fields</h3>
+      <table class="input-fields-table">
+        <thead>
+          <tr>
+            <th>Data Source Name</th>
+            <th>Field ID</th>
+            <th>Field Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList">
+            <td>{{ field.dataSource }}</td>
+            <td>{{ field.dependentFieldID }}</td>
+            <td>{{ field.xpath }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Code Section -->
+      <h3>Code</h3>
+      <pre class="code-snippet">
+        <code>
+{ public fetchData(): void { } }
+this.httpApiService.getData().subscribe(data => {
+this.transformationDetails = data;
+});
+        </code>
+      </pre>
+
+      <!-- Close Popup Cross -->
+      <span class="close-button" (click)="closePopup()">×</span>
+    </div>
+  </div>
+</main>
+
+
+
+
+
 .dashboard-div {
-  height: calc(100vh - 122px); /* Maintain existing height logic */
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 122px);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
 }
 
-/* Splitter Panel */
 .splitter-panel {
-  background-color: inherit; /* No changes to existing colors */
-  text-align: center;
-  width: 100%;
-  padding: 10px; /* Ensure consistent padding */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
 }
 
-/* Popup Overlay */
 .popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Popup Content */
 .popup-content {
-  background-color: #ffffff;
-  padding: 20px;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  max-width: 800px;
-  width: 90%;
-  max-height: 90%;
+  padding: 20px;
+  width: 600px;
+  max-height: 80%;
   overflow-y: auto;
 }
 
-/* Tabs - Horizontal Layout */
 .tabs {
   display: flex;
-  flex-direction: row; /* Ensure tabs are in a horizontal row */
-  justify-content: flex-start; /* Align tabs to the left */
-  gap: 10px; /* Add space between tabs */
-  margin-bottom: 10px;
+  justify-content: center;
+  margin: 10px 0;
 }
 
 .tab {
-  flex: none; /* Prevent tabs from stretching */
-  padding: 10px;
+  flex: 1;
+  padding: 8px;
   text-align: center;
   cursor: pointer;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-bottom: none;
-  border-radius: 5px 5px 0 0;
-  transition: background-color 0.3s;
 }
 
-.tab.active {
-  border-bottom: 2px solid transparent; /* Prevent tab overlap */
-}
-
-/* Details Container */
 .details-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Add spacing between detail items */
-  margin-top: 20px;
+  margin: 20px 0;
 }
 
-/* Details Items */
 .detail-item {
-  display: flex;
-  justify-content: space-between; /* Ensure label and value align horizontally */
-  align-items: center; /* Center items vertically */
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-/* Input Fields Table - Full Width */
+.detail-label {
+  font-weight: bold;
+  display: block;
+}
+
+.detail-value {
+  border: 1px dotted #ccc;
+  padding: 5px;
+  margin-top: 5px;
+}
+
 .input-fields-table {
   width: 100%;
-  margin-top: 20px;
+  border-collapse: collapse;
+  margin: 20px 0;
 }
 
-/* Buttons - Adjust Alignment */
-.details-button,
+.input-fields-table th,
+.input-fields-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.code-snippet {
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  padding: 10px;
+  overflow-x: auto;
+}
+
 .close-button {
-  align-self: flex-end; /* Right-align buttons */
-  margin-top: 20px;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
 }
