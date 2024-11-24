@@ -1,58 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Run Script</title>
-</head>
-<body>
-    <h1>Run Script</h1>
-    <form action="/run_script" method="POST">
-        <label for="assetClass">Asset Class:</label>
-        <select name="assetClass" id="assetClass" required>
-            <option value="FX">FX</option>
-            <option value="IR">IR</option>
-            <option value="EQ">EQ</option>
-            <option value="CO">CO</option>
-            <option value="CD">CD</option>
-        </select>
-        <br><br>
-
-        <label for="jurisdiction">Jurisdiction:</label>
-        <select name="jurisdiction" id="jurisdiction" required>
-            <option value="JFSA">JFSA</option>
-            <option value="CANADA">CANADA</option>
-            <option value="MAS">MAS</option>
-            <option value="HKTR">HKTR</option>
-            <option value="ESMA">ESMA</option>
-        </select>
-        <br><br>
-
-        <label for="reconType">Recon Type:</label>
-        <select name="reconType" id="reconType" required>
-            <option value="COMP">COMP</option>
-            <option value="POS">POS</option>
-        </select>
-        <br><br>
-
-        <label for="reconDate">Recon Date (YYMMDD):</label>
-        <input type="date" name="reconDate" id="reconDate" required>
-        <br><br>
-
-        <button type="submit">Run Script</button>
-    </form>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, jsonify
 import subprocess
 import os
 
@@ -60,6 +6,11 @@ app = Flask(__name__)
 
 # Set the path for your shell script
 SHELL_SCRIPT_PATH = 'path/to/your/script.sh'
+
+@app.route('/')
+def home():
+    # Render the HTML form (index.html)
+    return render_template('index.html')
 
 @app.route('/run_script', methods=['POST'])
 def run_script():
