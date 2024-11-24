@@ -1,170 +1,68 @@
-/* Main Dashboard Styling */
-.dashboard-div {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
+import streamlit as st
+import subprocess
+import platform
+from datetime import datetime
 
-.master-list-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
+# App Title
+st.title("Recon Automation Script")
 
-.upper {
-  margin: 10px 0;
-  background-color: #f7f7f9; /* Original color */
-}
+# Input Fields
+asset_class = st.selectbox(
+    "Select Asset Class",
+    ["FX", "IR", "EQ", "CO", "CD"],
+    help="Choose the appropriate asset class."
+)
 
-.lower {
-  margin: 10px 0;
-  background-color: #f7f7f9; /* Original color */
-}
+jurisdiction = st.selectbox(
+    "Select Jurisdiction",
+    [
+        "JFSA", "CANADA", "MAS", "MAS TA", "HKMA", "HKTR", "ESMA",
+        "MAS ASIC", "CFTC", "ASIC", "SEC", "FCA", "ASIC TA", "DSMATCH"
+    ],
+    help="Choose the appropriate jurisdiction."
+)
 
-.splitter-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e8e8e8; /* Original color */
-  color: #333; /* Original text color */
-}
+recon_type = st.selectbox(
+    "Select Recon Type",
+    ["COMP", "POS"],
+    help="Choose the type of reconciliation."
+)
 
-/* Angular Splitter */
-as-split {
-  height: 100%;
-}
+recon_date = st.date_input(
+    "Select Recon Date",
+    value=datetime.today(),
+    help="Pick the recon date."
+)
 
-as-split-area {
-  overflow: auto;
-}
+# Format the recon_date into the required format (YYMMDD)
+formatted_date = recon_date.strftime("%y%m%d")
 
-/* Buttons */
-.details-button {
-  padding: 10px 15px;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  background-color: #007bff; /* Original color */
-  color: white; /* Original text color */
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.details-button:disabled {
-  background-color: #c0c0c0; /* Original disabled color */
-  cursor: not-allowed;
-}
-
-/* Popup Styling */
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.popup-content {
-  position: relative;
-  padding: 20px;
-  background-color: #fff; /* Original white background */
-  border-radius: 8px;
-  width: 60%;
-  margin: auto;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Original shadow */
-}
-
-/* Close Button as Cross */
-.close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #333; /* Original text color */
-  background: none;
-  border: none;
-  z-index: 1100;
-}
-
-/* Tabs Navigation */
-.tabs {
-  display: flex;
-  margin-bottom: 10px;
-  background-color: #f1f1f1; /* Original tabs background color */
-}
-
-.tab {
-  margin-right: 10px;
-  cursor: pointer;
-  padding: 5px 10px;
-  border: 1px solid #ccc; /* Original border color */
-  color: #333; /* Original text color */
-  background-color: #fff; /* Original tab color */
-}
-
-.tab.active {
-  border-bottom: 2px solid #007bff; /* Original active tab color */
-}
-
-/* Details Container */
-.details-container .detail-item {
-  margin-bottom: 10px;
-  padding: 5px 0;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-}
-
-.details-container .detail-label {
-  font-weight: bold;
-  color: #333; /* Original label color */
-}
-
-.detail-value-box {
-  margin-top: 5px;
-  padding: 5px;
-  border: 1px solid black;
-  background-color: #f9f9f9; /* Original background color for value box */
-  color: #333; /* Original text color */
-}
-
-/* Input Fields Table */
-.input-fields-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.input-fields-table th,
-.input-fields-table td {
-  border: 1px solid #ccc; /* Original border color */
-  padding: 5px 10px;
-  text-align: left;
-}
-
-.input-fields-table th {
-  background-color: #f4f4f4; /* Original header background color */
-  font-weight: bold;
-  color: #333; /* Original header text color */
-}
-
-/* Code Snippet Section */
-.code-snippet {
-  background-color: #f9f9f9; /* Original background color */
-  border: 1px solid #ccc; /* Original border color */
-  padding: 10px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  color: #333; /* Original text color */
-}
-
-.code-snippet code {
-  color: #333; /* Original text color */
-}
+# Button to Trigger Script
+if st.button("Run Script"):
+    # Construct Command
+    command = f"sh recon_automation.sh {asset_class} {jurisdiction} {recon_type} {formatted_date}"
+    
+    # OS Detection
+    is_windows = platform.system() == "Windows"
+    
+    if is_windows:
+        # On Windows, use WSL for running the shell script
+        command = f"wsl {command}"
+    
+    st.write("Running Command: ", command)
+    
+    try:
+        # Run the shell script
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        
+        # Display Output
+        if result.returncode == 0:
+            st.success("Script executed successfully!")
+            st.text("Output:")
+            st.text(result.stdout)
+        else:
+            st.error("Script failed!")
+            st.text("Error:")
+            st.text(result.stderr)
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
