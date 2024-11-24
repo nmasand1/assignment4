@@ -1,16 +1,65 @@
-from flask import Flask, render_template, request, jsonify
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Script</title>
+</head>
+<body>
+    <h1>Run Script</h1>
+    <form action="/run_script" method="POST">
+        <label for="assetClass">Asset Class:</label>
+        <select name="assetClass" id="assetClass" required>
+            <option value="FX">FX</option>
+            <option value="IR">IR</option>
+            <option value="EQ">EQ</option>
+            <option value="CO">CO</option>
+            <option value="CD">CD</option>
+        </select>
+        <br><br>
+
+        <label for="jurisdiction">Jurisdiction:</label>
+        <select name="jurisdiction" id="jurisdiction" required>
+            <option value="JFSA">JFSA</option>
+            <option value="CANADA">CANADA</option>
+            <option value="MAS">MAS</option>
+            <option value="HKTR">HKTR</option>
+            <option value="ESMA">ESMA</option>
+        </select>
+        <br><br>
+
+        <label for="reconType">Recon Type:</label>
+        <select name="reconType" id="reconType" required>
+            <option value="COMP">COMP</option>
+            <option value="POS">POS</option>
+        </select>
+        <br><br>
+
+        <label for="reconDate">Recon Date (YYMMDD):</label>
+        <input type="date" name="reconDate" id="reconDate" required>
+        <br><br>
+
+        <button type="submit">Run Script</button>
+    </form>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+from flask import Flask, request, jsonify
 import subprocess
-import platform
 import os
 
 app = Flask(__name__)
 
-# Path to the shell script (modify accordingly)
-SHELL_SCRIPT_PATH = "recon_automation.sh"
-
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Set the path for your shell script
+SHELL_SCRIPT_PATH = 'path/to/your/script.sh'
 
 @app.route('/run_script', methods=['POST'])
 def run_script():
@@ -19,32 +68,39 @@ def run_script():
         asset_class = request.form.get('assetClass')
         jurisdiction = request.form.get('jurisdiction')
         recon_type = request.form.get('reconType')
-        recon_date = request.form.get('reconDate')  # Format: YYMMDD
+        recon_date = request.form.get('reconDate')
 
-        # Validate form inputs
-        if not all([asset_class, jurisdiction, recon_type, recon_date]):
-            return jsonify({"error": "Missing required parameters"}), 400
+        # Debug: Log the form data
+        print(f"Received data: assetClass={asset_class}, jurisdiction={jurisdiction}, reconType={recon_type}, reconDate={recon_date}")
 
-        # Build the command
+        # Check for missing parameters
+        missing = []
+        if not asset_class:
+            missing.append("assetClass")
+        if not jurisdiction:
+            missing.append("jurisdiction")
+        if not recon_type:
+            missing.append("reconType")
+        if not recon_date:
+            missing.append("reconDate")
+
+        # If any parameter is missing, return an error response
+        if missing:
+            return jsonify({"error": f"Missing required parameters: {', '.join(missing)}"}), 400
+
+        # Execute the shell script with the given parameters
         command = [SHELL_SCRIPT_PATH, asset_class, jurisdiction, recon_type, recon_date]
+        result = subprocess.run(command, capture_output=True, text=True)
 
-        # Check platform and execute
-        if platform.system() == "Windows":
-            result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        else:
-            result = subprocess.run(['sh'] + command, capture_output=True, text=True)
-
-        # Handle the result
+        # Check the result of the script execution
         if result.returncode == 0:
             return jsonify({"message": "Script executed successfully", "output": result.stdout}), 200
         else:
             return jsonify({"error": "Script failed", "output": result.stderr}), 500
 
-    except FileNotFoundError as e:
-        return jsonify({"error": f"Shell script not found: {str(e)}"}), 500
     except Exception as e:
+        # If there is an error during execution, return the error message
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # Use a specific port and make it accessible on Linux/Windows
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
