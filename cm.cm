@@ -1,68 +1,78 @@
-import streamlit as st
+import os
 import subprocess
-import platform
-from datetime import datetime
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+from tkcalendar import DateEntry  # Install tkcalendar if not already installed
 
-# App Title
-st.title("Recon Automation Script")
 
-# Input Fields
-asset_class = st.selectbox(
-    "Select Asset Class",
-    ["FX", "IR", "EQ", "CO", "CD"],
-    help="Choose the appropriate asset class."
+def execute_script():
+    asset_class = asset_class_var.get()
+    jurisdiction = jurisdiction_var.get()
+    recon_type = recon_type_var.get()
+    recon_date = date_picker.get_date().strftime("%y%m%d")
+
+    if not asset_class or not jurisdiction or not recon_type:
+        messagebox.showerror("Input Error", "Please fill all fields.")
+        return
+
+    script_path = "recon_automation.sh"  # Adjust path if script is not in the current directory
+
+    if not os.path.exists(script_path):
+        messagebox.showerror("Script Error", f"Script not found: {script_path}")
+        return
+
+    # Construct command to execute the script
+    command = ["sh", script_path, asset_class, jurisdiction, recon_type, recon_date]
+    try:
+        # Execute the shell script
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        if result.returncode == 0:
+            messagebox.showinfo("Success", f"Script executed successfully:\n{result.stdout}")
+        else:
+            messagebox.showerror("Script Error", f"Error executing script:\n{result.stderr}")
+    except Exception as e:
+        messagebox.showerror("Execution Error", f"Failed to execute script: {str(e)}")
+
+
+# GUI setup
+root = tk.Tk()
+root.title("Recon Automation")
+
+# Labels and Input Fields
+tk.Label(root, text="Asset Class:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
+asset_class_var = tk.StringVar()
+asset_class_entry = ttk.Combobox(
+    root, textvariable=asset_class_var, values=["FX", "IR", "EQ", "CO", "CD"]
 )
+asset_class_entry.grid(row=0, column=1, padx=10, pady=10)
 
-jurisdiction = st.selectbox(
-    "Select Jurisdiction",
-    [
+tk.Label(root, text="Jurisdiction:").grid(row=1, column=0, padx=10, pady=10, sticky="e")
+jurisdiction_var = tk.StringVar()
+jurisdiction_entry = ttk.Combobox(
+    root,
+    textvariable=jurisdiction_var,
+    values=[
         "JFSA", "CANADA", "MAS", "MAS TA", "HKMA", "HKTR", "ESMA",
         "MAS ASIC", "CFTC", "ASIC", "SEC", "FCA", "ASIC TA", "DSMATCH"
     ],
-    help="Choose the appropriate jurisdiction."
 )
+jurisdiction_entry.grid(row=1, column=1, padx=10, pady=10)
 
-recon_type = st.selectbox(
-    "Select Recon Type",
-    ["COMP", "POS"],
-    help="Choose the type of reconciliation."
-)
+tk.Label(root, text="Recon Type:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
+recon_type_var = tk.StringVar()
+recon_type_entry = ttk.Combobox(root, textvariable=recon_type_var, values=["COMP", "POS"])
+recon_type_entry.grid(row=2, column=1, padx=10, pady=10)
 
-recon_date = st.date_input(
-    "Select Recon Date",
-    value=datetime.today(),
-    help="Pick the recon date."
-)
+tk.Label(root, text="Recon Date:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
+date_picker = DateEntry(root, date_pattern="yymmdd")
+date_picker.grid(row=3, column=1, padx=10, pady=10)
 
-# Format the recon_date into the required format (YYMMDD)
-formatted_date = recon_date.strftime("%y%m%d")
+# Submit Button
+submit_btn = tk.Button(root, text="Run Script", command=execute_script)
+submit_btn.grid(row=4, column=0, columnspan=2, pady=20)
 
-# Button to Trigger Script
-if st.button("Run Script"):
-    # Construct Command
-    command = f"sh recon_automation.sh {asset_class} {jurisdiction} {recon_type} {formatted_date}"
-    
-    # OS Detection
-    is_windows = platform.system() == "Windows"
-    
-    if is_windows:
-        # On Windows, use WSL for running the shell script
-        command = f"wsl {command}"
-    
-    st.write("Running Command: ", command)
-    
-    try:
-        # Run the shell script
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        
-        # Display Output
-        if result.returncode == 0:
-            st.success("Script executed successfully!")
-            st.text("Output:")
-            st.text(result.stdout)
-        else:
-            st.error("Script failed!")
-            st.text("Error:")
-            st.text(result.stderr)
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+# Adjust window size
+root.geometry("400x250")
+root.mainloop()
