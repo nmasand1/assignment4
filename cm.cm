@@ -1,78 +1,72 @@
-import os
-import subprocess
 import tkinter as tk
 from tkinter import messagebox
-from tkinter import ttk
-from tkcalendar import DateEntry  # Install tkcalendar if not already installed
+import subprocess
+import platform
+import os
 
+def run_shell_script():
+    """Fetches user input and runs the shell script with those parameters."""
+    asset_class = asset_class_var.get().strip()
+    jurisdiction = jurisdiction_var.get().strip()
+    recon_type = recon_type_var.get().strip()
+    recon_date = recon_date_entry.get().strip()
 
-def execute_script():
-    asset_class = asset_class_var.get()
-    jurisdiction = jurisdiction_var.get()
-    recon_type = recon_type_var.get()
-    recon_date = date_picker.get_date().strftime("%y%m%d")
-
-    if not asset_class or not jurisdiction or not recon_type:
-        messagebox.showerror("Input Error", "Please fill all fields.")
+    # Validate inputs
+    if not asset_class or not jurisdiction or not recon_type or not recon_date:
+        messagebox.showerror("Input Error", "All fields are required!")
         return
-
-    script_path = "recon_automation.sh"  # Adjust path if script is not in the current directory
-
-    if not os.path.exists(script_path):
-        messagebox.showerror("Script Error", f"Script not found: {script_path}")
+    
+    if not recon_date.isdigit() or len(recon_date) != 6:
+        messagebox.showerror("Date Error", "Please enter a valid date in YYMMDD format!")
         return
+    
+    # Command for the shell script
+    script_name = "recon_automation.sh"
+    command = ["sh", script_name, asset_class, jurisdiction, recon_type, recon_date]
 
-    # Construct command to execute the script
-    command = ["sh", script_path, asset_class, jurisdiction, recon_type, recon_date]
+    # Run the script
     try:
-        # Execute the shell script
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if platform.system() == "Windows":
+            # Adjust command for Windows
+            command[0] = "bash"
 
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode == 0:
             messagebox.showinfo("Success", f"Script executed successfully:\n{result.stdout}")
         else:
-            messagebox.showerror("Script Error", f"Error executing script:\n{result.stderr}")
+            messagebox.showerror("Error", f"Script failed with error:\n{result.stderr}")
+    except FileNotFoundError:
+        messagebox.showerror("Error", f"Shell script '{script_name}' not found!")
     except Exception as e:
-        messagebox.showerror("Execution Error", f"Failed to execute script: {str(e)}")
+        messagebox.showerror("Error", f"An unexpected error occurred:\n{str(e)}")
 
-
-# GUI setup
+# Initialize the Tkinter application
 root = tk.Tk()
-root.title("Recon Automation")
+root.title("Recon Automation UI")
+root.geometry("400x300")
 
-# Labels and Input Fields
-tk.Label(root, text="Asset Class:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
+# Asset Class
+tk.Label(root, text="Asset Class (e.g., FX, IR):").pack(pady=5)
 asset_class_var = tk.StringVar()
-asset_class_entry = ttk.Combobox(
-    root, textvariable=asset_class_var, values=["FX", "IR", "EQ", "CO", "CD"]
-)
-asset_class_entry.grid(row=0, column=1, padx=10, pady=10)
+tk.Entry(root, textvariable=asset_class_var).pack(pady=5)
 
-tk.Label(root, text="Jurisdiction:").grid(row=1, column=0, padx=10, pady=10, sticky="e")
+# Jurisdiction
+tk.Label(root, text="Jurisdiction (e.g., JFSA, CANADA):").pack(pady=5)
 jurisdiction_var = tk.StringVar()
-jurisdiction_entry = ttk.Combobox(
-    root,
-    textvariable=jurisdiction_var,
-    values=[
-        "JFSA", "CANADA", "MAS", "MAS TA", "HKMA", "HKTR", "ESMA",
-        "MAS ASIC", "CFTC", "ASIC", "SEC", "FCA", "ASIC TA", "DSMATCH"
-    ],
-)
-jurisdiction_entry.grid(row=1, column=1, padx=10, pady=10)
+tk.Entry(root, textvariable=jurisdiction_var).pack(pady=5)
 
-tk.Label(root, text="Recon Type:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
+# Recon Type
+tk.Label(root, text="Recon Type (COMP or POS):").pack(pady=5)
 recon_type_var = tk.StringVar()
-recon_type_entry = ttk.Combobox(root, textvariable=recon_type_var, values=["COMP", "POS"])
-recon_type_entry.grid(row=2, column=1, padx=10, pady=10)
+tk.Entry(root, textvariable=recon_type_var).pack(pady=5)
 
-tk.Label(root, text="Recon Date:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
-date_picker = DateEntry(root, date_pattern="yymmdd")
-date_picker.grid(row=3, column=1, padx=10, pady=10)
+# Recon Date
+tk.Label(root, text="Recon Date (YYMMDD):").pack(pady=5)
+recon_date_entry = tk.Entry(root)
+recon_date_entry.pack(pady=5)
 
 # Submit Button
-submit_btn = tk.Button(root, text="Run Script", command=execute_script)
-submit_btn.grid(row=4, column=0, columnspan=2, pady=20)
+tk.Button(root, text="Run Script", command=run_shell_script, bg="green", fg="white").pack(pady=20)
 
-# Adjust window size
-root.geometry("400x250")
+# Run the Tkinter event loop
 root.mainloop()
