@@ -1,121 +1,101 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { GridComponent } from '../../common/components/grid/grid.component';
-import { DashboardGridHelper } from '../../util/dashboard-grid-helper';
-import { GridColumns, PartialBy } from '../../common/components/grid/grid-columns';
-import { DashboardStaticDataService } from '../../services/dashboard-static-data.service';
-import { TransformationsStaticDataService } from '../../services/transformations-static-data.service';
-import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
-import { LightHouseApiService } from '../../services/lighthouse-api.service';
-import { SelectionChangeEvent } from '../../common/components/grid/events/selection-change-event';
-import { AngularSplitModule } from 'angular-split';
-import { TransformationsComponent } from '../transformations/transformations.component';
-import { JiraDetailsComponent } from './jira-details/jira-details.component';
-import { UpstreamLineageComponent } from '../upstream-lineage-popup/upstream-lineage-popup.component';
-import { PantherComponentsBootstrapModule, PantherComponentsCommonModule } from 'some-panther-library';
+<main class="dashboard-div">
+  <div class="master-list-panel">
+    <as-split direction="vertical">
+      <as-split-area [size]="70">
+        <div class="upper col-md-10">
+          <app-grid
+            gridId="dashboard-grid"
+            [columns]="dashboardGridColumns"
+            [visibleColumnsList]="dashboardGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+            [dataProvider]="dashboardGridData"
+          ></app-grid>
+        </div>
+        <div class="col-md-12">
+          <button (click)="openJiraPopup()">Jira Details</button>
+          <button (click)="openUpstreamLineagePopup()">Upstream Lineage</button>
+        </div>
+      </as-split-area>
+      <as-split-area [size]="30">
+        <div class="splitter-panel">
+          <p>Transformations</p>
+        </div>
+        <div class="lower col-md-10">
+          <app-grid
+            gridId="transformation-grid"
+            [columns]="transformationGridColumns"
+            [visibleColumnsList]="transformationGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+            [dataProvider]="transformationGridData"
+            (selectionChange)="onTransformationGridSelection($event)"
+          ></app-grid>
+        </div>
+        <div>
+          <button
+            (click)="openTransformationPopup()"
+            [disabled]="transformationDetailsButtonDisabled"
+            class="details-button"
+          >
+            Details
+          </button>
+        </div>
+      </as-split-area>
+    </as-split>
 
-@Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [
-    GridComponent,
-    AngularSplitModule,
-    TransformationsComponent,
-    JiraDetailsComponent,
-    UpstreamLineageComponent,
-    PantherComponentsBootstrapModule,
-    PantherComponentsCommonModule,
-  ],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
-})
-export class DashboardComponent implements OnInit {
-  private readonly dashboardStaticData = inject(DashboardStaticDataService);
-  private readonly transformationStaticData = inject(TransformationsStaticDataService);
+    <!-- Jira Popup -->
+    <panther-dialog
+      header="Jira Details"
+      [(visible)]="displayJiraPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [baseZIndex]="10000"
+    >
+      <div dialog-content>
+        <app-jira-details></app-jira-details>
+      </div>
+      <div dialog-footer>
+        <button type="button" class="btn btn-primary" (click)="closeJiraPopup()">Close</button>
+      </div>
+    </panther-dialog>
 
-  public displayJiraPopup: boolean = false;
-  public displayUpstreamLineagePopup: boolean = false;
-  public displayTransformationPopup: boolean = false;
+    <!-- Upstream Lineage Popup -->
+    <panther-dialog
+      header="Upstream Lineage"
+      [(visible)]="displayUpstreamLineagePopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [baseZIndex]="10000"
+    >
+      <div dialog-content>
+        <app-upstream-lineage-popup></app-upstream-lineage-popup>
+      </div>
+      <div dialog-footer>
+        <button type="button" class="btn btn-primary" (click)="closeUpstreamLineagePopup()">Close</button>
+      </div>
+    </panther-dialog>
 
-  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
-  public dashboardGridVisibleColumns: string[] = [];
-  public dashboardGridData: any[] = [];
-  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
-  public transformationGridVisibleColumns: string[] = [];
-  public transformationGridData: any[] = [];
-  public transformationGridSelectedItems: any[] = [];
-  public transformationDetails: any | null = null;
-  public transformationDetailsButtonDisabled: boolean = true;
-
-  constructor(private httpApiService: LightHouseApiService) {}
-
-  ngOnInit(): void {
-    this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
-    this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
-    this.getDashboardGridData();
-
-    this.transformationGridColumns = this.transformationStaticData.transformationsGridMetaData;
-    this.transformationGridVisibleColumns = this.transformationStaticData.transformationsGridVisibleColumns;
-    this.getTransformationGridData();
-  }
-
-  getDashboardGridData(): void {
-    this.httpApiService.fetchFlattenFieldData().subscribe((res) => {
-      this.dashboardGridData = Object.values(res);
-    });
-  }
-
-  getTransformationGridData(): void {
-    this.httpApiService.fetchTransformationDependentsData().subscribe((res) => {
-      this.transformationGridData = Object.values(res);
-    });
-  }
-
-  onDashBoardGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
-    if (event.eventData) {
-      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
-    }
-  }
-
-  onTransformationGridDataLoadCompleted(event: DataLoadCompletedEvent): void {
-    if (event.eventData) {
-      window.parent[event.eventData.gridId] = event.eventData.gridComponent;
-    }
-  }
-
-  onTransformationGridSelection(event: SelectionChangeEvent): void {
-    if (event.eventData && event.eventData.length > 0) {
-      this.transformationDetailsButtonDisabled = false;
-      this.transformationGridSelectedItems = event.eventData;
-    } else {
-      this.transformationDetailsButtonDisabled = true;
-      this.transformationGridSelectedItems = [];
-    }
-  }
-
-  openJiraPopup(): void {
-    this.displayJiraPopup = true;
-  }
-
-  closeJiraPopup(): void {
-    this.displayJiraPopup = false;
-  }
-
-  openUpstreamLineagePopup(): void {
-    this.displayUpstreamLineagePopup = true;
-  }
-
-  closeUpstreamLineagePopup(): void {
-    this.displayUpstreamLineagePopup = false;
-  }
-
-  openTransformationPopup(): void {
-    if (this.transformationDetailsButtonDisabled) return;
-    this.transformationDetails = this.transformationGridSelectedItems;
-    this.displayTransformationPopup = true;
-  }
-
-  closeTransformationPopup(): void {
-    this.displayTransformationPopup = false;
-    this.transformationDetails = null;
-  }
-}
+    <!-- Transformation Popup -->
+    <panther-dialog
+      header="Transformation Details"
+      [(visible)]="displayTransformationPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [baseZIndex]="10000"
+    >
+      <div dialog-content>
+        <app-transformations [transformationDetails]="transformationDetails"></app-transformations>
+      </div>
+      <div dialog-footer>
+        <button type="button" class="btn btn-primary" (click)="closeTransformationPopup()">Close</button>
+      </div>
+    </panther-dialog>
+  </div>
+</main>
