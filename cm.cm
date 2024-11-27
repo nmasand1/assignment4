@@ -1,57 +1,196 @@
-from flask import Flask, request, render_template, jsonify
-import subprocess
-import os
+import { Component, inject, OnInit } from '@angular/core';
+import { GridComponent } from '../../common/components/grid/grid.component';
+import { DashboardGridHelper } from '../../util/dashboard-grid-helper';
+import { GridColumns, PartialBy } from '../../common/components/grid/grid-columns';
+import { DashboardStaticDataService } from '../../services/dashboard-static-data.service';
+import { TransformationsStaticDataService } from '../../services/transformations-static-data.service';
+import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
+import { LightHouseApiService } from '../../services/lighthouse-api.service';
+import { CommonModule } from '@angular/common';
+import { SelectionChangeEvent } from '../../common/components/grid/events/selection-change-event';
+import { AngularSplitModule } from 'angular-split';
+import { TransformationsComponent } from '../transformations/transformations.component';
+import { JiraDetailsComponent } from './jira-details/jira-details.component';
+import { UpstreamLineageComponent } from '../upstream-lineage-popup/upstream-lineage-popup.component';
+import { PantherComponentsBootstrapModule } from '@company-library/panther-components';
+import { PantherComponentsCommonModule } from '@company-library/panther-components';
 
-app = Flask(__name__)
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    GridComponent,
+    AngularSplitModule,
+    TransformationsComponent,
+    JiraDetailsComponent,
+    UpstreamLineageComponent,
+    PantherComponentsBootstrapModule,
+    PantherComponentsCommonModule,
+  ],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css'],
+})
+export class DashboardComponent implements OnInit {
+  private readonly dashboardStaticData = inject(DashboardStaticDataService);
+  private readonly transformationStaticData = inject(TransformationsStaticDataService);
 
-# Set the path for your shell script
-SHELL_SCRIPT_PATH = 'path/to/your/script.sh'
+  public displayJiraPopup: boolean = false;
+  public displayUpstreamPopup: boolean = false;
+  public displayTransformationPopup: boolean = false;
 
-@app.route('/')
-def home():
-    # Render the HTML form (index.html)
-    return render_template('index.html')
+  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public dashboardGridVisibleColumns: string[] = [];
+  public dashboardGridData: any[] = [];
+  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public transformationGridVisibleColumns: string[] = [];
+  public transformationGridData: any[] = [];
+  public transformationDetails: any[] | null = null;
+  public transformationDetailsButtonDisabled = true;
 
-@app.route('/run_script', methods=['POST'])
-def run_script():
-    try:
-        # Get form data
-        asset_class = request.form.get('assetClass')
-        jurisdiction = request.form.get('jurisdiction')
-        recon_type = request.form.get('reconType')
-        recon_date = request.form.get('reconDate')
+  constructor(private httpApiService: LightHouseApiService) {}
 
-        # Debug: Log the form data
-        print(f"Received data: assetClass={asset_class}, jurisdiction={jurisdiction}, reconType={recon_type}, reconDate={recon_date}")
+  ngOnInit(): void {
+    this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
+    this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
+    this.getDashboardGridData();
 
-        # Check for missing parameters
-        missing = []
-        if not asset_class:
-            missing.append("assetClass")
-        if not jurisdiction:
-            missing.append("jurisdiction")
-        if not recon_type:
-            missing.append("reconType")
-        if not recon_date:
-            missing.append("reconDate")
+    this.transformationGridColumns = this.transformationStaticData.transformationsGridMetaData;
+    this.transformationGridVisibleColumns = this.transformationStaticData.transformationsGridVisibleColumns;
+    this.getTransformationGridData();
+  }
 
-        # If any parameter is missing, return an error response
-        if missing:
-            return jsonify({"error": f"Missing required parameters: {', '.join(missing)}"}), 400
+  getDashboardGridData(): void {
+    this.httpApiService.fetchFlattenFieldData().subscribe((res) => {
+      this.dashboardGridData = Object.values(res);
+    });
+  }
 
-        # Execute the shell script with the given parameters
-        command = [SHELL_SCRIPT_PATH, asset_class, jurisdiction, recon_type, recon_date]
-        result = subprocess.run(command, capture_output=True, text=True)
+  getTransformationGridData(): void {
+    this.httpApiService.fetchTransformationDependentsData().subscribe((res) => {
+      this.transformationGridData = Object.values(res);
+    });
+  }
 
-        # Check the result of the script execution
-        if result.returncode == 0:
-            return jsonify({"message": "Script executed successfully", "output": result.stdout}), 200
-        else:
-            return jsonify({"error": "Script failed", "output": result.stderr}), 500
+  onDetailsButtonClick(): void {
+    if (this.transformationDetailsButtonDisabled) return;
 
-    except Exception as e:
-        # If there is an error during execution, return the error message
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    if (Array.isArray(this.transformationGridSelectedItems) && this.transformationGridSelectedItems.length > 0) {
+      this.transformationDetails = this.transformationGridSelectedItems;
+    }
+    this.displayTransformationPopup = true;
+  }
 
-if __name__ == '__main__':
-    app.run(debug=True)
+  closeDialog(dialogType: string): void {
+    if (dialogType === 'jira') this.displayJiraPopup = false;
+    else if (dialogType === 'upstream') this.displayUpstreamPopup = false;
+    else if (dialogType === 'transformation') this.displayTransformationPopup = false;
+  }
+
+  openDialog(dialogType: string): void {
+    if (dialogType === 'jira') this.displayJiraPopup = true;
+    else if (dialogType === 'upstream') this.displayUpstreamPopup = true;
+  }
+}
+
+
+
+<main class="dashboard-div">
+  <div class="master-list-panel">
+    <as-split direction="vertical">
+      <as-split-area [size]="70">
+        <div class="upper col-md-10">
+          <app-grid
+            gridId="dashboard-grid"
+            [columns]="dashboardGridColumns"
+            [visibleColumnsList]="dashboardGridVisibleColumns"
+            [reloadData]="true"
+            [dataProvider]="dashboardGridData"
+            (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+          ></app-grid>
+        </div>
+        <div class="col-md-12">
+          <button (click)="openDialog('jira')">Jira Details</button>
+          <button (click)="openDialog('upstream')">Upstream Lineage</button>
+        </div>
+      </as-split-area>
+
+      <as-split-area [size]="30">
+        <div class="splitter-panel">
+          <p>Transformations</p>
+        </div>
+        <div class="lower col-md-10">
+          <app-grid
+            gridId="transformation-grid"
+            [columns]="transformationGridColumns"
+            [visibleColumnsList]="transformationGridVisibleColumns"
+            [reloadData]="true"
+            [dataProvider]="transformationGridData"
+            (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+            (selectionChange)="onTransformationGridSelection($event)"
+          ></app-grid>
+        </div>
+        <div>
+          <button
+            (click)="onDetailsButtonClick()"
+            [disabled]="transformationDetailsButtonDisabled"
+            class="details-button"
+          >
+            Details
+          </button>
+        </div>
+      </as-split-area>
+    </as-split>
+
+    <!-- Panther Dialog for Jira Details -->
+    <panther-dialog
+      header="Jira Details"
+      [(visible)]="displayJiraPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+      [minWidth]="200"
+    >
+      <div dialog-content>
+        <app-jira-details></app-jira-details>
+      </div>
+    </panther-dialog>
+
+    <!-- Panther Dialog for Upstream Lineage -->
+    <panther-dialog
+      header="Upstream Lineage"
+      [(visible)]="displayUpstreamPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+      [minWidth]="200"
+    >
+      <div dialog-content>
+        <app-upstream-lineage-popup></app-upstream-lineage-popup>
+      </div>
+    </panther-dialog>
+
+    <!-- Panther Dialog for Transformation Details -->
+    <panther-dialog
+      header="Transformation Details"
+      [(visible)]="displayTransformationPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+      [minWidth]="200"
+    >
+      <div dialog-content>
+        <transformations [transformationDetails]="transformationDetails"></transformations>
+      </div>
+    </panther-dialog>
+  </div>
+</main>
