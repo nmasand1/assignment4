@@ -1,64 +1,93 @@
-<panther-dialog 
-  header="Transformation Details" 
-  [(visible)]="isTransformationPopUpVisible" 
-  [modal]="true" 
-  [responsive]="true" 
-  [width]="350" 
-  [minY]="70" 
-  [maximizable]="true" 
-  [baseZIndex]="10000" 
-  [minWidth]="200"
-  (onHide)="closePopup()">
-  <div dialog-content>
-    <ng-container *ngIf="transformationDetails?.length > 0; else noDetails">
-      <p>
-        Transformation details: 
-        <pre>{{ transformationDetails | json }}</pre>
-      </p>
-    </ng-container>
-    <ng-template #noDetails>
-      <p>No details available.</p>
-    </ng-template>
-  </div>
-  <div dialog-footer>
-    <button type="button" class="btn btn-primary" (click)="closePopup()">Close</button>
-  </div>
-</panther-dialog>
+import { Component, inject, OnInit } from '@angular/core';
+import { LightHouseApiService } from '../../services/lighthouse-api.service';
+import { DashboardStaticDataService } from '../../services/dashboard-static-data.service';
+import { TransformationsStaticDataService } from '../../services/transformations-static-data.service';
 
-<panther-dialog 
-  header="Jira Details" 
-  [(visible)]="showJiraldsPopup" 
-  [modal]="true" 
-  [responsive]="true" 
-  [width]="350" 
-  [minY]="70" 
-  [maximizable]="true" 
-  [baseZIndex]="10000" 
-  [minWidth]="200"
-  (onHide)="closeliraldsPopup()">
-  <div dialog-content>
-    <app-jira-details></app-jira-details>
-  </div>
-  <div dialog-footer>
-    <button type="button" class="btn btn-primary" (click)="closeliraldsPopup()">Close</button>
-  </div>
-</panther-dialog>
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    AngularSplitModule,
+    PantherComponentsBootstrapModule,
+    PantherComponentsCommonModule,
+  ],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css'],
+})
+export class DashboardComponent implements OnInit {
+  public display: boolean = false;
+  public showJiraldsPopup: boolean = false;
+  public showUpstreamLineagePopup: boolean = false;
+  public isTransformationPopUpVisible: boolean = false;
 
-<panther-dialog 
-  header="Upstream Lineage" 
-  [(visible)]="showUpstreamLineagePopup" 
-  [modal]="true" 
-  [responsive]="true" 
-  [width]="350" 
-  [minY]="70" 
-  [maximizable]="true" 
-  [baseZIndex]="10000" 
-  [minWidth]="200"
-  (onHide)="closeUpstreamLineagePopup()">
-  <div dialog-content>
-    <app-upstream-lineage-popup></app-upstream-lineage-popup>
-  </div>
-  <div dialog-footer>
-    <button type="button" class="btn btn-primary" (click)="closeUpstreamLineagePopup()">Close</button>
-  </div>
-</panther-dialog>
+  public dashboardGridColumns = [];
+  public dashboardGridVisibleColumns = [];
+  public dashboardGridData = [];
+  public transformationGridColumns = [];
+  public transformationGridVisibleColumns = [];
+  public transformationGridData = [];
+  public transformationDetails: any[] | null = null;
+  public transformationDetailsButtonDisabled = true;
+
+  private readonly dashboardStaticData = inject(DashboardStaticDataService);
+  private readonly transformationStaticData = inject(
+    TransformationsStaticDataService
+  );
+  private readonly httpApiService = inject(LightHouseApiService);
+
+  ngOnInit(): void {
+    this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
+    this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
+    this.getDashboardGridData();
+    this.transformationGridColumns =
+      this.transformationStaticData.transformationsGridMetaData;
+    this.transformationGridVisibleColumns =
+      this.transformationStaticData.transformationsGridVisibleColumns;
+    this.getTransformationGridData();
+  }
+
+  getDashboardGridData(): void {
+    this.httpApiService.fetchFlattenFieldData().subscribe((res) => {
+      this.dashboardGridData = Object.values(res);
+    });
+  }
+
+  getTransformationGridData(): void {
+    this.httpApiService.fetchTransformationDependentsData().subscribe((res) => {
+      this.transformationGridData = Object.values(res);
+    });
+  }
+
+  onDetailsButtonClick(): void {
+    if (this.transformationDetailsButtonDisabled) return;
+    if (
+      Array.isArray(this.transformationGridSelectedItems) &&
+      this.transformationGridSelectedItems.length > 0
+    ) {
+      this.transformationDetails = this.transformationGridSelectedItems;
+      this.isTransformationPopUpVisible = true;
+    }
+  }
+
+  closePopup(): void {
+    this.isTransformationPopUpVisible = false;
+    this.transformationDetails = null;
+  }
+
+  openJiraldsPopup(): void {
+    this.showJiraldsPopup = true;
+  }
+
+  closeJiraIdsPopup(): void {
+    this.showJiraldsPopup = false;
+  }
+
+  openUpstreamLineagePopup(): void {
+    this.showUpstreamLineagePopup = true;
+  }
+
+  closeUpstreamLineagePopup(): void {
+    this.showUpstreamLineagePopup = false;
+  }
+}
