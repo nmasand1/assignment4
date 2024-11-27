@@ -1,49 +1,62 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { LightHouseApiService } from '../../services/lighthouse-api.service';
+import { GridComponent } from '../../common/components/grid/grid.component';
+import { DashboardGridHelper } from '../../util/dashboard-grid-helper';
+import { GridColumns, PartialBy } from '../../common/components/grid/grid-columns';
 import { DashboardStaticDataService } from '../../services/dashboard-static-data.service';
 import { TransformationsStaticDataService } from '../../services/transformations-static-data.service';
+import { DataLoadCompletedEvent } from '../../common/components/grid/events/data-load-completed-event';
+import { LightHouseApiService } from '../../services/lighthouse-api.service';
+import { SelectionChangeEvent } from '../../common/components/grid/events/selection-change-event';
+import { CommonModule } from '@angular/common';
+import { AngularSplitModule } from 'angular-split';
+import { TransformationsComponent } from '../transformations/transformations.component';
+import { JiraDetailsComponent } from './jira-details/jira-details.component';
+import { UpstreamlineageComponent } from '../upstream-lineage-popup/upstream-lineage-popup.component';
+import { PantherComponentsBootstrapModule } from 'panther-components';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
     CommonModule,
+    GridComponent,
     AngularSplitModule,
+    TransformationsComponent,
+    JiraDetailsComponent,
+    UpstreamlineageComponent,
     PantherComponentsBootstrapModule,
-    PantherComponentsCommonModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
-  public display: boolean = false;
-  public showJiraldsPopup: boolean = false;
-  public showUpstreamLineagePopup: boolean = false;
-  public isTransformationPopUpVisible: boolean = false;
+  private readonly dashboardStaticData = inject(DashboardStaticDataService);
+  private readonly transformationStaticData = inject(TransformationsStaticDataService);
 
-  public dashboardGridColumns = [];
-  public dashboardGridVisibleColumns = [];
-  public dashboardGridData = [];
-  public transformationGridColumns = [];
-  public transformationGridVisibleColumns = [];
-  public transformationGridData = [];
+  public dashboardGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public dashboardGridVisibleColumns: string[] = [];
+  public dashboardGridData: any[] = [];
+
+  public transformationGridColumns: PartialBy<GridColumns, 'propertyObject'>[] = [];
+  public transformationGridVisibleColumns: string[] = [];
+  public transformationGridData: any[] = [];
   public transformationDetails: any[] | null = null;
+  public transformationGridSelectedItems: any[] = [];
   public transformationDetailsButtonDisabled = true;
 
-  private readonly dashboardStaticData = inject(DashboardStaticDataService);
-  private readonly transformationStaticData = inject(
-    TransformationsStaticDataService
-  );
-  private readonly httpApiService = inject(LightHouseApiService);
+  public displayJiraPopup = false;
+  public displayTransformationPopup = false;
+  public displayUpstreamLineagePopup = false;
+
+  constructor(private httpApiService: LightHouseApiService) {}
 
   ngOnInit(): void {
     this.dashboardGridColumns = this.dashboardStaticData.dashboardGridMetaData;
     this.dashboardGridVisibleColumns = this.dashboardStaticData.dashboardGridVisibleColumns;
     this.getDashboardGridData();
-    this.transformationGridColumns =
-      this.transformationStaticData.transformationsGridMetaData;
-    this.transformationGridVisibleColumns =
-      this.transformationStaticData.transformationsGridVisibleColumns;
+
+    this.transformationGridColumns = this.transformationStaticData.transformationsGridMetaData;
+    this.transformationGridVisibleColumns = this.transformationStaticData.transformationsGridVisibleColumns;
     this.getTransformationGridData();
   }
 
@@ -59,39 +72,44 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  onDetailsButtonClick(): void {
-    if (this.transformationDetailsButtonDisabled) return;
-    if (
-      Array.isArray(this.transformationGridSelectedItems) &&
-      this.transformationGridSelectedItems.length > 0
-    ) {
+  openJiraPopup(): void {
+    this.displayJiraPopup = true;
+  }
+
+  closeJiraPopup(): void {
+    this.displayJiraPopup = false;
+  }
+
+  openTransformationPopup(): void {
+    if (this.transformationGridSelectedItems.length > 0) {
       this.transformationDetails = this.transformationGridSelectedItems;
-      this.isTransformationPopUpVisible = true;
+      this.displayTransformationPopup = true;
     }
   }
 
-  closePopup(): void {
-    this.isTransformationPopUpVisible = false;
+  closeTransformationPopup(): void {
+    this.displayTransformationPopup = false;
     this.transformationDetails = null;
   }
 
-  openJiraldsPopup(): void {
-    this.showJiraldsPopup = true;
-  }
-
-  closeJiraIdsPopup(): void {
-    this.showJiraldsPopup = false;
-  }
-
   openUpstreamLineagePopup(): void {
-    this.showUpstreamLineagePopup = true;
+    this.displayUpstreamLineagePopup = true;
   }
 
   closeUpstreamLineagePopup(): void {
-    this.showUpstreamLineagePopup = false;
+    this.displayUpstreamLineagePopup = false;
+  }
+
+  onTransformationGridSelection(event: SelectionChangeEvent): void {
+    if (event.eventData && event.eventData.length > 0) {
+      this.transformationDetailsButtonDisabled = false;
+      this.transformationGridSelectedItems = event.eventData;
+    } else {
+      this.transformationDetailsButtonDisabled = true;
+      this.transformationGridSelectedItems = [];
+    }
   }
 }
-
 
 
 <main class="dashboard-div">
@@ -109,7 +127,7 @@ export class DashboardComponent implements OnInit {
           ></app-grid>
         </div>
         <div class="col-md-12">
-          <button (click)="openJiraldsPopup()">Jira Details</button>
+          <button (click)="openJiraPopup()">Jira Details</button>
           <button (click)="openUpstreamLineagePopup()">Upstream Lineage</button>
         </div>
       </as-split-area>
@@ -130,7 +148,7 @@ export class DashboardComponent implements OnInit {
         </div>
         <div>
           <button
-            (click)="onDetailsButtonClick()"
+            (click)="openTransformationPopup()"
             [disabled]="transformationDetailsButtonDisabled"
             class="details-button"
           >
@@ -140,57 +158,51 @@ export class DashboardComponent implements OnInit {
       </as-split-area>
     </as-split>
 
-    <!-- Jira IDs Popup -->
+    <!-- Panther Dialog for Jira Popup -->
     <panther-dialog
       header="Jira Details"
-      [(visible)]="showJiraldsPopup"
+      [(visible)]="displayJiraPopup"
       [modal]="true"
       [responsive]="true"
       [width]="350"
-      [minY]="70"
+      [minWidth]="200"
       [maximizable]="true"
       [baseZIndex]="10000"
-      [minWidth]="200"
     >
       <div dialog-content>
-        <app-jira-details (onCloseClick)="closeJiraIdsPopup()"></app-jira-details>
+        <app-jira-details></app-jira-details>
       </div>
     </panther-dialog>
 
-    <!-- Upstream Lineage Popup -->
+    <!-- Panther Dialog for Transformation Details -->
+    <panther-dialog
+      header="Transformation Details"
+      [(visible)]="displayTransformationPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="400"
+      [minWidth]="200"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+    >
+      <div dialog-content>
+        <transformations [transformationDetails]="transformationDetails"></transformations>
+      </div>
+    </panther-dialog>
+
+    <!-- Panther Dialog for Upstream Lineage -->
     <panther-dialog
       header="Upstream Lineage"
-      [(visible)]="showUpstreamLineagePopup"
+      [(visible)]="displayUpstreamLineagePopup"
       [modal]="true"
       [responsive]="true"
       [width]="350"
-      [minY]="70"
+      [minWidth]="200"
       [maximizable]="true"
       [baseZIndex]="10000"
-      [minWidth]="200"
     >
       <div dialog-content>
-        <app-upstream-lineage-popup (onCloseClick)="closeUpstreamLineagePopup()"></app-upstream-lineage-popup>
-      </div>
-    </panther-dialog>
-
-    <!-- Transformations Popup -->
-    <panther-dialog
-      header="Transformations Details"
-      [(visible)]="isTransformationPopUpVisible"
-      [modal]="true"
-      [responsive]="true"
-      [width]="350"
-      [minY]="70"
-      [maximizable]="true"
-      [baseZIndex]="10000"
-      [minWidth]="200"
-    >
-      <div dialog-content>
-        <transformations
-          [transformationDetails]="transformationDetails"
-          (onCloseClick)="closePopup()"
-        ></transformations>
+        <app-upstream-lineage-popup></app-upstream-lineage-popup>
       </div>
     </panther-dialog>
   </div>
