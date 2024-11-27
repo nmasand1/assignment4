@@ -10,13 +10,15 @@
   [minWidth]="200"
   (onHide)="closePopup()">
   <div dialog-content>
-    <p *ngIf="transformationDetails?.length > 0">
-      Transformation details: 
-      <pre>{{ transformationDetails | json }}</pre>
-    </p>
-    <p *ngIf="!transformationDetails || transformationDetails?.length === 0">
-      No details available.
-    </p>
+    <ng-container *ngIf="transformationDetails?.length > 0; else noDetails">
+      <p>
+        Transformation details: 
+        <pre>{{ transformationDetails | json }}</pre>
+      </p>
+    </ng-container>
+    <ng-template #noDetails>
+      <p>No details available.</p>
+    </ng-template>
   </div>
   <div dialog-footer>
     <button type="button" class="btn btn-primary" (click)="closePopup()">Close</button>
