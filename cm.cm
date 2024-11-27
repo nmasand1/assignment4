@@ -91,3 +91,107 @@ export class DashboardComponent implements OnInit {
     this.showUpstreamLineagePopup = false;
   }
 }
+
+
+
+<main class="dashboard-div">
+  <div class="master-list-panel">
+    <as-split direction="vertical">
+      <as-split-area [size]="70">
+        <div class="upper col-md-10">
+          <app-grid
+            gridId="dashboard-grid"
+            [columns]="dashboardGridColumns"
+            [visibleColumnsList]="dashboardGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
+            [dataProvider]="dashboardGridData"
+          ></app-grid>
+        </div>
+        <div class="col-md-12">
+          <button (click)="openJiraldsPopup()">Jira Details</button>
+          <button (click)="openUpstreamLineagePopup()">Upstream Lineage</button>
+        </div>
+      </as-split-area>
+      <as-split-area [size]="30">
+        <div class="splitter-panel">
+          <p>Transformations</p>
+        </div>
+        <div class="lower col-md-10">
+          <app-grid
+            gridId="transformation-grid"
+            [columns]="transformationGridColumns"
+            [visibleColumnsList]="transformationGridVisibleColumns"
+            [reloadData]="true"
+            (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
+            [dataProvider]="transformationGridData"
+            (selectionChange)="onTransformationGridSelection($event)"
+          ></app-grid>
+        </div>
+        <div>
+          <button
+            (click)="onDetailsButtonClick()"
+            [disabled]="transformationDetailsButtonDisabled"
+            class="details-button"
+          >
+            Details
+          </button>
+        </div>
+      </as-split-area>
+    </as-split>
+
+    <!-- Jira IDs Popup -->
+    <panther-dialog
+      header="Jira Details"
+      [(visible)]="showJiraldsPopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+      [minWidth]="200"
+    >
+      <div dialog-content>
+        <app-jira-details (onCloseClick)="closeJiraIdsPopup()"></app-jira-details>
+      </div>
+    </panther-dialog>
+
+    <!-- Upstream Lineage Popup -->
+    <panther-dialog
+      header="Upstream Lineage"
+      [(visible)]="showUpstreamLineagePopup"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+      [minWidth]="200"
+    >
+      <div dialog-content>
+        <app-upstream-lineage-popup (onCloseClick)="closeUpstreamLineagePopup()"></app-upstream-lineage-popup>
+      </div>
+    </panther-dialog>
+
+    <!-- Transformations Popup -->
+    <panther-dialog
+      header="Transformations Details"
+      [(visible)]="isTransformationPopUpVisible"
+      [modal]="true"
+      [responsive]="true"
+      [width]="350"
+      [minY]="70"
+      [maximizable]="true"
+      [baseZIndex]="10000"
+      [minWidth]="200"
+    >
+      <div dialog-content>
+        <transformations
+          [transformationDetails]="transformationDetails"
+          (onCloseClick)="closePopup()"
+        ></transformations>
+      </div>
+    </panther-dialog>
+  </div>
+</main>
