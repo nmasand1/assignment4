@@ -1,101 +1,40 @@
-<main class="dashboard-div">
-  <div class="master-list-panel">
-    <as-split direction="vertical">
-      <as-split-area [size]="70">
-        <div class="upper col-md-10">
-          <app-grid
-            gridId="dashboard-grid"
-            [columns]="dashboardGridColumns"
-            [visibleColumnsList]="dashboardGridVisibleColumns"
-            [reloadData]="true"
-            (dataLoadCompleted)="onDashBoardGridDataLoadCompleted($event)"
-            [dataProvider]="dashboardGridData"
-          ></app-grid>
+<div>
+  <panther-dialog
+    header="Jira Details"
+    [visible]="true"
+    [modal]="false"
+    [responsive]="true"
+    [width]="900"
+    [minWidth]="200"
+    [minY]="70"
+    [maximizable]="true"
+    [baseZIndex]="10000"
+    [ngStyle]="{ top: dialogPosition.top + 'px', left: dialogPosition.left + 'px' }">
+    <div dialog-content>
+      <button class="close-btn" (click)="closePopup()">&times;</button>
+      <div class="tabs">
+        <div *ngFor="let item of jiraFieldData; let i = index"
+          class="tab"
+          [class.active]="i === selectedTabIndex"
+          (click)="selectTab(i)">
+          {{ item.key }}
         </div>
-        <div class="col-md-12">
-          <button (click)="openJiraPopup()">Jira Details</button>
-          <button (click)="openUpstreamLineagePopup()">Upstream Lineage</button>
-        </div>
-      </as-split-area>
-      <as-split-area [size]="30">
-        <div class="splitter-panel">
-          <p>Transformations</p>
-        </div>
-        <div class="lower col-md-10">
-          <app-grid
-            gridId="transformation-grid"
-            [columns]="transformationGridColumns"
-            [visibleColumnsList]="transformationGridVisibleColumns"
-            [reloadData]="true"
-            (dataLoadCompleted)="onTransformationGridDataLoadCompleted($event)"
-            [dataProvider]="transformationGridData"
-            (selectionChange)="onTransformationGridSelection($event)"
-          ></app-grid>
-        </div>
-        <div>
-          <button
-            (click)="openTransformationPopup()"
-            [disabled]="transformationDetailsButtonDisabled"
-            class="details-button"
-          >
-            Details
-          </button>
-        </div>
-      </as-split-area>
-    </as-split>
-
-    <!-- Jira Popup -->
-    <panther-dialog
-      header="Jira Details"
-      [(visible)]="displayJiraPopup"
-      [modal]="true"
-      [responsive]="true"
-      [width]="350"
-      [minY]="70"
-      [baseZIndex]="10000"
-    >
-      <div dialog-content>
-        <app-jira-details></app-jira-details>
       </div>
-      <div dialog-footer>
-        <button type="button" class="btn btn-primary" (click)="closeJiraPopup()">Close</button>
+      <div class="tab-container">
+        <ng-container *ngFor="let item of jiraFieldData; let i = index">
+          <div *ngIf="i === selectedTabIndex" class="jira-details">
+            <div class="tab-content">
+              <div *ngIf="item.formattedDescription">
+                <h4>Operations Requirements:</h4>
+                <p>{{ item.formattedDescription.operations }}</p>
+                <br>
+                <h4>Technology Requirements:</h4>
+                <p>{{ item.formattedDescription.technology }}</p>
+              </div>
+            </div>
+          </div>
+        </ng-container>
       </div>
-    </panther-dialog>
-
-    <!-- Upstream Lineage Popup -->
-    <panther-dialog
-      header="Upstream Lineage"
-      [(visible)]="displayUpstreamLineagePopup"
-      [modal]="true"
-      [responsive]="true"
-      [width]="350"
-      [minY]="70"
-      [baseZIndex]="10000"
-    >
-      <div dialog-content>
-        <app-upstream-lineage-popup></app-upstream-lineage-popup>
-      </div>
-      <div dialog-footer>
-        <button type="button" class="btn btn-primary" (click)="closeUpstreamLineagePopup()">Close</button>
-      </div>
-    </panther-dialog>
-
-    <!-- Transformation Popup -->
-    <panther-dialog
-      header="Transformation Details"
-      [(visible)]="displayTransformationPopup"
-      [modal]="true"
-      [responsive]="true"
-      [width]="350"
-      [minY]="70"
-      [baseZIndex]="10000"
-    >
-      <div dialog-content>
-        <app-transformations [transformationDetails]="transformationDetails"></app-transformations>
-      </div>
-      <div dialog-footer>
-        <button type="button" class="btn btn-primary" (click)="closeTransformationPopup()">Close</button>
-      </div>
-    </panther-dialog>
-  </div>
-</main>
+    </div>
+  </panther-dialog>
+</div>
