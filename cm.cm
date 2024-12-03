@@ -8,21 +8,30 @@
     left: var(--popup-left, 50%);
     transform: translate(-50%, -50%);
     z-index: 10000;
-    background-color: #fff; /* Ensure a solid background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for clarity */
-    border-radius: 5px;
+    background-color: #fff; /* Solid background for the popup */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for clarity */
+    border-radius: 10px; /* Rounded corners */
     overflow: hidden;
-    width: 80%; /* Increased width */
-    height: 70%; /* Increased height */
-    max-width: calc(100vw - 40px); /* Prevents exceeding screen width */
-    max-height: calc(100vh - 40px); /* Prevents exceeding screen height */
-    overflow: auto; /* Adds scroll if content overflows */
+    width: 80%; /* Larger width */
+    height: 70%; /* Larger height */
+    max-width: calc(100vw - 40px); /* Prevent exceeding screen width */
+    max-height: calc(100vh - 40px); /* Prevent exceeding screen height */
+    display: flex;
+    flex-direction: column; /* Ensures content flows vertically */
+}
+
+.dialog-content {
+    flex: 1; /* Takes up remaining space */
+    padding: 20px; /* Adds spacing inside */
+    overflow-y: auto; /* Scrolls if content exceeds */
+    box-sizing: border-box; /* Ensures padding doesn’t affect width */
 }
 
 .tabs {
     display: flex;
     margin-top: 10px;
     margin-bottom: 10px;
+    border-bottom: 1px solid #e9ecef; /* Consistent border below tabs */
 }
 
 .tab {
@@ -44,8 +53,9 @@
 }
 
 .tab-container {
-    border-radius: 0 0 5px 5px;
+    flex: 1; /* Ensures the tab container fills available space */
     background-color: #fff;
+    border-radius: 0 0 10px 10px; /* Matches popup’s rounded corners */
     overflow-y: auto;
 }
 
