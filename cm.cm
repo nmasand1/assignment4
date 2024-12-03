@@ -1,62 +1,17 @@
-<div>
-    <panther-dialog
-        class="panther-dialog"
-        header="Jira Details"
-        [visible]="true"
-        [modal]="false"
-        [responsive]="true"
-        [width]="900"
-        [minWidth]="200"
-        [minY]="70"
-        [maximizable]="true"
-        [baseZIndex]="10000"
-        style="--popup-top: 200px; --popup-left: 400px;">
-        <div dialog-content>
-            <button class="close-btn" (click)="closePopup()">&times;</button>
-            <div class="tabs">
-                <div
-                    *ngFor="let item of jiraFieldData; let i = index"
-                    class="tab"
-                    [class.active]="i === selectedTabIndex"
-                    (click)="selectTab(i)"
-                >
-                    {{ item.key }}
-                </div>
-            </div>
-            <div class="tab-container">
-                <ng-container *ngFor="let item of jiraFieldData; let i = index">
-                    <div *ngIf="i === selectedTabIndex" class="jira-details">
-                        <div class="tab-content">
-                            <div *ngIf="item.formattedDescription">
-                                <h4>Operations Requirements: </h4>
-                                <p>{{ item.formattedDescription.operations }}</p>
-                                <br />
-                                <h4>Technology Requirements: </h4>
-                                <p>{{ item.formattedDescription.technology }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </ng-container>
-            </div>
-        </div>
-    </panther-dialog>
-</div>
-
-
-
-
-
-
 .popup-main {
     position: relative;
 }
 
 .panther-dialog {
     position: absolute;
-    top: var(--popup-top, 0);
-    left: var(--popup-left, 0);
+    top: var(--popup-top, 50%);
+    left: var(--popup-left, 50%);
     transform: translate(-50%, -50%);
     z-index: 10000;
+    background-color: #fff; /* Ensure a solid background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for clarity */
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 .tabs {
@@ -107,4 +62,10 @@
 
 .close-btn:hover {
     color: #ff0000;
+}
+
+.panther-dialog {
+    max-width: calc(100vw - 20px); /* Prevents the popup from exceeding screen width */
+    max-height: calc(100vh - 20px); /* Prevents the popup from exceeding screen height */
+    overflow: auto; /* Adds scroll if content overflows */
 }
