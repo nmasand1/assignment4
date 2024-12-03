@@ -8,36 +8,52 @@
     left: var(--popup-left, 50%);
     transform: translate(-50%, -50%);
     z-index: 10000;
-    background-color: #fff; /* Solid background for the popup */
+    background-color: #fff; /* Solid background */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for clarity */
-    border-radius: 10px; /* Rounded corners */
-    overflow: hidden;
+    border-radius: 10px; /* Uniform rounded corners */
     width: 80%; /* Larger width */
     height: 70%; /* Larger height */
-    max-width: calc(100vw - 40px); /* Prevent exceeding screen width */
-    max-height: calc(100vh - 40px); /* Prevent exceeding screen height */
+    max-width: calc(100vw - 40px); /* Prevents exceeding screen width */
+    max-height: calc(100vh - 40px); /* Prevents exceeding screen height */
     display: flex;
     flex-direction: column; /* Ensures content flows vertically */
+    overflow: hidden; /* Prevents content overflow */
+}
+
+.dialog-header {
+    padding: 15px;
+    background-color: #f5f5f5; /* Light header background */
+    border-bottom: 1px solid #e9ecef; /* Separator for clarity */
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
 }
 
 .dialog-content {
-    flex: 1; /* Takes up remaining space */
-    padding: 20px; /* Adds spacing inside */
-    overflow-y: auto; /* Scrolls if content exceeds */
-    box-sizing: border-box; /* Ensures padding doesn’t affect width */
+    flex: 1; /* Fills remaining space */
+    padding: 20px;
+    overflow-y: auto; /* Adds vertical scrolling for overflow */
+    box-sizing: border-box; /* Prevents padding from affecting width */
+}
+
+.dialog-footer {
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #e9ecef;
+    text-align: right;
 }
 
 .tabs {
     display: flex;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #e9ecef; /* Consistent border below tabs */
+    margin: 0; /* Removes gaps between tabs */
+    border-bottom: 1px solid #e9ecef;
 }
 
 .tab {
     padding: 10px 15px;
     cursor: pointer;
     border: 1px solid #e9ecef;
+    border-bottom: none; /* Prevents double border */
     border-radius: 5px 5px 0 0;
     background-color: #fff;
     transition: background-color 0.3s ease;
@@ -53,14 +69,16 @@
 }
 
 .tab-container {
-    flex: 1; /* Ensures the tab container fills available space */
+    flex: 1;
     background-color: #fff;
-    border-radius: 0 0 10px 10px; /* Matches popup’s rounded corners */
+    border-radius: 0 0 10px 10px;
     overflow-y: auto;
+    padding: 10px; /* Adds consistent spacing */
 }
 
 .tab-content {
-    margin: 20px;
+    margin: 0;
+    padding: 15px; /* Adds spacing inside content */
 }
 
 .close-btn {
