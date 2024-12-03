@@ -1,5 +1,61 @@
+<div>
+    <panther-dialog
+        class="panther-dialog"
+        header="Jira Details"
+        [visible]="true"
+        [modal]="false"
+        [responsive]="true"
+        [width]="900"
+        [minWidth]="200"
+        [minY]="70"
+        [maximizable]="true"
+        [baseZIndex]="10000"
+        style="--popup-top: 200px; --popup-left: 400px;">
+        <div dialog-content>
+            <button class="close-btn" (click)="closePopup()">&times;</button>
+            <div class="tabs">
+                <div
+                    *ngFor="let item of jiraFieldData; let i = index"
+                    class="tab"
+                    [class.active]="i === selectedTabIndex"
+                    (click)="selectTab(i)"
+                >
+                    {{ item.key }}
+                </div>
+            </div>
+            <div class="tab-container">
+                <ng-container *ngFor="let item of jiraFieldData; let i = index">
+                    <div *ngIf="i === selectedTabIndex" class="jira-details">
+                        <div class="tab-content">
+                            <div *ngIf="item.formattedDescription">
+                                <h4>Operations Requirements: </h4>
+                                <p>{{ item.formattedDescription.operations }}</p>
+                                <br />
+                                <h4>Technology Requirements: </h4>
+                                <p>{{ item.formattedDescription.technology }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </panther-dialog>
+</div>
+
+
+
+
+
+
 .popup-main {
+    position: relative;
+}
+
+.panther-dialog {
     position: absolute;
+    top: var(--popup-top, 0);
+    left: var(--popup-left, 0);
+    transform: translate(-50%, -50%);
     z-index: 10000;
 }
 
@@ -52,61 +108,3 @@
 .close-btn:hover {
     color: #ff0000;
 }
-
-.panther-dialog {
-    position: absolute;  /* Position it absolutely on the screen */
-    z-index: 10001;  /* Ensure it's above other content */
-}
-
-
-
-
-
-<div>
-    <panther-dialog
-        header="Jira Details"
-        [visible]="true"
-        [modal]="false"
-        [responsive]="true"
-        [width]="900"
-        [minWidth]="200"
-        [minY]="70"
-        [maximizable]="true"
-        [baseZIndex]="10000"
-        class="popup-main"
-        [style.top.px]="popupTop"
-        [style.left.px]="popupLeft"
-    >
-        <div dialog-content>
-            <button class="close-btn" (click)="closePopup()">×</button>
-            <div class="tabs">
-                <div *ngFor="let item of jiraFieldData; let i = index"
-                     class="tab"
-                     [class.active]="i === selectedTabIndex"
-                     (click)="selectTab(i)">
-                    {{ item.key }}
-                </div>
-            </div>
-            <div class="tab-container">
-                <ng-container *ngFor="let item of jiraFieldData; let i = index">
-                    <div *ngIf="i === selectedTabIndex" class="jira-details">
-                        <div class="tab-content">
-                            <div *ngIf="item.formattedDescription">
-                                <h4>Operations Requirements:</h4>
-                                <p>{{ item.formattedDescription.operations }}</p>
-                                <br>
-                                <br>
-                                <h4>Technology Requirements:</h4>
-                                <p>{{ item.formattedDescription.technology }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </ng-container>
-            </div>
-        </div>
-        <!-- <div dialog-footer>
-            Footer content comes here.
-            <button type="button" class="btn btn-primary" (click)="pantherDialogDisplay=false">Ok</button>
-        </div> -->
-    </panther-dialog>
-</div>
