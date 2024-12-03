@@ -1,45 +1,18 @@
-.panther-dialog {
-    position: absolute;
-    top: var(--popup-top, 50%);
-    left: var(--popup-left, 50%);
-    transform: translate(-50%, -50%);
-    z-index: 10000;
-    background-color: #fff; /* Ensure a solid background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for clarity */
-    border-radius: 5px;
-    max-width: 90%; /* Adjust for larger width but keep responsive */
-    max-height: 90%; /* Prevent exceeding screen height */
-    width: 600px; /* Default width */
-    height: 400px; /* Default height */
-    overflow: auto; /* Add scroll for overflow */
-    padding: 20px;
-    font-family: Arial, Helvetica, sans-serif;
-}
+<div>
+    <panther-dialog
+        class="panther-dialog"
+        header="Upstream Lineage Details"
+        [visible]="true"
+        [modal]="false"
+        [responsive]="true"
+        [baseZIndex]="10000"
+        style="--popup-top: 50%; --popup-left: 50%;">
+        
+        <div dialog-content>
+            <button class="close-btn" (click)="closePopup()">&times;</button>
+            <h2>Upstream Lineage Popup</h2>
+            <p>Todo: This is the content of the Upstream Lineage Popup</p>
+        </div>
 
-h2 {
-    font-size: 22px;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-p {
-    font-size: 16px;
-    color: #555;
-    line-height: 1.5;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-}
-
-.close-btn:hover {
-    color: #ff0000;
-}
+    </panther-dialog>
+</div>
