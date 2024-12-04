@@ -1,15 +1,10 @@
-.panther-dialog {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw; /* Full-screen width */
-  height: 100vh; /* Full-screen height */
-  max-width: 100%; /* Ensure it doesn’t restrict the width */
-  max-height: 100%; /* Ensure it doesn’t restrict the height */
-  transform: none; /* Remove centering transform */
-  z-index: 10500; /* Keep it above other elements */
-  background: #ffffff; /* Optional: Define a background color for full-screen dialogs */
-  overflow-y: auto; /* Allow scrolling if the content overflows */
-  display: flex; /* Optional: Flexbox for easy alignment */
-  flex-direction: column; /* Stack content vertically */
-}
+<panther-dialog
+  header="Transformation Details"
+  [visible]="true"
+  [modal]="true"
+  [responsive]="false" <!-- Disable default responsive behavior -->
+  [width]="'100%'" <!-- Full width -->
+  [height]="'100%'" <!-- Full height -->
+  [baseZIndex]="10500"
+  (close)="closePopup()"
+>
