@@ -8,3 +8,5 @@
   [baseZIndex]="10500"
   (close)="closePopup()"
 >
+  <!-- Dialog Content -->
+</panther-dialog>
