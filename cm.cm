@@ -1,172 +1,58 @@
-<div>
-  <panther-dialog
-    class="panther-dialog"
-    header="Transformation Details"
-    [visible]="true"
-    [modal]="true"
-    [responsive]="true"
-    [width]="900"
-    [minWidth]="200"
-    [minY]="70"
-    [maximizable]="true"
-    [baseZIndex]="10000"
-    (close)="closePopup()"
-    style="--popup-top: 50%; --popup-left: 50%;"
-  >
-    <div dialog-content>
-      <button class="close-btn" (click)="closePopup()">&times;</button>
-      <div class="tabs">
-        <div
-          *ngFor="let detail of transformationDetails; let i = index"
-          class="tab"
-          [class.active]="selectedTabIndex === i"
-          (click)="selectTab(i)"
-        >
-          Transformation {{ transformationDetails[i]?.transformationID }}
-        </div>
+<panther-dialog
+  class="panther-dialog"
+  header="Transformation Details"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [responsive]="true"
+  [width]="90%"
+  [minWidth]="300"
+  [minY]="10"
+  [maximizable]="true"
+  [baseZIndex]="10000"
+>
+  <div dialog-content>
+    <button class="close-btn" (click)="closePopup()">&times;</button>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div
+        *ngFor="let detail of transformationDetails; let i = index"
+        class="tab"
+        [class.active]="selectedTabIndex === i"
+        (click)="selectTab(i)"
+      >
+        {{ detail.transformationID }}
       </div>
-      <div class="details-container">
-        <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
-          <div class="detail-item">
-            <span class="detail-label">Reporting Requirement: </span>
-            <span class="detail-value">
-              {{ transformationDetails[selectedTabIndex]?.reportingRequirement || 'N/A' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Transformation Type: </span>
-            <span class="detail-value">
-              {{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Asset Class: </span>
-            <span class="detail-value">
-              {{ transformationDetails[selectedTabIndex]?.assetClass || 'N/A' }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Product Types: </span>
-            <span class="detail-value">
-              {{ transformationDetails[selectedTabIndex]?.productType || 'N/A' }}
-            </span>
-          </div>
-        </div>
-      </div>
-      <h3>Input Fields</h3>
-      <table class="input-fields-table">
-        <thead>
-          <tr>
-            <th>Data Source Name</th>
-            <th>Field ID</th>
-            <th>Field Names</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFields || []">
-            <td>{{ field.dataSource || 'N/A' }}</td>
-            <td>{{ field.dependentFieldID || 'N/A' }}</td>
-            <td>{{ field.path || 'N/A' }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <h3>Code</h3>
-      <pre class="code-snippet">
-        <code>
-          {'public fetchData() void { this.httpApiService.getData().subscribe(data => { this.transformationDetails = data; }); }'}
-        </code>
-      </pre>
-      <button (click)="closePopup()" class="close-button">Close</button>
     </div>
-  </panther-dialog>
-</div>
 
-
-
-
-
-
-.tabs {
-  display: flex;
-  margin-bottom: 20px;
-}
-.tab {
-  flex: 1;
-  margin-right: 15px;
-  text-align: center;
-  cursor: pointer;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px 5px 0 0;
-  background-color: #087eb6;
-  color: #fff;
-  font-weight: bold;
-}
-.tab:hover {
-  background-color: #005f87;
-}
-.tab.active {
-  border-bottom: 2px solid #007bff;
-  background-color: #005f87;
-}
-
-.details-container {
-  padding: 10px;
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.detail-item {
-  margin-bottom: 10px;
-  padding: 5px 0;
-  border-top: 1px solid #ddd;
-}
-.detail-label {
-  font-weight: bold;
-  color: #333;
-}
-.detail-value {
-  color: #555;
-}
-
-.input-fields-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-.input-fields-table th,
-.input-fields-table td {
-  border: 1px solid #ccc;
-  padding: 5px 10px;
-  text-align: left;
-}
-.input-fields-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-  color: #333;
-}
-
-.code-snippet {
-  font-family: monospace;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  background-color: #f9f9f9;
-  padding: 10px;
-  border: 1px solid #ddd;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  cursor: pointer;
-}
-.close-btn:hover {
-  color: #ff0000;
-}
+    <!-- Tab Content -->
+    <div class="details-container">
+      <div *ngIf="transformationDetails[selectedTabIndex]">
+        <div class="detail-item">
+          <span class="detail-label">Reporting Requirement:</span>
+          <span class="detail-value">
+            {{ transformationDetails[selectedTabIndex]?.reportingDetail || 'N/A' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Transformation Type:</span>
+          <span class="detail-value">
+            {{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Asset Class:</span>
+          <span class="detail-value">
+            {{ transformationDetails[selectedTabIndex]?.assetClass || 'N/A' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Product Types:</span>
+          <span class="detail-value">
+            {{ transformationDetails[selectedTabIndex]?.productType || 'N/A' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</panther-dialog>
