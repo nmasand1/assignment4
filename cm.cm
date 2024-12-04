@@ -1,98 +1,172 @@
-.popup-main {
-    position: relative;
-}
+<div>
+  <panther-dialog
+    class="panther-dialog"
+    header="Transformation Details"
+    [visible]="true"
+    [modal]="true"
+    [responsive]="true"
+    [width]="900"
+    [minWidth]="200"
+    [minY]="70"
+    [maximizable]="true"
+    [baseZIndex]="10000"
+    (close)="closePopup()"
+    style="--popup-top: 50%; --popup-left: 50%;"
+  >
+    <div dialog-content>
+      <button class="close-btn" (click)="closePopup()">&times;</button>
+      <div class="tabs">
+        <div
+          *ngFor="let detail of transformationDetails; let i = index"
+          class="tab"
+          [class.active]="selectedTabIndex === i"
+          (click)="selectTab(i)"
+        >
+          Transformation {{ transformationDetails[i]?.transformationID }}
+        </div>
+      </div>
+      <div class="details-container">
+        <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+          <div class="detail-item">
+            <span class="detail-label">Reporting Requirement: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.reportingRequirement || 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Transformation Type: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Asset Class: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.assetClass || 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Product Types: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.productType || 'N/A' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <h3>Input Fields</h3>
+      <table class="input-fields-table">
+        <thead>
+          <tr>
+            <th>Data Source Name</th>
+            <th>Field ID</th>
+            <th>Field Names</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFields || []">
+            <td>{{ field.dataSource || 'N/A' }}</td>
+            <td>{{ field.dependentFieldID || 'N/A' }}</td>
+            <td>{{ field.path || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Code</h3>
+      <pre class="code-snippet">
+        <code>
+          {'public fetchData() void { this.httpApiService.getData().subscribe(data => { this.transformationDetails = data; }); }'}
+        </code>
+      </pre>
+      <button (click)="closePopup()" class="close-button">Close</button>
+    </div>
+  </panther-dialog>
+</div>
 
-.panther-dialog {
-    position: absolute;
-    top: var(--popup-top, 50%);
-    left: var(--popup-left, 50%);
-    transform: translate(-50%, -50%);
-    z-index: 10000;
-    background-color: #fff; /* Solid background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for clarity */
-    border-radius: 10px; /* Uniform rounded corners */
-    width: 80%; /* Larger width */
-    height: 70%; /* Larger height */
-    max-width: calc(100vw - 40px); /* Prevents exceeding screen width */
-    max-height: calc(100vh - 40px); /* Prevents exceeding screen height */
-    display: flex;
-    flex-direction: column; /* Ensures content flows vertically */
-    overflow: hidden; /* Prevents content overflow */
-}
 
-.dialog-header {
-    padding: 15px;
-    background-color: #f5f5f5; /* Light header background */
-    border-bottom: 1px solid #e9ecef; /* Separator for clarity */
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-}
 
-.dialog-content {
-    flex: 1; /* Fills remaining space */
-    padding: 20px;
-    overflow-y: auto; /* Adds vertical scrolling for overflow */
-    box-sizing: border-box; /* Prevents padding from affecting width */
-}
 
-.dialog-footer {
-    padding: 15px;
-    background-color: #f5f5f5;
-    border-top: 1px solid #e9ecef;
-    text-align: right;
-}
+
 
 .tabs {
-    display: flex;
-    margin: 0; /* Removes gaps between tabs */
-    border-bottom: 1px solid #e9ecef;
+  display: flex;
+  margin-bottom: 20px;
 }
-
 .tab {
-    padding: 10px 15px;
-    cursor: pointer;
-    border: 1px solid #e9ecef;
-    border-bottom: none; /* Prevents double border */
-    border-radius: 5px 5px 0 0;
-    background-color: #fff;
-    transition: background-color 0.3s ease;
-    font-weight: bold;
-    color: #666;
-    font-size: 12px;
-    font-family: Arial, Helvetica, sans-serif;
+  flex: 1;
+  margin-right: 15px;
+  text-align: center;
+  cursor: pointer;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+  background-color: #087eb6;
+  color: #fff;
+  font-weight: bold;
 }
-
 .tab:hover {
-    background-color: #0d7bab;
-    color: white;
+  background-color: #005f87;
+}
+.tab.active {
+  border-bottom: 2px solid #007bff;
+  background-color: #005f87;
 }
 
-.tab-container {
-    flex: 1;
-    background-color: #fff;
-    border-radius: 0 0 10px 10px;
-    overflow-y: auto;
-    padding: 10px; /* Adds consistent spacing */
+.details-container {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
 
-.tab-content {
-    margin: 0;
-    padding: 15px; /* Adds spacing inside content */
+.detail-item {
+  margin-bottom: 10px;
+  padding: 5px 0;
+  border-top: 1px solid #ddd;
+}
+.detail-label {
+  font-weight: bold;
+  color: #333;
+}
+.detail-value {
+  color: #555;
+}
+
+.input-fields-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.input-fields-table th,
+.input-fields-table td {
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  text-align: left;
+}
+.input-fields-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  color: #333;
+}
+
+.code-snippet {
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border: 1px solid #ddd;
 }
 
 .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
 }
-
 .close-btn:hover {
-    color: #ff0000;
+  color: #ff0000;
 }
