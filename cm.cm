@@ -1,11 +1,14 @@
-/* General tab styles */
+/* Tabs container with scrollable functionality */
 .tabs {
   display: flex;
   margin-bottom: 20px;
-  overflow-x: auto; /* Add horizontal scrolling for tabs if needed */
+  overflow-x: auto; /* Allows horizontal scrolling for tabs */
+  scrollbar-width: thin; /* For modern browsers */
+  -webkit-overflow-scrolling: touch; /* Improves scrolling on touch devices */
 }
 .tab {
-  flex: 1;
+  flex-shrink: 0; /* Prevents tabs from shrinking when there are many */
+  flex-basis: 150px; /* Ensure each tab has a standard width */
   margin-right: 15px;
   text-align: center;
   cursor: pointer;
@@ -15,7 +18,6 @@
   background-color: #087eb6;
   color: #fff;
   font-weight: bold;
-  min-width: 100px; /* Ensure each tab has a minimum width */
 }
 .tab:hover {
   background-color: #005f87;
@@ -25,18 +27,18 @@
   background-color: #005f87;
 }
 
-/* Details container styles */
+/* Details container with scrollable content */
 .details-container {
   padding: 10px;
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   border-radius: 5px;
-  overflow-y: auto; /* Enable vertical scrolling */
-  max-height: 70vh; /* Set a maximum height for scrolling */
-  position: relative; /* Allow positioning of close button */
+  overflow-y: auto; /* Vertical scrolling for long content */
+  max-height: 70vh; /* Limit height to viewport space */
+  position: relative; /* Ensures the close button is positioned correctly */
 }
 
-/* Detail item styles */
+/* Detail item structure */
 .detail-item {
   margin-bottom: 10px;
   padding: 5px 0;
@@ -50,18 +52,19 @@
   color: #555;
 }
 
-/* Input fields table styles */
+/* Table styles for input fields */
 .input-fields-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
+  table-layout: fixed; /* Ensures proper column resizing */
 }
 .input-fields-table th,
 .input-fields-table td {
   border: 1px solid #ccc;
   padding: 5px 10px;
   text-align: left;
-  word-wrap: break-word; /* Ensure long content wraps */
+  word-wrap: break-word; /* Wraps long text */
 }
 .input-fields-table th {
   background-color: #f4f4f4;
@@ -69,19 +72,19 @@
   color: #333;
 }
 
-/* Code snippet styles */
+/* Code snippet block with scrollable content */
 .code-snippet {
   font-family: monospace;
   white-space: pre-wrap;
-  overflow-x: auto; /* Enable horizontal scrolling for long content */
+  overflow-x: auto; /* Allows horizontal scrolling */
   background-color: #f9f9f9;
   padding: 10px;
   border: 1px solid #ddd;
-  max-width: 100%; /* Make it responsive */
-  box-sizing: border-box; /* Include padding in width calculations */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-/* Close button styles */
+/* Close button styling */
 .close-btn {
   position: absolute;
   top: 10px;
@@ -92,21 +95,23 @@
   font-weight: bold;
   color: #333;
   cursor: pointer;
-  z-index: 1; /* Ensure it appears above other content */
+  z-index: 10; /* Ensures it appears above other elements */
 }
 .close-btn:hover {
   color: #ff0000;
 }
 
-/* Responsive adjustments */
+/* Responsiveness adjustments */
 @media (max-width: 768px) {
   .tab {
     padding: 10px;
     font-size: 14px;
+    flex-basis: 120px; /* Adjusts tab width for smaller screens */
   }
 
   .details-container {
     padding: 5px;
+    max-height: 60vh; /* Reduces height for smaller screens */
   }
 
   .input-fields-table th,
