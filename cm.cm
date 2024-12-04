@@ -1,37 +1,24 @@
-.panther-dialog {
-  width: 90%;
-  max-width: 900px;
-  height: auto;
-  max-height: 90vh; /* Ensures the dialog doesn't exceed the viewport */
-  overflow-y: auto; /* Adds scroll if content overflows */
-  position: relative;
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
 .tabs {
   display: flex;
-  flex-wrap: wrap; /* Allows tabs to wrap if needed */
   margin-bottom: 20px;
-  gap: 10px; /* Adds space between tabs */
 }
-
 .tab {
-  flex: 1 1 auto; /* Makes tabs flexible and responsive */
-  min-width: 100px; /* Ensures a minimum size */
+  flex: 1;
+  margin-right: 15px;
   text-align: center;
   cursor: pointer;
-  padding: 10px;
+  padding: 15px;
   border: 1px solid #ccc;
   border-radius: 5px 5px 0 0;
   background-color: #087eb6;
   color: #fff;
   font-weight: bold;
 }
-
 .tab:hover {
+  background-color: #005f87;
+}
+.tab.active {
+  border-bottom: 2px solid #007bff;
   background-color: #005f87;
 }
 
@@ -40,15 +27,45 @@
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   border-radius: 5px;
-  max-height: 60vh; /* Prevents overflow in smaller screens */
-  overflow-y: auto; /* Scrollable content */
+}
+
+.detail-item {
+  margin-bottom: 10px;
+  padding: 5px 0;
+  border-top: 1px solid #ddd;
+}
+.detail-label {
+  font-weight: bold;
+  color: #333;
+}
+.detail-value {
+  color: #555;
 }
 
 .input-fields-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  overflow-x: auto; /* Makes table scroll horizontally */
+}
+.input-fields-table th,
+.input-fields-table td {
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  text-align: left;
+}
+.input-fields-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  color: #333;
+}
+
+.code-snippet {
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border: 1px solid #ddd;
 }
 
 .close-btn {
@@ -62,19 +79,6 @@
   color: #333;
   cursor: pointer;
 }
-
 .close-btn:hover {
   color: #ff0000;
-}
-
-@media (max-width: 600px) {
-  .tab {
-    font-size: 14px;
-    padding: 8px;
-  }
-
-  .panther-dialog {
-    width: 100%;
-    padding: 10px;
-  }
 }
