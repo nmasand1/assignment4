@@ -1,14 +1,114 @@
-/* Tabs container with scrollable functionality */
+<div>
+  <panther-dialog
+    class="panther-dialog"
+    header="Transformation Details"
+    [visible]="true"
+    [modal]="true"
+    [responsive]="true"
+    [width]="900"
+    [minWidth]="200"
+    [minY]="70"
+    [maximizable]="true"
+    [baseZIndex]="10000"
+    (close)="closePopup()"
+    style="--popup-top: 50%; --popup-left: 50%;"
+    appendTo="body"
+  >
+    <div dialog-content>
+      <button class="close-btn" (click)="closePopup()">&times;</button>
+      <div class="tabs">
+        <div
+          *ngFor="let detail of transformationDetails; let i = index"
+          class="tab"
+          [class.active]="selectedTabIndex === i"
+          (click)="selectTab(i)"
+        >
+          Transformation {{ detail?.transformationID }}
+        </div>
+      </div>
+      <div class="details-container">
+        <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+          <div class="detail-item">
+            <span class="detail-label">Reporting Requirement: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.reportingRequirement || 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Transformation Type: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Asset Class: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.assetClass || 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Product Types: </span>
+            <span class="detail-value">
+              {{ transformationDetails[selectedTabIndex]?.productType || 'N/A' }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <h3>Input Fields</h3>
+      <table class="input-fields-table">
+        <thead>
+          <tr>
+            <th>Data Source Name</th>
+            <th>Field ID</th>
+            <th>Field Names</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFields || []">
+            <td>{{ field.dataSource || 'N/A' }}</td>
+            <td>{{ field.dependentFieldID || 'N/A' }}</td>
+            <td>{{ field.path || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Code</h3>
+      <pre class="code-snippet">
+        <code>
+          {'public fetchData() void { this.httpApiService.getData().subscribe(data => { this.transformationDetails = data; }); }'}
+        </code>
+      </pre>
+      <button (click)="closePopup()" class="close-button">Close</button>
+    </div>
+  </panther-dialog>
+</div>
+
+
+
+
+
+.panther-dialog {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: auto; /* Ensure the dialog is interactive */
+}
+
+.panther-dialog [dialog-content] {
+  position: relative;
+  z-index: 10001;
+  pointer-events: auto;
+}
+
+.p-dialog-mask {
+  pointer-events: none; /* Prevent backdrop from blocking interactions */
+}
+
 .tabs {
   display: flex;
   margin-bottom: 20px;
-  overflow-x: auto; /* Allows horizontal scrolling for tabs */
-  scrollbar-width: thin; /* For modern browsers */
-  -webkit-overflow-scrolling: touch; /* Improves scrolling on touch devices */
 }
+
 .tab {
-  flex-shrink: 0; /* Prevents tabs from shrinking when there are many */
-  flex-basis: 150px; /* Ensure each tab has a standard width */
+  flex: 1;
   margin-right: 15px;
   text-align: center;
   cursor: pointer;
@@ -19,72 +119,66 @@
   color: #fff;
   font-weight: bold;
 }
+
 .tab:hover {
   background-color: #005f87;
 }
+
 .tab.active {
   border-bottom: 2px solid #007bff;
   background-color: #005f87;
 }
 
-/* Details container with scrollable content */
 .details-container {
   padding: 10px;
   background-color: #f9f9f9;
   border: 1px solid #ccc;
   border-radius: 5px;
-  overflow-y: auto; /* Vertical scrolling for long content */
-  max-height: 70vh; /* Limit height to viewport space */
-  position: relative; /* Ensures the close button is positioned correctly */
 }
 
-/* Detail item structure */
 .detail-item {
   margin-bottom: 10px;
   padding: 5px 0;
   border-top: 1px solid #ddd;
 }
+
 .detail-label {
   font-weight: bold;
   color: #333;
 }
+
 .detail-value {
   color: #555;
 }
 
-/* Table styles for input fields */
 .input-fields-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  table-layout: fixed; /* Ensures proper column resizing */
 }
+
 .input-fields-table th,
 .input-fields-table td {
   border: 1px solid #ccc;
   padding: 5px 10px;
   text-align: left;
-  word-wrap: break-word; /* Wraps long text */
 }
+
 .input-fields-table th {
   background-color: #f4f4f4;
   font-weight: bold;
   color: #333;
 }
 
-/* Code snippet block with scrollable content */
 .code-snippet {
   font-family: monospace;
   white-space: pre-wrap;
-  overflow-x: auto; /* Allows horizontal scrolling */
+  overflow-x: auto;
   background-color: #f9f9f9;
   padding: 10px;
   border: 1px solid #ddd;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
-/* Close button styling */
 .close-btn {
   position: absolute;
   top: 10px;
@@ -95,32 +189,8 @@
   font-weight: bold;
   color: #333;
   cursor: pointer;
-  z-index: 10; /* Ensures it appears above other elements */
 }
+
 .close-btn:hover {
   color: #ff0000;
-}
-
-/* Responsiveness adjustments */
-@media (max-width: 768px) {
-  .tab {
-    padding: 10px;
-    font-size: 14px;
-    flex-basis: 120px; /* Adjusts tab width for smaller screens */
-  }
-
-  .details-container {
-    padding: 5px;
-    max-height: 60vh; /* Reduces height for smaller screens */
-  }
-
-  .input-fields-table th,
-  .input-fields-table td {
-    font-size: 12px;
-    padding: 5px;
-  }
-
-  .close-btn {
-    font-size: 20px;
-  }
 }
