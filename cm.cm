@@ -1,63 +1,80 @@
-<panther-dialog
-    class="panther-dialog"
-    header="Transformation Details"
-    [visible]="true"
-    [modal]="true"
-    [responsive]="true"
-    [width]="80%"
-    [minWidth]="300"
-    [maximizable]="true"
-    [baseZIndex]="10000"
-    style="--popup-top: 50%; --popup-left: 50%;"
->
-    <div dialog-content>
-        <button class="close-btn" (click)="closePopup()">&times;</button>
-        <div class="tabs">
-            <div
-                *ngFor="let detail of transformationDetails; let i = index"
-                class="tab"
-                [class.active]="selectedTabIndex === i"
-                (click)="selectTab(i)"
-            >
-                {{ detail.transformationID }}
-            </div>
-        </div>
-        <div class="details-container">
-            <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
-                <div class="detail-item">
-                    <span class="detail-label">Reporting Requirement:</span>
-                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].reportingRequirement }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Transformation Type:</span>
-                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Asset Class:</span>
-                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].assetClass }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Product Types:</span>
-                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].productType }}</span>
-                </div>
-            </div>
-            <h3>Input Fields</h3>
-            <table class="input-fields-table">
-                <thead>
-                    <tr>
-                        <th>Data Source Name</th>
-                        <th>Field ID</th>
-                        <th>Field Names</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFields">
-                        <td>{{ field.dataSource }}</td>
-                        <td>{{ field.dependentFieldID }}</td>
-                        <td>{{ field.path }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</panther-dialog>
+.panther-dialog {
+  width: 90%;
+  max-width: 900px;
+  height: auto;
+  max-height: 90vh; /* Ensures the dialog doesn't exceed the viewport */
+  overflow-y: auto; /* Adds scroll if content overflows */
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap; /* Allows tabs to wrap if needed */
+  margin-bottom: 20px;
+  gap: 10px; /* Adds space between tabs */
+}
+
+.tab {
+  flex: 1 1 auto; /* Makes tabs flexible and responsive */
+  min-width: 100px; /* Ensures a minimum size */
+  text-align: center;
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+  background-color: #087eb6;
+  color: #fff;
+  font-weight: bold;
+}
+
+.tab:hover {
+  background-color: #005f87;
+}
+
+.details-container {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  max-height: 60vh; /* Prevents overflow in smaller screens */
+  overflow-y: auto; /* Scrollable content */
+}
+
+.input-fields-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  overflow-x: auto; /* Makes table scroll horizontally */
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #ff0000;
+}
+
+@media (max-width: 600px) {
+  .tab {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .panther-dialog {
+    width: 100%;
+    padding: 10px;
+  }
+}
