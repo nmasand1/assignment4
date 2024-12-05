@@ -1,22 +1,24 @@
-maximizePopup(): void {
-  const dialogElement = document.querySelector('panther-dialog') as HTMLElement;
-  if (dialogElement) {
-    const isMaximized =
-      dialogElement.style.width === '100vw' && dialogElement.style.height === '100vh';
-    if (isMaximized) {
-      // Restore to original size
-      dialogElement.style.width = '600px';
-      dialogElement.style.height = '400px';
-      dialogElement.style.top = '50%';
-      dialogElement.style.left = '50%';
-      dialogElement.style.transform = 'translate(-50%, -50%)';
-    } else {
-      // Maximize to full screen
-      dialogElement.style.width = '100vw';
-      dialogElement.style.height = '100vh';
-      dialogElement.style.top = '0';
-      dialogElement.style.left = '0';
-      dialogElement.style.transform = 'none';
-    }
-  }
-}
+<div>
+    <panther-dialog
+        header="Upstream Lineage Details"
+        [visible]="true"
+        [modal]="false"
+        [responsive]="true"
+        [baseZIndex]="10000">
+
+        <div dialog-content>
+            <!-- Close button -->
+            <button class="dialog-button close-btn" (click)="closePopup()">
+                <span class="fa fa-close"></span>
+            </button>
+
+            <!-- Maximize button -->
+            <button class="dialog-button maximize-btn" (click)="maximizePopup()">
+                <span class="fa fa-window-maximize"></span>
+            </button>
+
+            <h2>Upstream Lineage Popup</h2>
+            <p>Todo: This is the content of the Upstream Lineage Popup</p>
+        </div>
+    </panther-dialog>
+</div>
