@@ -1,53 +1,22 @@
-panther-dialog {
-    position: absolute;
-    top: var(--popup-top, 50%);
-    left: var(--popup-left, 50%);
-    transform: translate(-50%, -50%);
-    z-index: 20000;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    max-width: 90%;
-    max-height: 90%;
-    width: 600px;
-    height: 400px;
-    overflow: auto;
-    padding: 20px;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-panther-dialog h2 {
-    font-size: 22px;
-    color: #333;
-    margin-bottom: 15px;
-}
-
-panther-dialog p {
-    font-size: 16px;
-    color: #555;
-    line-height: 1.5;
-}
-
-/* Dialog buttons styling */
-.dialog-button {
-    position: absolute;
-    top: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-}
-
-.dialog-button:hover {
-    color: #007bff; /* Optional hover color */
-}
-
-.close-btn {
-    right: 10px; /* Position close button at top-right */
-}
-
-.maximize-btn {
-    right: 50px; /* Position maximize button to the left of close button */
+maximizePopup(): void {
+  const dialogElement = document.querySelector('panther-dialog') as HTMLElement;
+  if (dialogElement) {
+    const isMaximized =
+      dialogElement.style.width === '100vw' && dialogElement.style.height === '100vh';
+    if (isMaximized) {
+      // Restore to original size
+      dialogElement.style.width = '600px';
+      dialogElement.style.height = '400px';
+      dialogElement.style.top = '50%';
+      dialogElement.style.left = '50%';
+      dialogElement.style.transform = 'translate(-50%, -50%)';
+    } else {
+      // Maximize to full screen
+      dialogElement.style.width = '100vw';
+      dialogElement.style.height = '100vh';
+      dialogElement.style.top = '0';
+      dialogElement.style.left = '0';
+      dialogElement.style.transform = 'none';
+    }
+  }
 }
