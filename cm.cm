@@ -1,12 +1,50 @@
-<panther-dialog
-  header="Transformation Details"
-  [visible]="true"
-  [modal]="true"
-  [responsive]="false" <!-- Disable default responsive behavior -->
-  [width]="'100%'" <!-- Full width -->
-  [height]="'100%'" <!-- Full height -->
-  [baseZIndex]="10500"
-  (close)="closePopup()"
->
-  <!-- Dialog Content -->
-</panther-dialog>
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { LightHouseApiService } from 'src/app/services/lighthouse-api.service';
+import { PantherComponentsBootstrapModule, PantherComponentsCommonModule } from '@barclays/panther-components';
+
+@Component({
+  selector: 'app-upstream-lineage-popup',
+  standalone: true,
+  imports: [
+    CommonModule,
+    PantherComponentsBootstrapModule,
+    PantherComponentsCommonModule
+  ],
+  templateUrl: './upstream-lineage-popup.component.html',
+  styleUrls: ['./upstream-lineage-popup.component.css']
+})
+export class UpstreamLineagePopupComponent implements OnInit {
+  @Output() onCloseClick: EventEmitter<any> = new EventEmitter<any>();
+
+  ngOnInit(): void {
+    // Initialization logic here if needed
+  }
+
+  closePopup(): void {
+    this.onCloseClick.emit();
+  }
+
+  maximizePopup(): void {
+    const dialogElement = document.querySelector('panther-dialog') as HTMLElement;
+    if (dialogElement) {
+      const isMaximized =
+        dialogElement.style.width === '100%' && dialogElement.style.height === '100%';
+      if (isMaximized) {
+        // Restore to original size
+        dialogElement.style.width = '600px';
+        dialogElement.style.height = '400px';
+        dialogElement.style.top = '50%';
+        dialogElement.style.left = '50%';
+        dialogElement.style.transform = 'translate(-50%, -50%)';
+      } else {
+        // Maximize
+        dialogElement.style.width = '100%';
+        dialogElement.style.height = '100%';
+        dialogElement.style.top = '0';
+        dialogElement.style.left = '0';
+        dialogElement.style.transform = 'none';
+      }
+    }
+  }
+}
