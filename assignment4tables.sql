@@ -1,81 +1,67 @@
-SELECT 
-    'EQ' AS AssetClass,
-    tm.messageid,
-    tm.msgtype,
-    t.PUBLISHERTRADEID,
-    t.PUBLISHERTRADEVERSION,
-    t.TradeIdType,
-    alt.alternatepublishertradeid,
-    alt.alternatetradeidtype,
-    alt.alternatepublishertradeversion,
-    t.ProductType,
-    t.ProductSubType,
-    t.book,
-    tmj.JURISDICTION,
-    t.globaluti,
-    t.USI,
-    t.GTRCreatedUSIPrefix,
-    t.MatDate,
-    t.ClearingStatus,
-    t.LegalEntityUCI,
-    t.CtyUCI,
-    tm.srfeventtype AS eventname,
-    tm.exentreason,
-    tm.gtreventtype,
-    tm.TM_ExecutionDateTime,
-    t.eventdatetime,
-    t.esmpid,
-    eu.upi
-FROM 
-    trade AS t
-INNER JOIN 
-    alternatetrade AS alt ON t.tradeid = alt.tradeid
-INNER JOIN 
-    trademessage AS tm ON t.tradeid = tm.tradeid
-INNER JOIN 
-    trademessagerptjurisdiction AS tmj ON tm.trademessageid = tmj.trademessageid
-LEFT JOIN 
-    esmpuri AS eu ON eu.publishertradeid = t.PUBLISHERTRADEID
-WHERE 
-    (tmj.jurisdiction IN ('CFTC', 'SEC') 
-    OR tmj.jurisdiction LIKE 'CA.%')
-    AND tm.msgtype NOT IN ('REAL_TIME')
-    AND tmj.srfmsgstate = 'rep'
-    AND t.assetclassid = 6
-    AND CAST(tm.arrivaldatetime AS STRING) = '2024-07-31'
-    AND alt.alternatetradeidtype IN (
-        'atlasCompositeReference', 'barxFxTsTradeId', 'charmsTradeId', 
-        'delta1TradeId', 'echelonTradeId', 'emTmsTradeId', 
-        'fiTmsTradeId', 'mptraderTradeId', 'openlinkDealId', 
-        'qaBookDealId', 'simTradeId', 'soldTradeStoreTradeId', 
-        'sophisCompositeReference', 'stgMptraderTradeId', 
-        'synfinyTradeId'
-    )
-GROUP BY 
-    tm.msgtype,
-    t.PUBLISHERTRADEID,
-    t.PUBLISHERTRADEVERSION,
-    t.TradeIdType,
-    alt.alternatepublishertradeid,
-    alt.alternatetradeidtype,
-    alt.alternatepublishertradeversion,
-    t.ProductType,
-    t.ProductSubType,
-    t.book,
-    tmj.JURISDICTION,
-    t.globaluti,
-    t.USI,
-    t.GTRCreatedUSIPrefix,
-    t.MatDate,
-    t.ClearingStatus,
-    t.LegalEntityUCI,
-    t.CtyUCI,
-    tm.srfeventtype,
-    tm.exentreason,
-    tm.gtreventtype,
-    tm.TM_ExecutionDateTime,
-    t.eventdatetime,
-    t.esmpid,
-    eu.upi,
-    tm.messageid
-LIMIT 10;
+<panther-dialog
+  header="Transformations Details"
+  [(visible)]="showPopup"
+  [modal]="true"
+  [closable]="true"
+  [responsive]="true"
+  [draggable]="true"
+  (onHide)="closePopup()"
+>
+  <div dialog-content>
+    <div class="tabs">
+      <div
+        *ngFor="let detail of transformationDetails; let i = index"
+        [class.active]="selectedTabIndex === i"
+        (click)="selectTab(i)"
+        class="tab"
+      >
+        Transformation {{ transformationDetails[i]?.transformationID }}
+      </div>
+    </div>
+
+    <div class="details-container">
+      <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+        <div class="detail-item">
+          <span class="detail-label">Reporting Requirement:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.reportingReq || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Transformation Type:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Asset Class:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.assetclass || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Product Type:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.producttype || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Input Fields</h3>
+    <table class="input-fields-table">
+      <thead>
+        <tr>
+          <th>Data Source</th>
+          <th>FieldId</th>
+          <th>FieldName</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList"
+        >
+          <td>{{ field?.dataSource }}</td>
+          <td>{{ field?.dependentfieldID }}</td>
+          <td>{{ field?.xpath }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div dialog-footer>
+    <button (click)="closePopup()" class="close-button">Close</button>
+  </div>
+</panther-dialog>
