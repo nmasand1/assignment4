@@ -1,45 +1,42 @@
-<button (click)="openPopup()">Open Popup</button> <!-- Button to open the popup -->
-
 <panther-dialog
-  header="Transformation Details"
-  class="panther-dialog"
+  header="Transformations Details"
   [(visible)]="showPopup"
-  [width]="900"
-  [minWidth]="200"
-  [minY]="70"
-  [baseZIndex]="10000"
   [modal]="true"
-  [responsive]="true"
   [closable]="true"
+  [responsive]="true"
   [draggable]="true"
-  (onHide)="closePopup()">
-  
+  (onHide)="closePopup()"
+>
   <div dialog-content>
     <div class="tabs">
-      <div *ngFor="let detail of transformationDetails; let i = index"
-           [class.active]="selectedTabIndex === i"
-           (click)="selectTab(i)"
-           class="tab">
+      <div
+        *ngFor="let detail of transformationDetails; let i = index"
+        [class.active]="selectedTabIndex === i"
+        (click)="selectTab(i)"
+        class="tab"
+      >
         Transformation {{ transformationDetails[i]?.transformationID }}
       </div>
     </div>
 
-    <div class="details-container" *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
-      <div class="detail-item">
-        <span class="detail-label">Reporting Requirement:</span>
-        <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.reportingReq || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Transformation Type:</span>
-        <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Asset Class:</span>
-        <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.assetclass || 'N/A' }}</span>
-      </div>
-      <div class="detail-item">
-        <span class="detail-label">Product Type:</span>
-        <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.producttype || 'N/A' }}</span>
+    <div class="details-container">
+      <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+        <div class="detail-item">
+          <span class="detail-label">Reporting Requirement:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.reportingReq || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Transformation Type:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Asset Class:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.assetclass || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Product Type:</span>
+          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.producttype || 'N/A' }}</span>
+        </div>
       </div>
     </div>
 
@@ -53,7 +50,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList">
+        <tr
+          *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList"
+        >
           <td>{{ field?.dataSource }}</td>
           <td>{{ field?.dependentfieldID }}</td>
           <td>{{ field?.xpath }}</td>
