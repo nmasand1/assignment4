@@ -1,54 +1,80 @@
-/* Panther Dialog Styling */
-panther-dialog {
-    position: absolute;
-    top: var(--popup-top, 50%);
-    left: var(--popup-left, 50%);
-    transform: translate(-50%, -50%);
-    z-index: 20000;
-    background-color: #fff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    max-width: 90%;
-    max-height: 90%;
-    width: 600px;
-    height: 400px;
-    overflow: auto;
-    padding: 20px;
-    font-family: Arial, Helvetica, sans-serif;
-}
+<panther-dialog
+    header="Transformation Details"
+    class="panther-dialog"
+    [(visible)]="showPopup"
+    [width]="900"
+    [minWidth]="200"
+    [minY]="70"
+    [baseZIndex]="10000"
+    [modal]="true"
+    [responsive]="true"
+    [closable]="true"
+    [draggable]="true"
+    (onHide)="closePopup()">
 
-panther-dialog h2 {
-    font-size: 22px;
-    color: #333;
-    margin-bottom: 15px;
-}
+    <div dialog-content>
+        <div class="tabs">
+            <div *ngFor="let detail of transformationDetails; let i = index"
+                 [class.active]="selectedTabIndex === i"
+                 (click)="selectTab(i)"
+                 class="tab">
+                Transformation {{ transformationDetails[i].transformationID }}
+            </div>
+        </div>
 
-panther-dialog p {
-    font-size: 16px;
-    color: #555;
-    line-height: 1.5;
-}
+        <div class="details-container">
+            <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
+                <div class="detail-item">
+                    <span class="detail-label">Reporting Requirement:</span>
+                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].reportingReq || 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Transformation Type:</span>
+                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType || 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Asset Class:</span>
+                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].assetclass || 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Product Type:</span>
+                    <span class="detail-value">{{ transformationDetails[selectedTabIndex].producttype || 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
 
-/* Dialog Buttons Styling */
-.dialog-button {
-    position: absolute;
-    top: 10px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-}
+        <h3>Input Fields</h3>
+        <table class="input-fields-table">
+            <thead>
+                <tr>
+                    <th>Data Source</th>
+                    <th>FieldId</th>
+                    <th>FieldName</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let field of transformationDetails[selectedTabIndex].inputFieldDataList">
+                    <td>{{ field.dataSource }}</td>
+                    <td>{{ field.dependentfieldID }}</td>
+                    <td>{{ field.xpath }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-.dialog-button:hover {
-    color: #007bff; /* Optional hover color */
-}
+        <h3>Code</h3>
+        <pre class="code-snippet">
+            <code>
+                {{ 'public fetchData(): void {' }}<br>
+                {{ ' this.httpApiService.getData().subscribe(data => { ' }}<br>
+                {{ ' this.transformationDetails = data;' }}<br>
+                {{ ' });' }}<br>
+                {{ '}' }}
+            </code>
+        </pre>
+    </div>
 
-.close-btn {
-    right: 10px; /* Position close button at top-right */
-}
+    <div dialog-footer>
+        <button (click)="closePopup()" class="close-button">Close</button>
+    </div>
 
-.maximize-btn {
-    right: 50px; /* Position maximize button to the left of close button */
-}
+</panther-dialog>
