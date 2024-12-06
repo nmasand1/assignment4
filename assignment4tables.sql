@@ -1,9 +1,14 @@
 <panther-dialog
-  header="Transformations Details"
+  header="Upstream Lineage"
+  class="panther-dialog"
   [(visible)]="showPopup"
+  [width]="900"
+  [minWidth]="200"
+  [minY]="70"
+  [baseZIndex]="10000"
   [modal]="true"
-  [closable]="true"
   [responsive]="true"
+  [closable]="true"
   [draggable]="true"
   (onHide)="closePopup()"
 >
@@ -15,28 +20,26 @@
         (click)="selectTab(i)"
         class="tab"
       >
-        Transformation {{ transformationDetails[i]?.transformationID }}
+        Transformation {{ detail.transformationID }}
       </div>
     </div>
 
-    <div class="details-container">
-      <div *ngIf="transformationDetails && transformationDetails[selectedTabIndex]">
-        <div class="detail-item">
-          <span class="detail-label">Reporting Requirement:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.reportingReq || 'N/A' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Transformation Type:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.transformationType || 'N/A' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Asset Class:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.assetclass || 'N/A' }}</span>
-        </div>
-        <div class="detail-item">
-          <span class="detail-label">Product Type:</span>
-          <span class="detail-value">{{ transformationDetails[selectedTabIndex]?.producttype || 'N/A' }}</span>
-        </div>
+    <div class="details-container" *ngIf="transformationDetails[selectedTabIndex]">
+      <div class="detail-item">
+        <span class="detail-label">Reporting Requirement:</span>
+        <span class="detail-value">{{ transformationDetails[selectedTabIndex].reportingReq || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Transformation Type:</span>
+        <span class="detail-value">{{ transformationDetails[selectedTabIndex].transformationType || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Asset Class:</span>
+        <span class="detail-value">{{ transformationDetails[selectedTabIndex].assetclass || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Product Type:</span>
+        <span class="detail-value">{{ transformationDetails[selectedTabIndex].producttype || 'N/A' }}</span>
       </div>
     </div>
 
@@ -45,17 +48,15 @@
       <thead>
         <tr>
           <th>Data Source</th>
-          <th>FieldId</th>
-          <th>FieldName</th>
+          <th>Field ID</th>
+          <th>Field Name</th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList"
-        >
-          <td>{{ field?.dataSource }}</td>
-          <td>{{ field?.dependentfieldID }}</td>
-          <td>{{ field?.xpath }}</td>
+        <tr *ngFor="let field of transformationDetails[selectedTabIndex]?.inputFieldDataList">
+          <td>{{ field.dataSource }}</td>
+          <td>{{ field.dependentfieldID }}</td>
+          <td>{{ field.xpath }}</td>
         </tr>
       </tbody>
     </table>
