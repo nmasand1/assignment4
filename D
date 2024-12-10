@@ -1,0 +1,20 @@
+.fa {
+  position: absolute; /* Align the buttons relative to their container */
+  top: 10px; /* Adjust for vertical alignment */
+  right: auto; /* Remove the default right alignment */
+  font: normal normal normal 14px / 1 FontAwesome;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+.fa:nth-child(1) {
+  right: 30px; /* Adjust for the first button */
+}
+
+.fa:nth-child(2) {
+  right: 50px; /* Adjust for the second button */
+}
+
+.fa:nth-child(3) {
+  right: 10px; /* Adjust for the third button (close button) */
+}
