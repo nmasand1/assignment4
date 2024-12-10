@@ -1,0 +1,24 @@
+import pandas as pd
+
+def compare_csvs(csv_no_header_path, csv_with_header_path, output_path):
+    # Load the CSV without headers
+    df_no_header = pd.read_csv(csv_no_header_path, header=None)
+    df_with_header = pd.read_csv(csv_with_header_path)
+    
+    # Flatten the data of CSV without header into a list
+    data_no_header = df_no_header.values.flatten()
+    
+    # Check if any value from the header-less CSV exists in any column of the CSV with headers
+    matching_rows = df_with_header[
+        df_with_header.apply(lambda row: row.isin(data_no_header).any(), axis=1)
+    ]
+    
+    # Save the matching rows to an output file
+    matching_rows.to_csv(output_path, index=False)
+    
+    # Print results
+    print(f"Found {len(matching_rows)} matching rows.")
+    print(f"Matching rows saved to {output_path}.")
+
+# Example usage
+compare_csvs('no_header.csv', 'with_header.csv', 'matching_rows.csv')
