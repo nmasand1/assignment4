@@ -1,0 +1,12 @@
+.fa {
+  position: absolute; /* Absolute positioning for alignment */
+  top: 10px; /* Vertical alignment */
+  right: 10px; /* Start from the right */
+  font: normal normal normal 14px / 1 FontAwesome;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+.fa + .fa {
+  margin-left: 30px; /* Add spacing between adjacent buttons */
+}
