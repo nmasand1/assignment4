@@ -1,42 +1,16 @@
-.panther-dialog {
-  position: absolute; /* Center the dialog */
-  top: var(--popup-top, 50%);
-  left: var(--popup-left, 50%);
-  transform: translate(-50%, -50%);
-  z-index: 20000;
-  background-color: #fff;
-  width: 90%; /* Set width to fit within viewport */
-  height: 90%; /* Set height to fit within viewport */
-  max-width: 600px; /* Optional: limit maximum width */
-  max-height: 500px; /* Optional: limit maximum height */
-  overflow: hidden; /* Prevent dialog content from overflowing */
-  font-family: Arial, Helvetica, sans-serif;
-  display: flex;
-  flex-direction: column; /* Allow separation of header and content */
+awk -F',' '
+NR == 1 {
+    # Loop through the header row to find the positions of "book" and "ctysdsid"
+    for (i = 1; i <= NF; i++) {
+        if ($i == "book") book_pos = i;
+        if ($i == "ctysdsid") ctysdsid_pos = i;
+    }
+    next;
 }
-
-.dialog-header {
-  flex-shrink: 0; /* Ensure header doesn't shrink */
-  height: 40px; /* Fixed height for header */
-  background-color: #fff;
-  border-bottom: 1px solid #ccc;
-  position: relative; /* Needed for button positioning */
+{
+    # Print the values of "book" and "ctysdsid" columns
+    if (book_pos && ctysdsid_pos) {
+        print $book_pos, $ctysdsid_pos;
+    }
 }
-
-.dialog-header .fa,
-.dialog-header .fa-close {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  z-index: 30000;
-  font: normal normal normal 14px / 1 FontAwesome;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-  cursor: pointer;
-}
-
-.dialog-content {
-  flex-grow: 1; /* Allow content to take remaining space */
-  overflow: auto; /* Enable scrolling within the content area */
-  padding: 10px;
-}
+' filename_parquet_tradecash20181106.csv
