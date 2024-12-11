@@ -5,12 +5,16 @@ NR == 1 {
         if ($i == "book") book_pos = i;
         if ($i == "ctysdsid") ctysdsid_pos = i;
     }
+    # Print the header to the output CSV
+    if (book_pos && ctysdsid_pos) {
+        print "book,ctysdsid" > "output.csv";
+    }
     next;
 }
 {
-    # Print the values of "book" and "ctysdsid" columns
+    # Append the values of "book" and "ctysdsid" columns to the output file
     if (book_pos && ctysdsid_pos) {
-        print $book_pos, $ctysdsid_pos;
+        print $book_pos "," $ctysdsid_pos >> "output.csv";
     }
 }
 ' filename_parquet_tradecash20181106.csv
