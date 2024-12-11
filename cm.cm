@@ -1,33 +1,12 @@
 .panther-dialog {
-  position: relative; /* Ensure child elements with position: absolute are relative to this container */
+  position: absolute; /* Keep it absolute to center it on the screen */
   top: var(--popup-top, 50%);
   left: var(--popup-left, 50%);
   transform: translate(-50%, -50%);
-  z-index: 20000;
+  z-index: 20000; /* Ensure it's above other elements */
   background-color: #fff;
-  max-width: 90%;
-  max-height: 90%;
-  overflow: auto; /* Ensure scrolling is inside the dialog */
+  max-width: 90%; /* Set maximum width */
+  max-height: 90%; /* Set maximum height */
+  overflow: auto; /* Allow scrolling for overflowing content */
   font-family: Arial, Helvetica, sans-serif;
-}
-
-
-.fa {
-  display: inline-block;
-  position: absolute; /* Position relative to .panther-dialog */
-  top: 6px; /* Vertical alignment */
-  right: 10px; /* Alignment from the right edge of the dialog */
-  font: normal normal normal 14px / 1 FontAwesome;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-}
-
-.fa-close {
-  display: inline-block;
-  position: absolute; /* Position relative to .panther-dialog */
-  top: 6px; /* Vertical alignment */
-  right: -1px; /* Slight adjustment to align close button */
-  font: normal normal normal 14px / 1 FontAwesome;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
 }
