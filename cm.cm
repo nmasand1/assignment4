@@ -1,5 +1,5 @@
 .panther-dialog {
-  position: absolute;
+  position: relative; /* Ensure child elements with position: absolute are relative to this container */
   top: var(--popup-top, 50%);
   left: var(--popup-left, 50%);
   transform: translate(-50%, -50%);
@@ -7,93 +7,27 @@
   background-color: #fff;
   max-width: 90%;
   max-height: 90%;
-  overflow: auto; /* Ensure content stays within bounds and scrolls if needed */
+  overflow: auto; /* Ensure scrolling is inside the dialog */
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.maximize-button,
-.minimize-button {
-  position: fixed; /* Fix the position relative to the viewport */
-  top: 10px; /* Adjust as needed */
-  right: 10px; /* Adjust as needed */
-  z-index: 20001; /* Ensure buttons are above the dialog */
+
+.fa {
+  display: inline-block;
+  position: absolute; /* Position relative to .panther-dialog */
+  top: 6px; /* Vertical alignment */
+  right: 10px; /* Alignment from the right edge of the dialog */
+  font: normal normal normal 14px / 1 FontAwesome;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
 }
 
-.tabs {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.tab {
-  flex: 1;
-  margin-right: 15px;
-  text-align: center;
-  cursor: pointer;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px 5px 0 0;
-  background-color: #007eb6;
-  color: #fff;
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Prevent content overflow */
-  text-overflow: ellipsis; /* Graceful handling of overflow */
-}
-
-.tab:hover {
-  background-color: #007bff;
-}
-
-.tab.active {
-  border-bottom: 2px solid #007bff;
-}
-
-.details-container .detail-item {
-  margin-bottom: 10px;
-  padding: 5px 0;
-  border-top: 1px solid black;
-  border-bottom: 1px solid black;
-}
-
-.details-container .detail-label {
-  font-weight: bold;
-  color: #333;
-}
-
-.detail-value-box {
-  margin-top: 5px;
-  padding: 5px;
-  border: 1px solid black;
-  background-color: #f9f9f9;
-  color: #333;
-}
-
-.input-fields-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  table-layout: fixed; /* Ensure consistent table layout */
-}
-
-.input-fields-table th,
-.input-fields-table td {
-  border: 1px solid #ccc;
-  padding: 5px 10px;
-  text-align: left;
-  word-wrap: break-word; /* Break long words */
-}
-
-.input-fields-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-  color: #333;
-}
-
-.code-snippet {
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  padding: 10px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  color: #333;
+.fa-close {
+  display: inline-block;
+  position: absolute; /* Position relative to .panther-dialog */
+  top: 6px; /* Vertical alignment */
+  right: -1px; /* Slight adjustment to align close button */
+  font: normal normal normal 14px / 1 FontAwesome;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
 }
