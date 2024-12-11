@@ -7,8 +7,16 @@
   background-color: #fff;
   max-width: 90%;
   max-height: 90%;
-  overflow: auto; /* Ensure content stays within bounds */
+  overflow: auto; /* Ensure content stays within bounds and scrolls if needed */
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.maximize-button,
+.minimize-button {
+  position: fixed; /* Fix the position relative to the viewport */
+  top: 10px; /* Adjust as needed */
+  right: 10px; /* Adjust as needed */
+  z-index: 20001; /* Ensure buttons are above the dialog */
 }
 
 .tabs {
@@ -26,9 +34,9 @@
   border-radius: 5px 5px 0 0;
   background-color: #007eb6;
   color: #fff;
-  white-space: nowrap; /* Prevent text from wrapping */
+  white-space: nowrap; /* Prevent text wrapping */
   overflow: hidden; /* Prevent content overflow */
-  text-overflow: ellipsis; /* Handle overflow gracefully */
+  text-overflow: ellipsis; /* Graceful handling of overflow */
 }
 
 .tab:hover {
@@ -64,7 +72,6 @@
   border-collapse: collapse;
   margin-top: 10px;
   table-layout: fixed; /* Ensure consistent table layout */
-  overflow: hidden; /* Prevent overflow issues */
 }
 
 .input-fields-table th,
