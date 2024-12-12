@@ -1,38 +1,25 @@
 import pandas as pd
 
-def compare_csvs(first_csv_path, second_csv_path, output_csv_path):
-    try:
-        # Load the first CSV
-        df1 = pd.read_csv(first_csv_path)
-        
-        # Load the second CSV (no headers)
-        df2 = pd.read_csv(second_csv_path, header=None, names=['data'])
-        
-        # Results storage
-        matches = []
-        for column in ['book', 'ctysdsid', 'tradeid']:
-            if column in df1.columns:
-                # Check for matches
-                df1['match_column'] = column
-                df1['match_value'] = df1[column].astype(str)
-                matched_rows = df1[df1['match_value'].isin(df2['data'].astype(str))]
-                matches.append(matched_rows)
-        
-        # Combine all matched rows
-        if matches:
-            final_matches = pd.concat(matches).drop_duplicates(subset=df1.columns, ignore_index=True)
-            # Save the matched rows to a CSV
-            final_matches.to_csv(output_csv_path, index=False)
-            print(f"Matched results saved to: {output_csv_path}")
-        else:
-            print("No matches found.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+def find_matches(first_csv_path, second_csv_path, output_csv_path):
+    # Read the first CSV with headers
+    df1 = pd.read_csv(first_csv_path)
+    
+    # Read the second CSV without headers
+    df2 = pd.read_csv(second_csv_path, header=None, names=["values"])
+    
+    # Combine values from `book`, `ctysdsid`, and `tradeid` into a single series for comparison
+    values_to_match = pd.concat([df1['book'], df1['ctysdsid'], df1['tradeid']]).dropna().astype(str)
+    
+    # Check for matches in the second CSV
+    matches = df1[
+        df1['book'].astype(str).isin(df2['values']) |
+        df1['ctysdsid'].astype(str).isin(df2['values']) |
+        df1['tradeid'].astype(str).isin(df2['values'])
+    ]
+    
+    # Save the matched rows to a new CSV
+    matches.to_csv(output_csv_path, index=False)
+    print(f"Matched results saved to {output_csv_path}")
 
-# Paths to CSV files
-first_csv_path = 'first.csv'
-second_csv_path = 'second.csv'
-output_csv_path = 'matched_results.csv'
-
-# Run the comparison
-compare_csvs(first_csv_path, second_csv_path, output_csv_path)
+# Example usage
+find_matches('first_csv.csv', 'second_csv.csv', 'matched_results.csv')
