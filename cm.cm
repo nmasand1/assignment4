@@ -6,14 +6,24 @@ import os
 # Flask app initialization
 app = Flask(__name__)
 
-PORT_NUMBER = 8129
+PORT_NUMBER = 5000  # Changed to port 5000 for testing
 PUBLIC_ENTRY = '/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/SystemReconReplayUI.html'
 
 @app.route('/system/recon/replay', methods=['GET'])
 def replay_page():
     if os.path.exists(PUBLIC_ENTRY):
+        print(f"Serving file: {PUBLIC_ENTRY}")
         return send_file(PUBLIC_ENTRY, mimetype='text/html'), 200
-    return "Invalid URL, Please verify the URL and try again.", 404
+    print(f"File not found: {PUBLIC_ENTRY}")
+    return """
+    <html>
+    <head><title>Error</title></head>
+    <body>
+    <h1>Invalid URL</h1>
+    <p>The requested file was not found. Please verify the URL and try again.</p>
+    </body>
+    </html>
+    """, 404
 
 @app.route('/system/recon/replay', methods=['POST'])
 def recon_replay():
@@ -44,7 +54,7 @@ def recon_replay():
                 )
                 response = "Request Processed Successfully: OneRegLoading"
             except subprocess.CalledProcessError as e:
-                response = f"Request Process Failed: OneRegLoading: Please check and provide valid input. Error: {e.output.decode()}"
+                response = f"Request Process Failed: OneRegLoading. Error: {e.output.decode()}"
         elif flow_type.lower() == "file":
             try:
                 result_fl = subprocess.check_call(
@@ -54,62 +64,18 @@ def recon_replay():
                 )
                 response = "Request Processed Successfully: FileLoading"
             except subprocess.CalledProcessError as e:
-                response = f"Request Process Failed: FileLoading: Please check and provide valid input. Error: {e.output.decode()}"
+                response = f"Request Process Failed: FileLoading. Error: {e.output.decode()}"
         else:
-            response = "Request Process Failed: Please check and provide valid input."
+            response = "Request Process Failed: Invalid flow type."
 
         enow = datetime.datetime.now()
         print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
-        return response, 200
+        return jsonify({"message": response}), 200
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
-        return f"An error occurred: {str(e)}", 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    print(f"Starting server on port {PORT_NUMBER}")
     app.run(host='0.0.0.0', port=PORT_NUMBER)
-
-
-
-
-
-
-
-
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Recon Replay</title>
-</head>
-<body>
-    <h1>Recon Automation Framework</h1>
-    <form action="/system/recon/replay" method="POST">
-        <label for="assetClass">Asset Class:</label>
-        <input type="text" id="assetClass" name="assetClass" required>
-        <br><br>
-
-        <label for="jurisdiction">Jurisdiction:</label>
-        <input type="text" id="jurisdiction" name="jurisdiction" required>
-        <br><br>
-
-        <label for="reconDate">Recon Date (YYYY-MM-DD):</label>
-        <input type="date" id="reconDate" name="reconDate" required>
-        <br><br>
-
-        <label for="flowType">Flow Type:</label>
-        <select id="flowType" name="flowType" required>
-            <option value="onereg">OneReg</option>
-            <option value="file">File</option>
-        </select>
-        <br><br>
-
-        <button type="submit">Submit</button>
-    </form>
-</body>
-</html>
-
