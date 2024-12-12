@@ -1,53 +1,20 @@
-from app import create_app
-
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
-
-
-
-
-
-from flask import Flask
-import os
-
-def create_app():
-    # Manually specify the template and static folders
-    app = Flask(__name__,
-                template_folder='/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/templates',
-                static_folder='/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/static')
-    
-    from .routes import recon_routes
-    app.register_blueprint(recon_routes)
-    
-    return app
-
-
-
-
-
 from flask import Blueprint, request, render_template
 import subprocess
 import datetime
+import urlparse  # Ensure urlparse is imported
 
 recon_routes = Blueprint('recon_routes', __name__)
 
-PUBLIC_ENTRY = '/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/SystemReconReplayUI.html'
-
 @recon_routes.route('/')
 def index():
+    # Render the index.html template
     return render_template('index.html')
 
 @recon_routes.route('/system/recon/replay', methods=['GET'])
 def system_recon_replay():
-    try:
-        with open(PUBLIC_ENTRY, 'r') as file:
-            content = file.read()
-        return content, 200
-    except FileNotFoundError:
-        return "File not found", 404
+    # This route was previously returning the SystemReconReplayUI.html content, 
+    # but now we can simply return a message or render the index.html as needed.
+    return render_template('index.html')  # You can choose to render index.html here too.
 
 @recon_routes.route('/system/recon/replay', methods=['POST'])
 def process_recon_data():
@@ -57,7 +24,8 @@ def process_recon_data():
     content_len = int(request.headers.get('Content-Length', 0))
     post_body = request.data.decode('utf-8')
     fields = dict(urlparse.parse_qs(post_body))
-    
+
+    # Fetch fields, stripping unwanted characters and spaces
     assetClass = fields.get('assetClass', [''])[0].strip().replace("1", "'")
     jurisdiction = fields.get('jurisdiction', [''])[0].strip().replace("’", "")
     reconType = fields.get('recondate', [''])[0].strip().replace("’", "")
@@ -96,94 +64,3 @@ def process_recon_data():
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
     return response, 200
-
-
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recon Automation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>Recon Automation Framework</h1>
-        <form action="/system/recon/replay" method="POST">
-            <label for="assetClass">Asset Class:</label>
-            <input type="text" id="assetClass" name="assetClass" required><br>
-
-            <label for="jurisdiction">Jurisdiction:</label>
-            <input type="text" id="jurisdiction" name="jurisdiction" required><br>
-
-            <label for="recondate">Recon Date:</label>
-            <input type="text" id="recondate" name="recondate" required><br>
-
-            <label for="flowType">Flow Type:</label>
-            <select id="flowType" name="flowType">
-                <option value="onereg">OneReg</option>
-                <option value="file">File</option>
-            </select><br>
-
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-</body>
-</html>
-
-
-
-
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-}
-
-.container {
-    width: 50%;
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin: 5px 0;
-    font-size: 1rem;
-}
-
-input, select, button {
-    margin: 5px 0 15px 0;
-    padding: 10px;
-    font-size: 1rem;
-    width: 100%;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-button {
-    background-color: #4CAF50;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
