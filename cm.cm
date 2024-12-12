@@ -1,25 +1,70 @@
-import pandas as pd
+from flask import Flask, request, jsonify, send_file
+import subprocess
+import datetime
+import os
 
-def find_matches(first_csv_path, second_csv_path, output_csv_path):
-    # Read the first CSV with headers
-    df1 = pd.read_csv(first_csv_path)
-    
-    # Read the second CSV without headers
-    df2 = pd.read_csv(second_csv_path, header=None, names=["values"])
-    
-    # Combine values from `book`, `ctysdsid`, and `tradeid` into a single series for comparison
-    values_to_match = pd.concat([df1['book'], df1['ctysdsid'], df1['tradeid']]).dropna().astype(str)
-    
-    # Check for matches in the second CSV
-    matches = df1[
-        df1['book'].astype(str).isin(df2['values']) |
-        df1['ctysdsid'].astype(str).isin(df2['values']) |
-        df1['tradeid'].astype(str).isin(df2['values'])
-    ]
-    
-    # Save the matched rows to a new CSV
-    matches.to_csv(output_csv_path, index=False)
-    print(f"Matched results saved to {output_csv_path}")
+# Flask app initialization
+app = Flask(__name__)
 
-# Example usage
-find_matches('first_csv.csv', 'second_csv.csv', 'matched_resultss.csv')
+PORT_NUMBER = 8129
+PUBLIC_ENTRY = '/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/SystemReconReplayUI.html'
+
+@app.route('/system/recon/replay', methods=['GET'])
+def replay_page():
+    if os.path.exists(PUBLIC_ENTRY):
+        return send_file(PUBLIC_ENTRY, mimetype='text/html'), 200
+    return "Invalid URL, Please verify the URL and try again.", 404
+
+@app.route('/system/recon/replay', methods=['POST'])
+def recon_replay():
+    now = datetime.datetime.now()
+    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    try:
+        # Extract form data from the POST request
+        fields = request.form
+        asset_class = fields.get('assetClass', '').strip()
+        jurisdiction = fields.get('jurisdiction', '').strip()
+        recon_date = fields.get('reconDate', '').strip()
+        flow_type = fields.get('flowType', '').strip()
+
+        print(f"assetClass: {asset_class}")
+        print(f"jurisdiction: {jurisdiction}")
+        print(f"reconDate: {recon_date}")
+        print(f"flowType: {flow_type}")
+
+        response = ""
+
+        if flow_type.lower() == "onereg":
+            try:
+                result_or = subprocess.check_output(
+                    ["sh", "/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh",
+                     asset_class, jurisdiction, recon_date],
+                    stderr=subprocess.STDOUT
+                )
+                response = "Request Processed Successfully: OneRegLoading"
+            except subprocess.CalledProcessError as e:
+                response = f"Request Process Failed: OneRegLoading: Please check and provide valid input. Error: {e.output.decode()}"
+        elif flow_type.lower() == "file":
+            try:
+                result_fl = subprocess.check_call(
+                    ["sh", "/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh",
+                     asset_class, jurisdiction, recon_date],
+                    stderr=subprocess.STDOUT
+                )
+                response = "Request Processed Successfully: FileLoading"
+            except subprocess.CalledProcessError as e:
+                response = f"Request Process Failed: FileLoading: Please check and provide valid input. Error: {e.output.decode()}"
+        else:
+            response = "Request Process Failed: Please check and provide valid input."
+
+        enow = datetime.datetime.now()
+        print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
+        return response, 200
+
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return f"An error occurred: {str(e)}", 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=PORT_NUMBER)
