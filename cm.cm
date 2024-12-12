@@ -12,7 +12,7 @@ def replay_ui():
     try:
         return render_template('SystemReconReplayUI.html')
     except Exception as e:
-        return "Error loading the page: {}".format(e), 500
+        return f"Error loading the page: {e}", 500
 
 @app.route('/system/recon/replay', methods=['POST'])
 def handle_post():
@@ -55,95 +55,4 @@ def handle_post():
     return response, 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8129)
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Recon Replay</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>System Recon Replay</h1>
-        <form method="POST" action="/system/recon/replay">
-            <label for="assetClass">Asset Class:</label>
-            <input type="text" id="assetClass" name="assetClass" required>
-
-            <label for="jurisdiction">Jurisdiction:</label>
-            <input type="text" id="jurisdiction" name="jurisdiction" required>
-
-            <label for="reconDate">Recon Date:</label>
-            <input type="date" id="reconDate" name="reconDate" required>
-
-            <label for="flowType">Flow Type:</label>
-            <select id="flowType" name="flowType" required>
-                <option value="onereg">OneReg</option>
-                <option value="file">File</option>
-            </select>
-
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-</body>
-</html>
-
-
-
-
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-}
-
-.container {
-    width: 50%;
-    margin: 50px auto;
-    padding: 20px;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-h1 {
-    text-align: center;
-    color: #333;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #555;
-}
-
-input, select, button {
-    margin-top: 5px;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-button {
-    margin-top: 20px;
-    background: #007BFF;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #0056b3;
-}
+    app.run(host='0.0.0.0', port=8129, debug=True)  # Enable debug mode
