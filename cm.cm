@@ -1,12 +1,3 @@
-from app import create_app
-
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
-
-
 from flask import Flask
 
 def create_app():
@@ -87,8 +78,6 @@ def process_request():
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
     return response, 200
-
-
 
 
 
@@ -182,3 +171,12 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+
+
+
+from app import create_app
+
+app = create_app()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
