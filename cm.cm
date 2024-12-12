@@ -1,83 +1,83 @@
-from flask import Flask
-
-def create_app():
-    app = Flask(__name__)
-
-    # Register blueprints and other configurations
-    from .routes import main
-    app.register_blueprint(main)
-
-    return app
-
-
-
-from flask import Blueprint, request, render_template
+from flask import Blueprint, request, jsonify, render_template
 import subprocess
 import datetime
-import urllib.parse
 
-main = Blueprint('main', __name__)
+handle_routes = Blueprint('handle_routes', __name__)
 
-# Handler for the GET request
-@main.route('/system/recon/replay', methods=['GET'])
-def replay_page():
-    try:
-        with open('PUBLIC_ENTRY', 'r') as file:
-            return file.read(), 200
-    except Exception as e:
-        return f"Error: {str(e)}", 404
+# Absolute path for the shell scripts
+one_reg_script_path = '/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh'
+file_loading_script_path = '/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh'
 
-# Handler for the POST request
-@main.route('/system/recon/replay', methods=['POST'])
-def process_request():
+@handle_routes.route('/system/recon/replay', methods=['GET'])
+def get_replay_page():
+    # Render the HTML page for GET requests
+    return render_template('replay_page.html')
+
+@handle_routes.route('/system/recon/replay', methods=['POST'])
+def post_replay_data():
     now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("Recon Automation Framework :: Recon Data Loading Started :: ", now.strftime("%Y-%m-%d %H:%M:%S"))
+    
+    # Extract fields from the POST request
+    data = request.form
+    asset_class = str(data.get('assetClass', '')).strip('[]').replace("1", "'")
+    jurisdiction = str(data.get('jurisdiction', '')).strip('[]').replace("’", "")
+    recon_date = str(data.get('recondate', '')).strip('[]').replace("’", "")
+    flow_type = str(data.get('flowType', '')).strip('[]').replace("’", "")
+    
+    # Print fields to the console for debugging
+    print(f'assetClass: {asset_class}')
+    print(f'jurisdiction: {jurisdiction}')
+    print(f'reconDate: {recon_date}')
+    print(f'flowType: {flow_type}')
 
-    # Extract post data
-    content_len = int(request.headers.get('Content-Length', 0))
-    post_body = request.data.decode('utf-8')
-    fields = dict(urllib.parse.parse_qs(post_body))
-
-    # Extract parameters
-    asset_class = str(fields.get('assetClass', [''])[0]).strip('[]').replace("1", "'")
-    jurisdiction = str(fields.get('jurisdiction', [''])[0]).strip('[]').replace("’", "")
-    recon_date = str(fields.get('recondate', [''])[0]).strip('[]').replace("’", "")
-    flow_type = str(fields.get('flowType', [''])[0]).strip('[]').replace("’", "")
-
-    print(f"assetClass: {asset_class}")
-    print(f"jurisdiction: {jurisdiction}")
-    print(f"reconDate: {recon_date}")
-    print(f"flowType: {flow_type}")
-
-    response = ""
-
+    # Logic based on flowType
     if flow_type.lower() == "onereg":
         try:
+            # Run the shell script for OneReg data loading
             result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_date}",
-                shell=True)
+                f"sh {one_reg_script_path} {asset_class} {jurisdiction} {recon_date}",
+                shell=True
+            )
             response = "Request Process Successfully: OneRegLoading"
         except subprocess.CalledProcessError as e:
-            response = f"Request Process Failed: OneRegLoading: Please check and provide valid input. Error code: {e.returncode}"
-            print("Error:", e.output)
+            response = f"Request Process Failed: OneRegLoading. Error: {e.output.decode()}"
+            print(f"Error code: {e.returncode}, Output: {e.output.decode()}")
 
     elif flow_type.lower() == "file":
         try:
+            # Run the shell script for File data loading
             result = subprocess.check_call(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_date}",
-                shell=True)
+                f"sh {file_loading_script_path} {asset_class} {jurisdiction} {recon_date}",
+                shell=True
+            )
             response = "Request Process Successfully: FileLoading"
         except subprocess.CalledProcessError as e:
-            response = f"Request Process Failed: FileLoading: Please check and provide valid input. Error code: {e.returncode}"
-            print("Error:", e.output)
-
+            response = f"Request Process Failed: FileLoading. Error: {e.output.decode()}"
+            print(f"Error code: {e.returncode}, Output: {e.output.decode()}")
     else:
         response = "Request Process Failed: Please check and provide valid input"
-
+    
     enow = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("Recon Automation Framework :: Recon Data Loading Ended :: ", enow.strftime("%Y-%m-%d %H:%M:%S"))
+    
+    # Return the response message
+    return response, 200, {'Content-Type': 'text/html'}
 
-    return response, 200
+
+
+
+from flask import Flask
+from recon_automation.routes import handle_routes
+
+app = Flask(__name__)
+
+# Register routes
+app.register_blueprint(handle_routes)
+
+if __name__ == '__main__':
+    app.run(port=5000)
+
 
 
 
@@ -88,95 +88,50 @@ def process_request():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recon Automation Framework</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .error-message {
+            color: red;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Recon Automation Framework</h1>
-        <form action="/system/recon/replay" method="POST">
-            <div class="input-group">
-                <label for="assetClass">Asset Class</label>
-                <input type="text" id="assetClass" name="assetClass" required>
-            </div>
-            <div class="input-group">
-                <label for="jurisdiction">Jurisdiction</label>
-                <input type="text" id="jurisdiction" name="jurisdiction" required>
-            </div>
-            <div class="input-group">
-                <label for="recondate">Recon Date</label>
-                <input type="text" id="recondate" name="recondate" required>
-            </div>
-            <div class="input-group">
-                <label for="flowType">Flow Type</label>
-                <input type="text" id="flowType" name="flowType" required>
-            </div>
-            <button type="submit">Submit</button>
+    <div class="content">
+        <h1>Welcome to the Recon Automation Framework</h1>
+        <p>This page serves as an entry point for system recon replay requests.</p>
+        <form method="post" action="/system/recon/replay">
+            <label for="assetClass">Asset Class:</label>
+            <input type="text" id="assetClass" name="assetClass" required><br><br>
+
+            <label for="jurisdiction">Jurisdiction:</label>
+            <input type="text" id="jurisdiction" name="jurisdiction" required><br><br>
+
+            <label for="recondate">Recon Date:</label>
+            <input type="text" id="recondate" name="recondate" required><br><br>
+
+            <label for="flowType">Flow Type:</label>
+            <select id="flowType" name="flowType" required>
+                <option value="onereg">OneReg</option>
+                <option value="file">File</option>
+            </select><br><br>
+
+            <input type="submit" value="Submit">
         </form>
     </div>
 </body>
 </html>
-
-
-
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-}
-
-.container {
-    width: 60%;
-    margin: auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-    text-align: center;
-    color: #333;
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-
-
-from app import create_app
-
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
