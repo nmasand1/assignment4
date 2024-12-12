@@ -1,20 +1,38 @@
-awk -F',' '
-NR == 1 {
-    # Loop through the header row to find the positions of "book" and "ctysdsid"
-    for (i = 1; i <= NF; i++) {
-        if ($i == "book") book_pos = i;
-        if ($i == "ctysdsid") ctysdsid_pos = i;
-    }
-    # Print the header to the output CSV
-    if (book_pos && ctysdsid_pos) {
-        print "book,ctysdsid" > "output.csv";
-    }
-    next;
-}
-{
-    # Append the values of "book" and "ctysdsid" columns to the output file
-    if (book_pos && ctysdsid_pos) {
-        print $book_pos "," $ctysdsid_pos >> "output.csv";
-    }
-}
-' filename_parquet_tradecash20181106.csv
+import pandas as pd
+
+def compare_csvs(first_csv_path, second_csv_path, output_csv_path):
+    try:
+        # Load the first CSV
+        df1 = pd.read_csv(first_csv_path)
+        
+        # Load the second CSV (no headers)
+        df2 = pd.read_csv(second_csv_path, header=None, names=['data'])
+        
+        # Results storage
+        matches = []
+        for column in ['book', 'ctysdsid', 'tradeid']:
+            if column in df1.columns:
+                # Check for matches
+                df1['match_column'] = column
+                df1['match_value'] = df1[column].astype(str)
+                matched_rows = df1[df1['match_value'].isin(df2['data'].astype(str))]
+                matches.append(matched_rows)
+        
+        # Combine all matched rows
+        if matches:
+            final_matches = pd.concat(matches).drop_duplicates(subset=df1.columns, ignore_index=True)
+            # Save the matched rows to a CSV
+            final_matches.to_csv(output_csv_path, index=False)
+            print(f"Matched results saved to: {output_csv_path}")
+        else:
+            print("No matches found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Paths to CSV files
+first_csv_path = 'first.csv'
+second_csv_path = 'second.csv'
+output_csv_path = 'matched_results.csv'
+
+# Run the comparison
+compare_csvs(first_csv_path, second_csv_path, output_csv_path)
