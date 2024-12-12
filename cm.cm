@@ -13,7 +13,7 @@ if __name__ == "__main__":
 from flask import Flask
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='templates', static_folder='static')
     
     from .routes import recon_routes
     app.register_blueprint(recon_routes)
