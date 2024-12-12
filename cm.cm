@@ -135,3 +135,18 @@ if __name__ == '__main__':
     </div>
 </body>
 </html>
+
+
+
+from flask import Flask
+from .routes import handle_routes
+
+# Initialize the Flask app
+def create_app():
+    app = Flask(__name__)
+
+    # Register the blueprint (routes) for the app
+    app.register_blueprint(handle_routes)
+
+    return app
+
