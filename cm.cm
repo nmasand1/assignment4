@@ -68,3 +68,48 @@ def recon_replay():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=PORT_NUMBER)
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Recon Replay</title>
+</head>
+<body>
+    <h1>Recon Automation Framework</h1>
+    <form action="/system/recon/replay" method="POST">
+        <label for="assetClass">Asset Class:</label>
+        <input type="text" id="assetClass" name="assetClass" required>
+        <br><br>
+
+        <label for="jurisdiction">Jurisdiction:</label>
+        <input type="text" id="jurisdiction" name="jurisdiction" required>
+        <br><br>
+
+        <label for="reconDate">Recon Date (YYYY-MM-DD):</label>
+        <input type="date" id="reconDate" name="reconDate" required>
+        <br><br>
+
+        <label for="flowType">Flow Type:</label>
+        <select id="flowType" name="flowType" required>
+            <option value="onereg">OneReg</option>
+            <option value="file">File</option>
+        </select>
+        <br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+
