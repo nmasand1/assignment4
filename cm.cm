@@ -11,9 +11,13 @@ if __name__ == "__main__":
 
 
 from flask import Flask
+import os
 
 def create_app():
-    app = Flask(__name__, template_folder='templates', static_folder='static')
+    # Manually specify the template and static folders
+    app = Flask(__name__,
+                template_folder='/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/templates',
+                static_folder='/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/static')
     
     from .routes import recon_routes
     app.register_blueprint(recon_routes)
