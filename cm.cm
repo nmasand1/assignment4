@@ -121,39 +121,32 @@ def recon():
     except ValueError:
         return "Invalid Date Format. Please use YYYY-MM-DD."
 
-    try:
-        if flow_type.lower() == "onereg":
-            result = subprocess.run(
-                [
-                    "sh", 
-                    "/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh", 
-                    asset_class, jurisdiction, recon_type, recon_date_formatted
-                ],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            response = f"Request Processed Successfully: {result.stdout}"
-        elif flow_type.lower() == "file":
-            result = subprocess.run(
-                [
-                    "sh", 
-                    "/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh", 
-                    asset_class, jurisdiction, recon_type, recon_date_formatted
-                ],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            response = f"Request Processed Successfully: {result.stdout}"
-        else:
-            response = "Request Failed: Invalid Flow Type"
-    except subprocess.CalledProcessError as e:
-        response = f"Request Failed with Error: {e.stderr}"
+    # Validate flowType and form the command
+    if flow_type.lower() == "onereg":
+        script_path = "/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh"
+    elif flow_type.lower() == "file":
+        script_path = "/apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh"  # Replace with actual file script path
+    else:
+        return "Invalid Flow Type."
 
-    enow = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
-    return response
+    # Prepare the command for subprocess
+    command = [
+        "sh", 
+        script_path, 
+        asset_class, jurisdiction, recon_type, recon_date_formatted
+    ]
+
+    # Run the subprocess and capture the output
+    try:
+        result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output = result.stdout
+        error = result.stderr
+        print(f"Command Output: {output}")
+        print(f"Command Error: {error}")
+    except subprocess.CalledProcessError as e:
+        return f"Error occurred: {e.stderr}"
+
+    return f"Recon Data Loading Finished. Output: {output}"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8129)
+    app.run(host=0.0.0.0, debug=True)
