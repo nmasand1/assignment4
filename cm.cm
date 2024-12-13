@@ -65,7 +65,7 @@ HTML_TEMPLATE = """
             <label for="reconType">Recon Type:</label>
             <input type="text" id="reconType" name="reconType" required>
 
-            <label for="reconDate">Recon Date (YYYY-MM-DD):</label>
+            <label for="reconDate">Recon Date (YYMMDD):</label>
             <input type="text" id="reconDate" name="reconDate" required>
 
             <label for="flowType">Flow Type:</label>
@@ -97,11 +97,14 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Convert date to YYMMDD format
+    # Validate and process date
+    if not re.match(r'^\d{6}$', recon_date):
+        return "Invalid Date Format. Please use YYMMDD."
+
     try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
+        recon_date_formatted = recon_date  # Date is already in YYMMDD format
     except ValueError:
-        return "Invalid Date Format. Please use YYYY-MM-DD."
+        return "Invalid Date Format. Please use YYMMDD."
 
     try:
         if flow_type.lower() == "onereg":
