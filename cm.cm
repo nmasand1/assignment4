@@ -143,28 +143,10 @@ def recon():
         error = result.stderr
         print(f"Command Output: {output}")
         print(f"Command Error: {error}")
+        return f"Recon Data Loading Finished. Output: {output}"
     except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e.stderr}")
         return f"Error occurred: {e.stderr}"
 
-    return f"Recon Data Loading Finished. Output: {output}"
-
 if __name__ == '__main__':
-    app.run(host=0.0.0.0, debug=True)
-
-
-
-
-
-
-
-
-try:
-    result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    output = result.stdout
-    error = result.stderr
-    print(f"Command Output: {output}")
-    print(f"Command Error: {error}")
-except subprocess.CalledProcessError as e:
-    print(f"Error occurred: {e.stderr}")
-    return f"Error occurred: {e.stderr}"
-
+    app.run(host="0.0.0.0", debug=True)
