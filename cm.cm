@@ -97,16 +97,22 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
+    # Convert date to YYMMDD format
+    try:
+        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
+    except ValueError:
+        return "Invalid Date Format. Please use YYYY-MM-DD."
+
     try:
         if flow_type.lower() == "onereg":
             result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date}",
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
                 shell=True
             )
             response = "Request Processed Successfully: OneReg Loading"
         elif flow_type.lower() == "file":
             result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date}",
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
                 shell=True
             )
             response = "Request Processed Successfully: File Loading"
