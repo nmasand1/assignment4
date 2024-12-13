@@ -1,87 +1,124 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Flask, request, render_template_string
 import subprocess
 import datetime
-import os
 
-# Define Blueprint
-handle_routes = Blueprint('handle_routes', __name__)
+app = Flask(__name__)
 
-# Define the GET route
-@handle_routes.route('/system/recon/replay', methods=['GET'])
-def replay_system():
-    try:
-        # Return HTML file for /system/recon/replay
-        with open(os.path.join(os.path.dirname(__file__), 'templates', 'index.html'), 'r') as file:
-            return file.read(), 200
-    except Exception as e:
-        return str(e), 404
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recon Automation Framework</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Recon Automation Framework</h1>
+        <form method="POST" action="/recon">
+            <label for="assetClass">Asset Class:</label>
+            <input type="text" id="assetClass" name="assetClass" required>
 
-# Define the POST route
-@handle_routes.route('/system/recon/replay', methods=['POST'])
-def recon_data():
+            <label for="jurisdiction">Jurisdiction:</label>
+            <input type="text" id="jurisdiction" name="jurisdiction" required>
+
+            <label for="reconType">Recon Type:</label>
+            <input type="text" id="reconType" name="reconType" required>
+
+            <label for="reconDate">Recon Date (YYYY-MM-DD):</label>
+            <input type="text" id="reconDate" name="reconDate" required>
+
+            <label for="flowType">Flow Type:</label>
+            <select id="flowType" name="flowType" required>
+                <option value="onereg">OneReg</option>
+                <option value="file">File</option>
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/', methods=['GET'])
+def home():
+    return render_template_string(HTML_TEMPLATE)
+
+@app.route('/recon', methods=['POST'])
+def recon():
     now = datetime.datetime.now()
-    print("Recon Automation Framework :: Recon Data Loading Started :: ", now.strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    content_len = int(request.headers.get('Content-Length', 0))
-    post_body = request.data.decode('utf-8')
-    
-    # Simulate getting data from form submission
-    fields = dict(urlparse.parse_qs(post_body))
-    
-    asset_class = str(fields.get('assetClass', [''])[0]).strip('[]').replace("1", "'")
-    jurisdiction = str(fields.get('jurisdiction', [''])[0]).strip('[]').replace("’", "")
-    recon_type = str(fields.get('recondate', [''])[0]).strip('[]').replace("’", "")
-    flow_type = str(fields.get('flowType', [''])[0]).strip('[]').replace("’", "")
-    
-    # Run the respective shell script based on the flow type
-    response = ""
-    if flow_type.lower() == "onereg":
-        try:
+    # Parse form data
+    asset_class = request.form['assetClass']
+    jurisdiction = request.form['jurisdiction']
+    recon_type = request.form['reconType']
+    recon_date = request.form['reconDate']
+    flow_type = request.form['flowType']
+
+    try:
+        if flow_type.lower() == "onereg":
             result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type}",
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date}",
                 shell=True
             )
-            response = "Request Process Successfully: OneReg Loading"
-        except subprocess.CalledProcessError as e:
-            response = f"Request Process Failed: OneReg Loading. Error: {e.output}"
-    
-    elif flow_type.lower() == "file":
-        try:
-            result = subprocess.check_call(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type}",
+            response = "Request Processed Successfully: OneReg Loading"
+        elif flow_type.lower() == "file":
+            result = subprocess.check_output(
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date}",
                 shell=True
             )
-            response = "Request Process Successfully: File Loading"
-        except subprocess.CalledProcessError as e:
-            response = f"Request Process Failed: File Loading. Error: {e.output}"
-    else:
-        response = "Request Process Failed: Invalid Flow Type"
-    
+            response = "Request Processed Successfully: File Loading"
+        else:
+            response = "Request Failed: Invalid Flow Type"
+    except subprocess.CalledProcessError as e:
+        response = f"Request Failed: {str(e)}"
+        print(f"Error Code: {e.returncode}, Output: {e.output}")
+
     enow = datetime.datetime.now()
-    print("Recon Automation Framework :: Recon Data Loading Ended :: ", enow.strftime("%Y-%m-%d %H:%M:%S"))
+    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
+    return response
 
-    return jsonify({'response': response}), 200
-
-
-
-
-
-from flask import Flask
-from .routes import handle_routes
-
-def create_app():
-    app = Flask(__name__)
-    # Register the blueprint
-    app.register_blueprint(handle_routes)
-    return app
-
-
-
-from recon_automation import create_app
-
-# Create the Flask app
-app = create_app()
-
-if __name__ == "__main__":
-    # Run the app on port 5000
-    app.run(host="0.0.0.0", port=5000)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8129)
