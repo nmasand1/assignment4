@@ -1,8 +1,19 @@
 from flask import Flask, request, render_template_string
 import subprocess
 import datetime
+import yaml
+import os
 
 app = Flask(__name__)
+
+# Load Config.yml
+CONFIG_FILE = "Config.yml"
+
+try:
+    with open(CONFIG_FILE, 'r') as file:
+        config_data = yaml.safe_load(file)
+except Exception as e:
+    raise Exception(f"Error loading config file: {e}")
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -57,16 +68,24 @@ HTML_TEMPLATE = """
         <h1>Recon Automation Framework</h1>
         <form method="POST" action="/recon">
             <label for="assetClass">Asset Class:</label>
-            <input type="text" id="assetClass" name="assetClass" required>
+            <select id="assetClass" name="assetClass" required>
+                {% for key, value in asset_classes.items() %}
+                    <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </select>
 
             <label for="jurisdiction">Jurisdiction:</label>
             <input type="text" id="jurisdiction" name="jurisdiction" required>
 
             <label for="reconType">Recon Type:</label>
-            <input type="text" id="reconType" name="reconType" required>
+            <select id="reconType" name="reconType" required>
+                {% for key, value in recon_types.items() %}
+                    <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </select>
 
             <label for="reconDate">Recon Date (YYYY-MM-DD):</label>
-            <input type="text" id="reconDate" name="reconDate" required>
+            <input type="date" id="reconDate" name="reconDate" required>
 
             <label for="flowType">Flow Type:</label>
             <select id="flowType" name="flowType" required>
@@ -83,7 +102,7 @@ HTML_TEMPLATE = """
 
 @app.route('/', methods=['GET'])
 def home():
-    return render_template_string(HTML_TEMPLATE)
+    return render_template_string(HTML_TEMPLATE, asset_classes=config_data['AssetClass'], recon_types=config_data['ReconType'])
 
 @app.route('/recon', methods=['POST'])
 def recon():
@@ -97,30 +116,39 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Convert date to YYMMDD format
+    # Validate date format
     try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
+        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%Y-%m-%d')
     except ValueError:
         return "Invalid Date Format. Please use YYYY-MM-DD."
+
+    # Check if asset class and recon type are valid
+    if asset_class not in config_data['AssetClass']:
+        return f"Invalid Asset Class: {asset_class}"
+    if recon_type not in config_data['ReconType']:
+        return f"Invalid Recon Type: {recon_type}"
+
+    # Fetch required config
+    asset_details = config_data['AssetClass'][asset_class]
+    recon_script = config_data['ReconType'][recon_type]['script']
+
+    server = asset_details['port']
+    port = asset_details['id']
 
     try:
         if flow_type.lower() == "onereg":
             result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
-                shell=True
+                [
+                    "sh", recon_script, asset_class, recon_date_formatted,
+                    jurisdiction, server, port
+                ],
+                stderr=subprocess.STDOUT
             )
-            response = "Request Processed Successfully: OneReg Loading"
-        elif flow_type.lower() == "file":
-            result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
-                shell=True
-            )
-            response = "Request Processed Successfully: File Loading"
+            response = f"Request Processed Successfully: {result.decode('utf-8')}"
         else:
-            response = "Request Failed: Invalid Flow Type"
+            response = "Invalid flow type. Currently only 'onereg' is supported."
     except subprocess.CalledProcessError as e:
-        response = f"Request Failed: {str(e)}"
-        print(f"Error Code: {e.returncode}, Output: {e.output}")
+        response = f"Error occurred: {e.output.decode('utf-8')}"
 
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
