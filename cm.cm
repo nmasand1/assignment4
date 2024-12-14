@@ -73,10 +73,14 @@ HTML_TEMPLATE = """
         .file-list a:hover {
             text-decoration: underline;
         }
-        .file-group {
+        .directory {
             margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
         }
-        .file-group h3 {
+        .directory h3 {
+            margin: 0;
             color: #333;
         }
     </style>
@@ -124,22 +128,15 @@ HTML_TEMPLATE = """
         {% if file_paths %}
         <div class="file-list">
             <h2>Available Files for Download</h2>
-            {% for asset_class, file_group in file_paths.items() %}
-            <div class="file-group">
-                <h3>{{ asset_class }} - COMP Files</h3>
-                <ul>
-                    {% for file in file_group['comp'] %}
-                    <li><a href="/download/{{ file.directory }}/{{ file.filename }}" download>{{ file.filename }}</a></li>
-                    {% endfor %}
-                </ul>
-
-                <h3>{{ asset_class }} - POS Files</h3>
-                <ul>
-                    {% for file in file_group['posval'] %}
-                    <li><a href="/download/{{ file.directory }}/{{ file.filename }}" download>{{ file.filename }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
+            {% for directory, files in file_paths.items() %}
+                <div class="directory">
+                    <h3>{{ directory }}</h3>
+                    <ul>
+                        {% for file in files %}
+                        <li><a href="/download/{{ directory }}/{{ file }}" download>{{ file }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             {% endfor %}
         </div>
         {% endif %}
@@ -208,14 +205,13 @@ def recon():
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
     file_paths = {}
     for asset_class in asset_classes:
-        file_paths[asset_class] = {'comp': [], 'posval': []}
         for recon_type in ["cmp", "posval"]:
             subdir = f"dtcc_{asset_class.lower()}_na_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
                 files = os.listdir(directory)
-                for file in files:
-                    file_paths[asset_class][recon_type].append({'filename': file, 'directory': directory})
+                if files:  # Only add directories that have files
+                    file_paths[directory] = files
     
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
@@ -230,4 +226,4 @@ def download_file(directory, filename):
     return send_from_directory(directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8129)
