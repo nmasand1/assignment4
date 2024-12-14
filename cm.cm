@@ -3,15 +3,10 @@ import subprocess
 import datetime
 import os
 
-def find_files(asset_class, recon_type):
-    base_dir = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
-    sub_dir = f"dtcc_{asset_class.lower()}_na_{recon_type.lower()}"
-    directory = os.path.join(base_dir, asset_class.lower(), "data", sub_dir)
-    if os.path.exists(directory):
-        return os.listdir(directory), directory
-    return [], ""
-
 app = Flask(__name__)
+
+# Base path for the directories
+BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -21,19 +16,63 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recon Automation Framework</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-        h1, h2 { text-align: center; color: #333; }
-        form { display: flex; flex-direction: column; }
-        label { margin-bottom: 5px; font-weight: bold; }
-        input, select, button { margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { background-color: #007BFF; color: white; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .file-list { margin-top: 20px; }
-        .file-list ul { list-style-type: none; padding: 0; }
-        .file-list li { margin-bottom: 10px; }
-        .file-list a { color: #007BFF; text-decoration: none; }
-        .file-list a:hover { text-decoration: underline; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .file-list {
+            margin-top: 20px;
+        }
+        .file-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .file-list li {
+            margin-bottom: 10px;
+        }
+        .file-list a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        .file-list a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -72,15 +111,15 @@ HTML_TEMPLATE = """
 
             <button type="submit">Submit</button>
         </form>
-
+        
         <h2>Output:</h2>
         <p>{{ response }}</p>
-
-        {% if files %}
+        
+        {% if file_paths %}
         <div class="file-list">
             <h2>Available Files for Download</h2>
             <ul>
-                {% for file, path in files %}
+                {% for file, path in file_paths %}
                 <li><a href="/download/{{ path }}/{{ file }}" download>{{ file }}</a></li>
                 {% endfor %}
             </ul>
@@ -93,27 +132,29 @@ HTML_TEMPLATE = """
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
+    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]  # Example Asset Classes
     jurisdictions = ["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"]
-    recon_types = ["COMP", "POS"]
+    recon_types = ["COMP", "POS"]  # Example Recon Types
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=asset_classes, 
                                   jurisdictions=jurisdictions, 
                                   recon_types=recon_types, 
                                   response="", 
-                                  files=[])
+                                  file_paths=[])
 
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
+    # Parse form data
     asset_class = request.form['assetClass']
     jurisdiction = request.form['jurisdiction']
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
+    # Convert date to YYMMDD format
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
@@ -122,7 +163,7 @@ def recon():
                                       jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
                                       recon_types=["COMP", "POS"], 
                                       response="Invalid Date Format. Please use YYYY-MM-DD.", 
-                                      files=[])
+                                      file_paths=[])
 
     try:
         if flow_type.lower() == "onereg":
@@ -145,18 +186,28 @@ def recon():
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    files, path = find_files(asset_class, recon_type)
-    file_list = [(file, path) for file in files]
-
+    # List files in all asset class directories
+    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
+    file_paths = []
+    for asset_class in asset_classes:
+        for recon_type in ["cmp", "posval"]:
+            subdir = f"dtcc_{asset_class.lower()}_na_{recon_type}"
+            directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
+            if os.path.exists(directory):
+                files = os.listdir(directory)
+                for file in files:
+                    file_paths.append((file, directory))
+    
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
                                   jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
                                   recon_types=["COMP", "POS"], 
                                   response=response, 
-                                  files=file_list)
+                                  file_paths=file_paths)
 
 @app.route('/download/<path:directory>/<filename>', methods=['GET'])
 def download_file(directory, filename):
+    """Serve a file for download."""
     return send_from_directory(directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
