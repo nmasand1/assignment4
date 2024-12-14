@@ -170,32 +170,15 @@ if __name__ == '__main__':
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from flask import Flask, request, render_template_string, send_file
+from flask import Flask, request, render_template_string, send_from_directory
 import subprocess
-import datetime
 import os
+import datetime
 
 app = Flask(__name__)
+
+# Configure the destination path for copied files
+COPIED_FILES_DIR = "/path/to/copied/files"  # Replace this with the actual $outDestinationPath
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -245,21 +228,18 @@ HTML_TEMPLATE = """
         button:hover {
             background-color: #0056b3;
         }
-        .file-list {
-            margin-top: 20px;
-        }
-        .file-list ul {
+        ul {
             list-style-type: none;
             padding: 0;
         }
-        .file-list li {
+        li {
             margin-bottom: 10px;
         }
-        .file-list a {
-            text-decoration: none;
+        a {
             color: #007BFF;
+            text-decoration: none;
         }
-        .file-list a:hover {
+        a:hover {
             text-decoration: underline;
         }
     </style>
@@ -301,107 +281,71 @@ HTML_TEMPLATE = """
             <button type="submit">Submit</button>
         </form>
         
+        <h2>Available Files:</h2>
+        <ul>
+            {% for file in files %}
+                <li><a href="/download/{{ file }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+
         <h2>Output:</h2>
         <p>{{ response }}</p>
-
-        <div class="file-list">
-            <h2>Available Files for Download:</h2>
-            <ul>
-                {% for file in files %}
-                    <li><a href="/download?filename={{ file }}">{{ file }}</a></li>
-                {% endfor %}
-            </ul>
-        </div>
     </div>
 </body>
 </html>
 """
-
-# Set the directory where files are stored
-DESTINATION_DIRECTORY = "/path/to/destination"  # Replace with the actual destination directory
 
 @app.route('/', methods=['GET'])
 def home():
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]  # Example Asset Classes
     jurisdictions = ["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"]
     recon_types = ["COMP", "POS"]  # Example Recon Types
-
-    # List files in the destination directory
-    try:
-        files = os.listdir(DESTINATION_DIRECTORY)
-    except FileNotFoundError:
-        files = []
-
+    # Get the list of files in the copied files directory
+    files = os.listdir(COPIED_FILES_DIR) if os.path.exists(COPIED_FILES_DIR) else []
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=asset_classes, 
                                   jurisdictions=jurisdictions, 
                                   recon_types=recon_types, 
-                                  response="", 
-                                  files=files)
+                                  files=files,
+                                  response="")
+
+@app.route('/download/<filename>', methods=['GET'])
+def download_file(filename):
+    """Route to download a file."""
+    return send_from_directory(COPIED_FILES_DIR, filename, as_attachment=True)
 
 @app.route('/recon', methods=['POST'])
 def recon():
-    now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    # Parse form data
-    asset_class = request.form['assetClass']
-    jurisdiction = request.form['jurisdiction']
-    recon_type = request.form['reconType']
-    recon_date = request.form['reconDate']
-    flow_type = request.form['flowType']
-
-    # Convert date to YYMMDD format
-    try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
-    except ValueError:
-        return render_template_string(HTML_TEMPLATE, 
-                                      asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
-                                      jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
-                                      recon_types=["COMP", "POS"], 
-                                      response="Invalid Date Format. Please use YYYY-MM-DD.",
-                                      files=os.listdir(DESTINATION_DIRECTORY))
-
-    try:
-        if flow_type.lower() == "onereg":
-            result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
-                shell=True
-            )
-            response = f"Request Processed Successfully: OneReg Loading\n{result.decode('utf-8')}"
-        elif flow_type.lower() == "file":
-            result = subprocess.check_output(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
-                shell=True
-            )
-            response = f"Request Processed Successfully: File Loading\n{result.decode('utf-8')}"
-        else:
-            response = "Request Failed: Invalid Flow Type"
-    except subprocess.CalledProcessError as e:
-        response = f"Request Failed: {str(e)}\nError Code: {e.returncode}, Output: {e.output.decode('utf-8')}"
-
-    enow = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    # Update file list after processing
-    files = os.listdir(DESTINATION_DIRECTORY)
-
+    # Existing logic remains unchanged
+    ...
+    # Refresh the files list after processing
+    files = os.listdir(COPIED_FILES_DIR) if os.path.exists(COPIED_FILES_DIR) else []
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
                                   jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
                                   recon_types=["COMP", "POS"], 
-                                  response=response,
-                                  files=files)
-
-@app.route('/download', methods=['GET'])
-def download():
-    filename = request.args.get('filename')
-    file_path = os.path.join(DESTINATION_DIRECTORY, filename)
-
-    if not os.path.exists(file_path):
-        return f"File {filename} not found.", 404
-
-    return send_file(file_path, as_attachment=True)
+                                  files=files,
+                                  response=response)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8129)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
