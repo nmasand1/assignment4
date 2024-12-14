@@ -8,8 +8,8 @@ app = Flask(__name__)
 # Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
-# Jurisdiction short form mapping
-JURISDICTION_SHORTFORM = {
+# Jurisdiction shortform mapping
+JURISDICTION_SHORTFORMS = {
     "JFSA": "na",
     "CANADA": "canada",
     "CFTC": "cftc",
@@ -205,8 +205,7 @@ def recon():
     file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
-            # Get jurisdiction shortform from dictionary
-            jurisdiction_shortform = JURISDICTION_SHORTFORM.get(jurisdiction, "na")
+            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
             subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
