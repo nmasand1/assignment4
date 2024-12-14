@@ -8,20 +8,6 @@ app = Flask(__name__)
 # Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
-# Jurisdiction shortform mapping
-JURISDICTION_SHORTFORMS = {
-    "JFSA": "na",
-    "CANADA": "canada",
-    "CFTC": "cftc",
-    "SEC": "sec",
-    "HKMA": "hkma",
-    "ESMA": "esma",
-    "HKTR": "hktr",
-    "FCA": "fca",
-    "MAS": "mas",
-    "ASIC": "asic"
-}
-
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -37,7 +23,7 @@ HTML_TEMPLATE = """
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -87,12 +73,6 @@ HTML_TEMPLATE = """
         .file-list a:hover {
             text-decoration: underline;
         }
-        .directory-heading {
-            margin-top: 30px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #333;
-        }
     </style>
 </head>
 <body>
@@ -138,14 +118,11 @@ HTML_TEMPLATE = """
         {% if file_paths %}
         <div class="file-list">
             <h2>Available Files for Download</h2>
-            {% for directory, files in file_paths.items() %}
-                <div class="directory-heading">{{ directory }}</div>
-                <ul>
-                    {% for file in files %}
-                        <li><a href="/download/{{ directory }}/{{ file }}" download>{{ file }}</a></li>
-                    {% endfor %}
-                </ul>
-            {% endfor %}
+            <ul>
+                {% for file, path in file_paths %}
+                <li><a href="/download/{{ path }}/{{ file }}" download>{{ file }}</a></li>
+                {% endfor %}
+            </ul>
         </div>
         {% endif %}
     </div>
@@ -163,7 +140,7 @@ def home():
                                   jurisdictions=jurisdictions, 
                                   recon_types=recon_types, 
                                   response="", 
-                                  file_paths={})
+                                  file_paths=[])
 
 @app.route('/recon', methods=['POST'])
 def recon():
@@ -186,7 +163,7 @@ def recon():
                                       jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
                                       recon_types=["COMP", "POS"], 
                                       response="Invalid Date Format. Please use YYYY-MM-DD.", 
-                                      file_paths={})
+                                      file_paths=[])
 
     try:
         if flow_type.lower() == "onereg":
@@ -209,19 +186,18 @@ def recon():
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # List files in all asset class directories, grouped by directory
+    # List files in all asset class directories
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    file_paths = {}
+    file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
-            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
-            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
+            subdir = f"dtcc_{asset_class.lower()}_na_{jurisdiction.lower()}_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
                 files = os.listdir(directory)
-                if files:
-                    file_paths[directory] = files
-
+                for file in files:
+                    file_paths.append((file, subdir))  # Store relative directory for download link
+    
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
                                   jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
@@ -232,7 +208,14 @@ def recon():
 @app.route('/download/<path:directory>/<filename>', methods=['GET'])
 def download_file(directory, filename):
     """Serve a file for download."""
-    return send_from_directory(directory, filename, as_attachment=True)
+    # Resolve the full directory path
+    full_directory_path = os.path.join(BASE_DIR, directory)
+
+    # Check if the file exists and is within the correct directory
+    if os.path.exists(os.path.join(full_directory_path, filename)):
+        return send_from_directory(full_directory_path, filename, as_attachment=True)
+    else:
+        return f"File not found: {filename} in {directory}", 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8129)
