@@ -8,6 +8,20 @@ app = Flask(__name__)
 # Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
+# Jurisdiction shortform mapping
+JURISDICTION_SHORTFORMS = {
+    "JFSA": "na",
+    "CANADA": "canada",
+    "CFTC": "cftc",
+    "SEC": "sec",
+    "HKMA": "hkma",
+    "ESMA": "esma",
+    "HKTR": "hktr",
+    "FCA": "fca",
+    "MAS": "mas",
+    "ASIC": "asic"
+}
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -124,8 +138,6 @@ HTML_TEMPLATE = """
                 {% endfor %}
             </ul>
         </div>
-        {% else %}
-        <p>No files available for download.</p>
         {% endif %}
     </div>
 </body>
@@ -193,12 +205,13 @@ def recon():
     file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
-            subdir = f"dtcc_{asset_class.lower()}_na_{jurisdiction.lower()}_{recon_type}"
+            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
                 files = os.listdir(directory)
                 for file in files:
-                    file_paths.append((file, subdir))  # Store relative directory for download link
+                    file_paths.append((file, directory))
     
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
@@ -210,14 +223,7 @@ def recon():
 @app.route('/download/<path:directory>/<filename>', methods=['GET'])
 def download_file(directory, filename):
     """Serve a file for download."""
-    # Resolve the full directory path
-    full_directory_path = os.path.join(BASE_DIR, directory)
-
-    # Check if the file exists and is within the correct directory
-    if os.path.exists(os.path.join(full_directory_path, filename)):
-        return send_from_directory(full_directory_path, filename, as_attachment=True)
-    else:
-        return f"File not found: {filename} in {directory}", 404
+    return send_from_directory(directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8129)
