@@ -211,7 +211,9 @@ def recon():
             if os.path.exists(directory):
                 files = os.listdir(directory)
                 for file in files:
-                    file_paths.append((file, directory))
+                    # Store relative directory path for download link
+                    relative_path = os.path.relpath(directory, BASE_DIR)
+                    file_paths.append((file, relative_path))
     
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
@@ -223,6 +225,7 @@ def recon():
 @app.route('/download/<path:directory>/<filename>', methods=['GET'])
 def download_file(directory, filename):
     """Serve a file for download."""
+    directory = os.path.join(BASE_DIR, directory)  # Resolve full path based on BASE_DIR
     return send_from_directory(directory, filename, as_attachment=True)
 
 if __name__ == '__main__':
