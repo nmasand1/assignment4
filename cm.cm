@@ -8,6 +8,20 @@ app = Flask(__name__)
 # Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
+# Jurisdiction short form mapping
+JURISDICTION_SHORTFORM = {
+    "JFSA": "na",
+    "CANADA": "canada",
+    "CFTC": "cftc",
+    "SEC": "sec",
+    "HKMA": "hkma",
+    "ESMA": "esma",
+    "HKTR": "hktr",
+    "FCA": "fca",
+    "MAS": "mas",
+    "ASIC": "asic"
+}
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -73,16 +87,6 @@ HTML_TEMPLATE = """
         .file-list a:hover {
             text-decoration: underline;
         }
-        .directory {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-        }
-        .directory h3 {
-            margin: 0;
-            color: #333;
-        }
     </style>
 </head>
 <body>
@@ -128,16 +132,11 @@ HTML_TEMPLATE = """
         {% if file_paths %}
         <div class="file-list">
             <h2>Available Files for Download</h2>
-            {% for directory, files in file_paths.items() %}
-                <div class="directory">
-                    <h3>{{ directory }}</h3>
-                    <ul>
-                        {% for file in files %}
-                        <li><a href="/download/{{ directory }}/{{ file }}" download>{{ file }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endfor %}
+            <ul>
+                {% for file, path in file_paths %}
+                <li><a href="/download/{{ path }}/{{ file }}" download>{{ file }}</a></li>
+                {% endfor %}
+            </ul>
         </div>
         {% endif %}
     </div>
@@ -155,7 +154,7 @@ def home():
                                   jurisdictions=jurisdictions, 
                                   recon_types=recon_types, 
                                   response="", 
-                                  file_paths={})
+                                  file_paths=[])
 
 @app.route('/recon', methods=['POST'])
 def recon():
@@ -178,7 +177,7 @@ def recon():
                                       jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
                                       recon_types=["COMP", "POS"], 
                                       response="Invalid Date Format. Please use YYYY-MM-DD.", 
-                                      file_paths={})
+                                      file_paths=[])
 
     try:
         if flow_type.lower() == "onereg":
@@ -203,15 +202,17 @@ def recon():
 
     # List files in all asset class directories
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    file_paths = {}
+    file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
-            subdir = f"dtcc_{asset_class.lower()}_na_{recon_type}"
+            # Get jurisdiction shortform from dictionary
+            jurisdiction_shortform = JURISDICTION_SHORTFORM.get(jurisdiction, "na")
+            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
                 files = os.listdir(directory)
-                if files:  # Only add directories that have files
-                    file_paths[directory] = files
+                for file in files:
+                    file_paths.append((file, directory))
     
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
