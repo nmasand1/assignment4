@@ -124,6 +124,8 @@ HTML_TEMPLATE = """
                 {% endfor %}
             </ul>
         </div>
+        {% else %}
+        <p>No files available for download.</p>
         {% endif %}
     </div>
 </body>
