@@ -73,6 +73,15 @@ HTML_TEMPLATE = """
         .file-list a:hover {
             text-decoration: underline;
         }
+        .file-details {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .asset-class {
+            font-weight: bold;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -119,8 +128,21 @@ HTML_TEMPLATE = """
         <div class="file-list">
             <h2>Available Files for Download</h2>
             <ul>
-                {% for file, path in file_paths %}
-                <li><a href="/download/{{ path }}/{{ file }}" download>{{ file }}</a></li>
+                {% for asset_class, recon_type, files in file_paths.items() %}
+                    <li>
+                        <div class="asset-class">{{ asset_class }} - {{ recon_type }}</div>
+                        <ul>
+                            {% for file in files %}
+                            <li>
+                                <a href="/download/{{ file['directory'] }}/{{ file['filename'] }}" download>{{ file['filename'] }}</a>
+                                <div class="file-details">
+                                    Path: {{ file['directory'] }}<br>
+                                    Type: {{ file['type'] }}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
                 {% endfor %}
             </ul>
         </div>
@@ -140,7 +162,7 @@ def home():
                                   jurisdictions=jurisdictions, 
                                   recon_types=recon_types, 
                                   response="", 
-                                  file_paths=[])
+                                  file_paths={})
 
 @app.route('/recon', methods=['POST'])
 def recon():
@@ -163,7 +185,7 @@ def recon():
                                       jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"], 
                                       recon_types=["COMP", "POS"], 
                                       response="Invalid Date Format. Please use YYYY-MM-DD.", 
-                                      file_paths=[])
+                                      file_paths={})
 
     try:
         if flow_type.lower() == "onereg":
@@ -188,15 +210,21 @@ def recon():
 
     # List files in all asset class directories
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    file_paths = []
+    file_paths = {}
     for asset_class in asset_classes:
+        file_paths[asset_class] = {}
         for recon_type in ["cmp", "posval"]:
             subdir = f"dtcc_{asset_class.lower()}_na_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
                 files = os.listdir(directory)
+                file_paths[asset_class][recon_type] = []
                 for file in files:
-                    file_paths.append((file, directory))
+                    file_paths[asset_class][recon_type].append({
+                        'filename': file,
+                        'directory': directory,
+                        'type': recon_type.upper()  # Display COMP or POS
+                    })
     
     return render_template_string(HTML_TEMPLATE, 
                                   asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
@@ -210,5 +238,5 @@ def download_file(directory, filename):
     """Serve a file for download."""
     return send_from_directory(directory, filename, as_attachment=True)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8129)
+if __name__ == "__main__":
+    app.run(debug=True)
