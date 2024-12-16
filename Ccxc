@@ -1,0 +1,83 @@
+@app.route('/recon', methods=['POST'])
+def recon():
+    now = datetime.datetime.now()
+    start_log = f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
+
+    # Parse form data
+    asset_class = request.form['assetClass']
+    jurisdiction = request.form['jurisdiction']
+    recon_type = request.form['reconType']
+    recon_date = request.form['reconDate']
+    flow_type = request.form['flowType']
+
+    # Convert date to YYMMDD format
+    try:
+        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
+    except ValueError:
+        return render_template_string(
+            HTML_TEMPLATE,
+            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+            recon_types=["COMP", "POS"],
+            response="Invalid Date Format. Please use YYYY-MM-DD.",
+            file_paths=[],
+            log_output="",
+            shell_parameters=""
+        )
+
+    # Build the shell script parameters
+    shell_script = ""
+    response = ""
+    try:
+        if flow_type.lower() == "onereg":
+            shell_script = (
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh "
+                f"{asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            )
+            subprocess_output = subprocess.check_output(shell_script, shell=True, stderr=subprocess.STDOUT)
+            response = "Request Processed Successfully: OneReg Loading"
+        elif flow_type.lower() == "file":
+            shell_script = (
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh "
+                f"{asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            )
+            subprocess_output = subprocess.check_output(shell_script, shell=True, stderr=subprocess.STDOUT)
+            response = "Request Processed Successfully: File Loading"
+        else:
+            response = "Request Failed: Invalid Flow Type"
+            subprocess_output = b""
+    except subprocess.CalledProcessError as e:
+        response = f"Request Failed: {str(e)}"
+        subprocess_output = e.output
+
+    # Format the output and parameters for display
+    enow = datetime.datetime.now()
+    end_log = f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}\n"
+    log_output = f"{start_log}{subprocess_output.decode('utf-8')}{end_log}"
+    shell_parameters = f"Script: {shell_script}"
+
+    # List files in all asset class directories
+    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
+    file_paths = []
+    for asset_class in asset_classes:
+        for recon_type in ["cmp", "posval"]:
+            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
+            directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
+            if os.path.exists(directory):
+                files = os.listdir(directory)
+                for file in files:
+                    # Store relative directory path for download link
+                    relative_path = os.path.relpath(directory, BASE_DIR)
+                    file_paths.append((file, relative_path))
+
+    return render_template_string(
+        HTML_TEMPLATE,
+        asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+        jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+        recon_types=["COMP", "POS"],
+        response=response,
+        file_paths=file_paths,
+        log_output=log_output,
+        shell_parameters=shell_parameters
+    )
