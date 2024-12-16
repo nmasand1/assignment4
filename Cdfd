@@ -1,0 +1,94 @@
+@app.route('/recon', methods=['POST'])
+def recon():
+    now = datetime.datetime.now()
+    start_log = f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}"
+
+    # Parse form data
+    asset_class = request.form['assetClass']
+    jurisdiction = request.form['jurisdiction']
+    recon_type = request.form['reconType']
+    recon_date = request.form['reconDate']
+    flow_type = request.form['flowType']
+
+    # Convert date to YYMMDD format
+    try:
+        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
+    except ValueError:
+        return render_template_string(
+            HTML_TEMPLATE,
+            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+            recon_types=["COMP", "POS"],
+            response="Invalid Date Format. Please use YYYY-MM-DD.",
+            file_paths=[],
+            log_output="No logs available.",
+            shell_parameters="No parameters available."
+        )
+
+    # Prepare shell command
+    shell_script = ""
+    response = ""
+    log_output = ""
+    try:
+        if flow_type.lower() == "onereg":
+            shell_script = (
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh "
+                f"{asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            )
+        elif flow_type.lower() == "file":
+            shell_script = (
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh "
+                f"{asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            )
+        else:
+            response = "Request Failed: Invalid Flow Type"
+            shell_script = "Invalid flow type provided."
+            return render_template_string(
+                HTML_TEMPLATE,
+                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+                jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+                recon_types=["COMP", "POS"],
+                response=response,
+                file_paths=[],
+                log_output="No logs available.",
+                shell_parameters=shell_script
+            )
+
+        # Run the shell command
+        process_output = subprocess.check_output(shell_script, shell=True, stderr=subprocess.STDOUT)
+        log_output = process_output.decode('utf-8')
+        response = "Request Processed Successfully."
+    except subprocess.CalledProcessError as e:
+        response = f"Request Failed: {str(e)}"
+        log_output = e.output.decode('utf-8')
+
+    enow = datetime.datetime.now()
+    end_log = f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}"
+
+    # Combine logs
+    full_log = f"{start_log}\n{log_output}\n{end_log}"
+
+    # List files in directories
+    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
+    file_paths = []
+    for asset_class in asset_classes:
+        for recon_type in ["cmp", "posval"]:
+            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
+            directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
+            if os.path.exists(directory):
+                files = os.listdir(directory)
+                for file in files:
+                    relative_path = os.path.relpath(directory, BASE_DIR)
+                    file_paths.append((file, relative_path))
+
+    return render_template_string(
+        HTML_TEMPLATE,
+        asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+        jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+        recon_types=["COMP", "POS"],
+        response=response,
+        file_paths=file_paths,
+        log_output=full_log,
+        shell_parameters=shell_script
+    )
