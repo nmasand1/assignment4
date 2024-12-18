@@ -22,34 +22,40 @@ def recon():
             file_paths=[]
         )
     
-    response = ""
     try:
+        # Prepare the shell command
         if flow_type.lower() == "onereg":
-            result = subprocess.run(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
-                shell=True,
-                capture_output=True,
-                text=True
-            )
-            if result.returncode == 0:
-                response = f"Request Processed Successfully: OneReg Loading\n{result.stdout}"
-            else:
-                response = f"Request Failed:\n{result.stderr}"
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
-            result = subprocess.run(
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}",
-                shell=True,
-                capture_output=True,
-                text=True
-            )
-            if result.returncode == 0:
-                response = f"Request Processed Successfully: File Loading\n{result.stdout}"
-            else:
-                response = f"Request Failed:\n{result.stderr}"
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
         else:
-            response = "Request Failed: Invalid Flow Type"
+            return render_template_string(
+                HTML_TEMPLATE,
+                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+                jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+                recon_types=["COMP", "POS"],
+                response="Invalid Flow Type",
+                file_paths=[]
+            )
+        
+        # Run the shell command
+        result = subprocess.run(
+            cmd, shell=True, text=True, capture_output=True
+        )
+        
+        # Capture success or failure output
+        if result.returncode == 0:
+            response = f"Request Processed Successfully: {result.stdout}"
+        else:
+            response = f"Request Failed: {result.stderr} (Error Code: {result.returncode})"
+        
+        # Log output to console
+        print(f"Command Output:\n{result.stdout}")
+        print(f"Command Error:\n{result.stderr}")
+    
     except Exception as e:
-        response = f"An unexpected error occurred: {str(e)}"
+        response = f"Request Failed: {str(e)}"
+        print(f"Exception Occurred: {str(e)}")
     
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -65,7 +71,6 @@ def recon():
             if os.path.exists(directory):
                 files = os.listdir(directory)
                 for file in files:
-                    # Store relative directory path for download link
                     relative_path = os.path.relpath(directory, BASE_DIR)
                     file_paths.append((file, relative_path))
     
