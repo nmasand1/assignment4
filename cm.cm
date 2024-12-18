@@ -50,9 +50,9 @@ def recon():
 
         # Determine response based on return code
         if result.returncode == 0:
-            response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
+            response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
         else:
-            response = f"Request Failed (Error Code: {result.returncode}):<br>{full_output.replace('\n', '<br>')}"
+            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
         
         # Log output to console
         print(f"Command Output:\n{command_output}")
