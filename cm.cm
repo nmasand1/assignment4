@@ -216,3 +216,11 @@ def recon():
     </div>
 </body>
 </html>
+
+if result.returncode == 0:
+    response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
+else:
+    response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
+
+
+
