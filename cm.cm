@@ -1,133 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recon Automation Framework</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        select, input[type="date"], input[type="submit"] {
-            margin-top: 5px;
-            padding: 5px;
-            font-size: 14px;
-        }
-        .checkbox-group label {
-            font-weight: normal;
-            display: block;
-        }
-        #jurisdiction-checkbox-container {
-            margin-top: 10px;
-        }
-        .response {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-        }
-        .file-list {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-        }
-    </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const flowTypeSelect = document.getElementById("flowType");
-            const jurisdictionSelect = document.getElementById("jurisdiction");
-            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+# List files in all asset class directories
+asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
+file_paths = []
+for asset_class in asset_classes:
+    for recon_type in ["cmp", "posval"]:
+        jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+        subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
+        directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
+        if os.path.exists(directory):
+            files = os.listdir(directory)
+            for file in files:
+                relative_path = os.path.relpath(directory, BASE_DIR)
+                file_paths.append((file, relative_path))
 
-            // Toggle between dropdown and checkboxes based on flowType
-            flowTypeSelect.addEventListener("change", () => {
-                if (flowTypeSelect.value === "onereg") {
-                    jurisdictionSelect.style.display = "none";
-                    jurisdictionCheckboxContainer.style.display = "block";
-                } else {
-                    jurisdictionSelect.style.display = "block";
-                    jurisdictionCheckboxContainer.style.display = "none";
-                }
-            });
-        });
-    </script>
-</head>
-<body>
-    <h1>Recon Automation Framework</h1>
-    <form action="/recon" method="POST">
-        <label for="assetClass">Asset Class:</label>
-        <select id="assetClass" name="assetClass" required>
-            {% for asset_class in asset_classes %}
-                <option value="{{ asset_class }}">{{ asset_class }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="reconType">Recon Type:</label>
-        <select id="reconType" name="reconType" required>
-            {% for recon_type in recon_types %}
-                <option value="{{ recon_type }}">{{ recon_type }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="reconDate">Recon Date:</label>
-        <input type="date" id="reconDate" name="reconDate" required>
-
-        <label for="flowType">Flow Type:</label>
-        <select id="flowType" name="flowType" required>
-            <option value="file">File</option>
-            <option value="onereg">OneReg</option>
-        </select>
-
-        <!-- Dropdown for jurisdiction -->
-        <div id="jurisdiction-dropdown">
-            <label for="jurisdiction">Jurisdiction:</label>
-            <select id="jurisdiction" name="jurisdiction" required>
-                {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <!-- Checkboxes for jurisdiction -->
-        <div id="jurisdiction-checkbox-container" style="display: none;">
-            <label>Jurisdiction:</label>
-            <div class="checkbox-group">
-                {% for jurisdiction in jurisdictions %}
-                    <label>
-                        <input type="checkbox" name="jurisdictions" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <input type="submit" value="Submit">
-    </form>
-
-    <div class="response">
-        <h2>Response:</h2>
-        <p>{{ response|safe }}</p>
-    </div>
-
-    <div class="file-list">
-        <h2>Generated Files:</h2>
-        {% if file_paths %}
-            <ul>
-                {% for file, path in file_paths.items() %}
-                    <li><strong>{{ file }}</strong>: <a href="{{ path }}" target="_blank">{{ path }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No files generated yet.</p>
-        {% endif %}
-    </div>
-</body>
-</html>
+# Return the list of file paths to the template
+return render_template_string(
+    HTML_TEMPLATE,
+    asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+    jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+    recon_types=["COMP", "POS"],
+    response=response,
+    file_paths=file_paths  # Ensure file_paths is being passed correctly
+)
