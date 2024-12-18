@@ -38,20 +38,25 @@ def recon():
                 file_paths=[]
             )
         
-        # Run the shell command
+        # Run the shell command and capture output
         result = subprocess.run(
             cmd, shell=True, text=True, capture_output=True
         )
         
-        # Capture success or failure output
+        # Combine stdout and stderr for a complete response
+        command_output = result.stdout.strip()
+        command_error = result.stderr.strip()
+        full_output = f"{command_output}\n{command_error}".strip()
+
+        # Determine response based on return code
         if result.returncode == 0:
-            response = f"Request Processed Successfully:\n{result.stdout}"
+            response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
         else:
-            response = f"Request Failed:\n{result.stderr} (Error Code: {result.returncode})"
+            response = f"Request Failed (Error Code: {result.returncode}):<br>{full_output.replace('\n', '<br>')}"
         
         # Log output to console
-        print(f"Command Output:\n{result.stdout}")
-        print(f"Command Error:\n{result.stderr}")
+        print(f"Command Output:\n{command_output}")
+        print(f"Command Error:\n{command_error}")
     
     except Exception as e:
         response = f"Request Failed: {str(e)}"
@@ -79,6 +84,6 @@ def recon():
         asset_classes=["FX", "IR", "EQ", "Co", "CD"],
         jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
         recon_types=["COMP", "POS"],
-        response=response.replace("\n", "<br>"),  # Format for HTML
+        response=response,
         file_paths=file_paths
     )
