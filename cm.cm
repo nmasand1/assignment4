@@ -1,3 +1,60 @@
+<form method="POST" action="/recon">
+    <label for="flowType">Flow Type:</label>
+    <select id="flowType" name="flowType" onchange="toggleJurisdictions(this.value)">
+        <option value="onereg">OneReg</option>
+        <option value="file">File</option>
+    </select>
+    
+    <label for="assetClass">Asset Class:</label>
+    <select id="assetClass" name="assetClass">
+        <option value="FX">FX</option>
+        <option value="IR">IR</option>
+        <option value="EQ">EQ</option>
+        <option value="Co">Co</option>
+        <option value="CD">CD</option>
+    </select>
+    
+    <label for="jurisdiction">Jurisdiction:</label>
+    <select id="jurisdiction" name="jurisdiction" multiple>
+        <option value="JFSA">JFSA</option>
+        <option value="CANADA">CANADA</option>
+        <option value="MAS">MAS</option>
+        <option value="HKMA">HKMA</option>
+        <option value="HKTR">HKTR</option>
+        <option value="ESMA">ESMA</option>
+        <option value="CFTC">CFTC</option>
+        <option value="ASIC">ASIC</option>
+        <option value="SEC">SEC</option>
+        <option value="FCA">FCA</option>
+        <option value="DSMATCH">DSMATCH</option>
+    </select>
+    
+    <label for="reconType">Recon Type:</label>
+    <select id="reconType" name="reconType">
+        <option value="COMP">COMP</option>
+        <option value="POS">POS</option>
+    </select>
+    
+    <label for="reconDate">Recon Date:</label>
+    <input type="date" id="reconDate" name="reconDate" required>
+    
+    <button type="submit">Run Recon</button>
+</form>
+
+<script>
+function toggleJurisdictions(flowType) {
+    const jurisdictionField = document.getElementById('jurisdiction');
+    if (flowType === 'onereg') {
+        jurisdictionField.setAttribute('multiple', 'multiple');
+    } else {
+        jurisdictionField.removeAttribute('multiple');
+    }
+}
+</script>
+
+
+
+
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
@@ -5,7 +62,7 @@ def recon():
     
     # Parse form data
     asset_class = request.form['assetClass']
-    jurisdiction = request.form['jurisdiction']
+    jurisdictions = request.form.getlist('jurisdiction')  # Get list of jurisdictions
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
@@ -25,9 +82,20 @@ def recon():
     try:
         # Prepare the shell command
         if flow_type.lower() == "onereg":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            jurisdiction_param = ",".join(jurisdictions)  # Join multiple jurisdictions with commas
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_param} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            # Single jurisdiction only for flowtype=file
+            if len(jurisdictions) != 1:
+                return render_template_string(
+                    HTML_TEMPLATE,
+                    asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+                    jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
+                    recon_types=["COMP", "POS"],
+                    response="Multiple jurisdictions not supported for flowtype=file",
+                    file_paths=[]
+                )
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdictions[0]} {recon_type} {recon_date_formatted}"
         else:
             return render_template_string(
                 HTML_TEMPLATE,
@@ -52,7 +120,7 @@ def recon():
         if result.returncode == 0:
             response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
         else:
-            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
+            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))        
         
         # Log output to console
         print(f"Command Output:\n{command_output}")
@@ -70,7 +138,7 @@ def recon():
     file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
-            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdictions[0], "na")  # Use first jurisdiction for paths
             subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
             directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
             if os.path.exists(directory):
