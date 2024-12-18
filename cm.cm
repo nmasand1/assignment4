@@ -3,12 +3,14 @@ def recon():
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Parse form data
     asset_class = request.form['assetClass']
-    jurisdictions = request.form.getlist('jurisdiction')  # Get all selected jurisdictions
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
+
+    # Process multiple jurisdictions
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+    jurisdiction_str = ",".join(jurisdictions)
 
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
@@ -25,10 +27,9 @@ def recon():
     try:
         # Prepare the shell command
         if flow_type.lower() == "onereg":
-            jurisdiction_str = ",".join(jurisdictions)  # Combine jurisdictions into a comma-separated string
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdictions[0]} {recon_type} {recon_date_formatted}"
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         else:
             return render_template_string(
                 HTML_TEMPLATE,
@@ -43,19 +44,15 @@ def recon():
         result = subprocess.run(
             cmd, shell=True, text=True, capture_output=True
         )
-
-        # Combine stdout and stderr for a complete response
         command_output = result.stdout.strip()
         command_error = result.stderr.strip()
         full_output = f"{command_output}\n{command_error}".strip()
 
-        # Determine response based on return code
         if result.returncode == 0:
-            response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
+            response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
         else:
-            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
+            response = f"Request Failed (Error Code: {result.returncode}):<br>{full_output.replace('\n', '<br>')}"
 
-        # Log output to console
         print(f"Command Output:\n{command_output}")
         print(f"Command Error:\n{command_error}")
 
@@ -66,14 +63,11 @@ def recon():
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # List files in all asset class directories
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
     file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
-            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdictions[0], "na")
-            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
-            directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
+            directory = os.path.join(BASE_DIR, asset_class, "data", recon_type)
             if os.path.exists(directory):
                 files = os.listdir(directory)
                 for file in files:
@@ -92,6 +86,7 @@ def recon():
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,108 +96,123 @@ def recon():
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            text-align: center;
-            color: #333;
+            margin: 20px;
         }
         form {
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 20px;
         }
         label {
-            margin-bottom: 5px;
+            display: block;
+            margin-top: 10px;
             font-weight: bold;
         }
-        input, select, button {
-            margin-bottom: 15px;
+        select, input[type="date"], input[type="submit"] {
+            margin-top: 5px;
+            padding: 5px;
+            font-size: 14px;
+        }
+        .checkbox-group label {
+            font-weight: normal;
+            display: block;
+        }
+        #jurisdiction-checkbox-container {
+            margin-top: 10px;
+        }
+        .response {
+            margin-top: 20px;
             padding: 10px;
             border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #007BFF;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
+            background-color: #f9f9f9;
         }
         .file-list {
             margin-top: 20px;
-        }
-        .file-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .file-list li {
-            margin-bottom: 10px;
-        }
-        .file-list a {
-            color: #007BFF;
-            text-decoration: none;
-        }
-        .file-list a:hover {
-            text-decoration: underline;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
         }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const flowTypeSelect = document.getElementById("flowType");
+            const jurisdictionSelect = document.getElementById("jurisdiction");
+            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+
+            // Toggle between dropdown and checkboxes based on flowType
+            flowTypeSelect.addEventListener("change", () => {
+                if (flowTypeSelect.value === "onereg") {
+                    jurisdictionSelect.style.display = "none";
+                    jurisdictionCheckboxContainer.style.display = "block";
+                } else {
+                    jurisdictionSelect.style.display = "block";
+                    jurisdictionCheckboxContainer.style.display = "none";
+                }
+            });
+        });
+    </script>
 </head>
 <body>
-<div class="container">
     <h1>Recon Automation Framework</h1>
-    <form method="POST" action="/recon">
+    <form action="/recon" method="POST">
         <label for="assetClass">Asset Class:</label>
         <select id="assetClass" name="assetClass" required>
-            {% for asset in asset_classes %}
-                <option value="{{ asset }}">{{ asset }}</option>
+            {% for asset_class in asset_classes %}
+                <option value="{{ asset_class }}">{{ asset_class }}</option>
             {% endfor %}
         </select>
-        <label for="jurisdiction">Jurisdiction:</label>
-        <div id="jurisdiction-checkboxes">
-            {% for jurisdiction in jurisdictions %}
-                <label>
-                    <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                </label>
-            {% endfor %}
-        </div>
+
         <label for="reconType">Recon Type:</label>
         <select id="reconType" name="reconType" required>
             {% for recon_type in recon_types %}
                 <option value="{{ recon_type }}">{{ recon_type }}</option>
             {% endfor %}
         </select>
-        <label for="reconDate">Recon Date (YYYY-MM-DD):</label>
+
+        <label for="reconDate">Recon Date:</label>
         <input type="date" id="reconDate" name="reconDate" required>
+
         <label for="flowType">Flow Type:</label>
         <select id="flowType" name="flowType" required>
-            <option value="onereg">OneReg</option>
             <option value="file">File</option>
+            <option value="onereg">OneReg</option>
         </select>
-        <button type="submit">Submit</button>
-    </form>
-    <h2>Output:</h2>
-    <p>{{ response }}</p>
-    {% if file_paths %}
-        <div class="file-list">
-            <h2>Available Files for Download</h2>
-            <ul>
-                {% for file, path in file_paths %}
-                    <li><a href="/download/{{ path }}/{{ file }}" download>{{ file }}</a></li>
+
+        <!-- Dropdown for jurisdiction -->
+        <div id="jurisdiction-dropdown">
+            <label for="jurisdiction">Jurisdiction:</label>
+            <select id="jurisdiction" name="jurisdiction" required>
+                {% for jurisdiction in jurisdictions %}
+                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
                 {% endfor %}
-            </ul>
+            </select>
         </div>
-    {% endif %}
-</div>
+
+        <!-- Checkboxes for jurisdiction -->
+        <div id="jurisdiction-checkbox-container" style="display: none;">
+            <label>Jurisdiction:</label>
+            <div class="checkbox-group">
+                {% for jurisdiction in jurisdictions %}
+                    <label>
+                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <div class="response">
+        <h2>Response:</h2>
+        <p>{{ response|safe }}</p>
+    </div>
+
+    <div class="file-list">
+        <h2>Generated Files:</h2>
+        <ul>
+            {% for file, path in file_paths %}
+                <li><strong>{{ file }}</strong>: {{ path }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 </body>
 </html>
