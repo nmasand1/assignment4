@@ -45,9 +45,9 @@ def recon():
         
         # Capture success or failure output
         if result.returncode == 0:
-            response = f"Request Processed Successfully: {result.stdout}"
+            response = f"Request Processed Successfully:\n{result.stdout}"
         else:
-            response = f"Request Failed: {result.stderr} (Error Code: {result.returncode})"
+            response = f"Request Failed:\n{result.stderr} (Error Code: {result.returncode})"
         
         # Log output to console
         print(f"Command Output:\n{result.stdout}")
@@ -79,6 +79,6 @@ def recon():
         asset_classes=["FX", "IR", "EQ", "Co", "CD"],
         jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
         recon_types=["COMP", "POS"],
-        response=response,
+        response=response.replace("\n", "<br>"),  # Format for HTML
         file_paths=file_paths
     )
