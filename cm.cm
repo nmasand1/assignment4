@@ -3,31 +3,27 @@ def recon():
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
     
-    asset_class = request.form['assetClass']
-    recon_type = request.form['reconType']
-    recon_date = request.form['reconDate']
-    flow_type = request.form['flowType']
-    
+    asset_class = request.form.get('assetClass')
+    recon_type = request.form.get('reconType')
+    recon_date = request.form.get('reconDate')
+    flow_type = request.form.get('flowType')
+
     # Process multiple jurisdictions
-    if flow_type.lower() == "onereg":
-        jurisdictions = request.form.getlist('jurisdiction')
-    else:
-        jurisdictions = [request.form['jurisdiction']]
-    
-    jurisdiction_str = ','.join(jurisdictions)  # Properly join jurisdictions with commas
-    
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type.lower() == "onereg" else [request.form.get('jurisdiction')]
+    jurisdiction_str = ",".join(jurisdictions)  # Correctly form the jurisdiction string
+
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
         return render_template_string(
-            HTML_TEMPLATE, 
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
+            HTML_TEMPLATE,
+            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
             jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-            recon_types=["COMP", "POS"], 
-            response="Invalid Date Format. Please use YYYY-MM-DD.", 
+            recon_types=["COMP", "POS"],
+            response="Invalid Date Format. Please use YYYY-MM-DD.",
             file_paths=[]
         )
-    
+
     try:
         # Prepare the shell command
         if flow_type.lower() == "onereg":
@@ -36,22 +32,20 @@ def recon():
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         else:
             return render_template_string(
-                HTML_TEMPLATE, 
-                asset_classes=["FX", "IR", "EQ", "Co", "CD"], 
+                HTML_TEMPLATE,
+                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
                 jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-                recon_types=["COMP", "POS"], 
-                response="Invalid Flow Type", 
+                recon_types=["COMP", "POS"],
+                response="Invalid Flow Type",
                 file_paths=[]
             )
-        
+
         # Run the shell command and capture output
-        result = subprocess.run(
-            cmd, shell=True, text=True, capture_output=True
-        )
+        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
         command_output = result.stdout.strip()
         command_error = result.stderr.strip()
         full_output = f"{command_output}\n{command_error}".strip()
-        
+
         if result.returncode == 0:
             response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
         else:
@@ -62,9 +56,9 @@ def recon():
     except Exception as e:
         response = f"Request Failed: {str(e)}"
         print(f"Exception Occurred: {str(e)}")
-    
-    end_now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {end_now.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    enow = datetime.datetime.now()
+    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
     # Populate the file paths
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
