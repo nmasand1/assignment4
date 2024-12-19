@@ -1,7 +1,7 @@
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S') }")
+    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
     asset_class = request.form['assetClass']
     recon_type = request.form['reconType']
@@ -11,17 +11,20 @@ def recon():
     # Get list of selected jurisdictions
     jurisdictions = request.form.getlist('jurisdiction')  # Get all selected jurisdictions from the form
 
-    # Ensure JFSA is only included if it's selected and not multiple times
-    jurisdictions = list(set(jurisdictions))  # Convert the list to a set and back to a list to remove duplicates
+    # Remove duplicates and print the selected jurisdictions
+    jurisdictions = list(set(jurisdictions))  # Convert to set and back to list to remove duplicates
+    print(f"Selected Jurisdictions after duplicate removal: {jurisdictions}")
+
+    # If you need to exclude JFSA under certain conditions, you can do so here
     if 'JFSA' in jurisdictions:
         print("JFSA selected")
     else:
         print("JFSA not selected")
-
-    # Print to ensure no duplicates
-    print(f"Selected Jurisdictions: {jurisdictions}")
-
-    # Process jurisdiction list and command
+        
+    # You can also explicitly exclude 'JFSA' if needed
+    # jurisdictions = [jurisdiction for jurisdiction in jurisdictions if jurisdiction != 'JFSA']
+    
+    # Format the jurisdictions for the shell command
     jurisdiction_str = ",".join(jurisdictions)  # Create a comma-separated string of selected jurisdictions
     print(f"Jurisdictions as string: {jurisdiction_str}")
 
@@ -36,7 +39,7 @@ def recon():
         )
 
     try:
-        # Prepare the shell command
+        # Prepare the shell command based on flow type
         if flow_type.lower() == "onereg":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
@@ -49,7 +52,7 @@ def recon():
                 response="Invalid Flow Type", file_paths=[]
             )
 
-        # Run the shell command and capture output
+        # Run the shell command
         result = subprocess.run(
             cmd, shell=True, text=True, capture_output=True
         )
@@ -73,7 +76,6 @@ def recon():
 
     file_paths = []
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-
     for asset_class in asset_classes:
         for recon_type in ["COMP", "POS"]:
             for jurisdiction in jurisdictions:
