@@ -11,8 +11,8 @@ def recon():
     # Process multiple jurisdictions
     jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
-    # Only remove 'JFSA' if it's **not selected** and flow type is not 'onereg'.
-    if flow_type != "onereg" and 'JFSA' in jurisdictions:
+    # Conditionally remove 'JFSA' when flow type is 'onereg'
+    if flow_type == "onereg" and 'JFSA' in jurisdictions:
         jurisdictions.remove('JFSA')
 
     jurisdiction_str = ",".join(jurisdictions)  # Prepare string of jurisdictions
