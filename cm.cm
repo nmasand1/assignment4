@@ -3,26 +3,35 @@ def recon():
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
     
+    # Extract form inputs
     asset_class = request.form.get('assetClass')
     recon_type = request.form.get('reconType')
     recon_date = request.form.get('reconDate')
     flow_type = request.form.get('flowType')
 
-    # Process multiple jurisdictions
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type.lower() == "onereg" else [request.form.get('jurisdiction')]
-    jurisdiction_str = ",".join(jurisdictions)  # Correctly form the jurisdiction string
+    # Debug: Log received jurisdictions
+    print(f"Flow Type: {flow_type}")
+    print(f"Received Jurisdictions: {request.form.getlist('jurisdiction')}")
+
+    # Process jurisdictions based on flow type
+    jurisdictions = (
+        request.form.getlist('jurisdiction')  # Multiple jurisdictions
+        if flow_type.lower() == "onereg" 
+        else [request.form.get('jurisdiction')]  # Single jurisdiction
+    )
+    
+    # Ensure jurisdictions are valid
+    if not jurisdictions or any(not j for j in jurisdictions):
+        return "Error: Invalid jurisdictions received.", 400
+
+    jurisdiction_str = ",".join(jurisdictions)
+    print(f"Processed Jurisdiction String: {jurisdiction_str}")
 
     try:
+        # Format recon date
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
-        return render_template_string(
-            HTML_TEMPLATE,
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-            recon_types=["COMP", "POS"],
-            response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[]
-        )
+        return "Error: Invalid Date Format. Please use YYYY-MM-DD.", 400
 
     try:
         # Prepare the shell command
@@ -31,21 +40,18 @@ def recon():
         elif flow_type.lower() == "file":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         else:
-            return render_template_string(
-                HTML_TEMPLATE,
-                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-                jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-                recon_types=["COMP", "POS"],
-                response="Invalid Flow Type",
-                file_paths=[]
-            )
+            return "Error: Invalid Flow Type.", 400
 
-        # Run the shell command and capture output
+        # Debug: Log the shell command
+        print(f"Executing Command: {cmd}")
+
+        # Run the shell command
         result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
         command_output = result.stdout.strip()
         command_error = result.stderr.strip()
         full_output = f"{command_output}\n{command_error}".strip()
 
+        # Handle command result
         if result.returncode == 0:
             response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
         else:
@@ -60,28 +66,4 @@ def recon():
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Populate the file paths
-    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    file_paths = []
-    for asset_class in asset_classes:
-        for recon_type in ["cmp", "posval"]:
-            for jurisdiction in jurisdictions:
-                jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
-                subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
-                directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
-                if os.path.exists(directory):
-                    files = os.listdir(directory)
-                    for file in files:
-                        # Store relative directory path for download link
-                        relative_path = os.path.relpath(directory, BASE_DIR)
-                        file_paths.append((file, relative_path))
-    
-    print("Paths:", file_paths)
-    return render_template_string(
-        HTML_TEMPLATE,
-        asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-        jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-        recon_types=["COMP", "POS"],
-        response=response,
-        file_paths=file_paths
-    )
+    return response
