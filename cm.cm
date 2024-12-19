@@ -7,21 +7,22 @@ def recon():
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
-    
-    # Process multiple jurisdictions
-    jurisdictions = request.form.getlist('jurisdiction')
+
+    # Get the selected jurisdictions, whether single or multiple
+    jurisdictions = request.form.getlist('jurisdiction')  # This handles both single and multiple selections
     print(f"Jurisdictions from Form: {jurisdictions}")  # Debugging line
-
-    # Filter out "JFSA" if it was selected unintentionally
+    
+    # Ensure 'JFSA' is handled correctly: if it's selected unintentionally, it will be filtered out
     jurisdictions = [jurisdiction for jurisdiction in jurisdictions if jurisdiction != "JFSA"]
+    print(f"Filtered Jurisdictions: {jurisdictions}")  # Debugging line
 
-    # If no jurisdictions are selected, handle that case
+    # If no jurisdictions are selected after filtering, keep it empty
     if not jurisdictions:
         jurisdictions = []
 
     # Join the jurisdictions into a comma-separated string
     jurisdiction_str = ','.join(jurisdictions)
-    print(f"Jurisdiction String: {jurisdiction_str}")  # Debugging line
+    print(f"Jurisdiction String for Shell: {jurisdiction_str}")  # Debugging line
 
     # Handle recon date formatting
     try:
