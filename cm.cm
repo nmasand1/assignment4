@@ -2,22 +2,25 @@
 def recon():
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S') }")
-    
+
     asset_class = request.form['assetClass']
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
-    
-    # Process jurisdictions based on flow_type
-    if flow_type == "onereg":
-        jurisdictions = request.form.getlist('jurisdiction')  # This will handle multiple selections from checkboxes
+
+    # Get list of selected jurisdictions
+    jurisdictions = request.form.getlist('jurisdiction')  # Get all selected jurisdictions from the form
+
+    # Ensure JFSA is only included if it's selected
+    if 'JFSA' in jurisdictions:
+        print("JFSA selected")
     else:
-        jurisdictions = [request.form['jurisdiction']]  # Single jurisdiction selection for "file"
-    
-    # Ensure JFSA is included correctly
+        print("JFSA not selected")
+
+    # Process jurisdiction list and command
     jurisdiction_str = ",".join(jurisdictions)  # Create a comma-separated string of selected jurisdictions
     print(f"Selected Jurisdictions: {jurisdiction_str}")
-    
+
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
@@ -27,13 +30,13 @@ def recon():
             recon_types=["COMP", "POS"],
             response="Invalid Date Format. Please use YYYY-MM-DD.", file_paths=[]
         )
-    
+
     try:
         # Prepare the shell command
         if flow_type.lower() == "onereg":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_date_formatted}"
         else:
             return render_template_string(
                 HTML_TEMPLATE, asset_classes=["FX", "IR", "EQ", "Co", "CD"],
@@ -41,7 +44,7 @@ def recon():
                 recon_types=["COMP", "POS"],
                 response="Invalid Flow Type", file_paths=[]
             )
-        
+
         # Run the shell command and capture output
         result = subprocess.run(
             cmd, shell=True, text=True, capture_output=True
@@ -49,24 +52,24 @@ def recon():
         command_output = result.stdout.strip()
         command_error = result.stderr.strip()
         full_output = f"{command_output} \n{command_error}".strip()
-        
+
         if result.returncode == 0:
             response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
         else:
             response = f"Request Failed (Error Code: {result.returncode}):<br>{full_output.replace('\n', '<br>')}"
-        
+
         print(f"Command Output: \n{command_output}")
         print(f"Command Error: \n{command_error}")
     except Exception as e:
         response = f"Request Failed: {str(e)}"
         print(f"Exception Occurred: {str(e)}")
-    
+
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
     file_paths = []
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    
+
     for asset_class in asset_classes:
         for recon_type in ["COMP", "POS"]:
             for jurisdiction in jurisdictions:
@@ -78,7 +81,7 @@ def recon():
                     for file in files:
                         relative_path = os.path.relpath(directory, BASE_DIR)
                         file_paths.append((file, relative_path))
-    
+
     return render_template_string(
         HTML_TEMPLATE,
         asset_classes=["FX", "IR", "EQ", "Co", "CD"],
