@@ -1,9 +1,23 @@
-jurisdictions = []
 if flow_type == "onereg":
-    jurisdictions = request.form.getlist('jurisdiction')
+    jurisdictions = request.form.getlist('jurisdiction')  # Get list of selected jurisdictions
 else:
-    jurisdiction = request.form.get('jurisdiction')
-    if jurisdiction:
-        jurisdictions = [jurisdiction]
+    jurisdiction = request.form.get('jurisdiction')  # Get single jurisdiction
+    jurisdictions = [jurisdiction] if jurisdiction else []
 
-print(f"Selected Jurisdictions: {jurisdictions}")
+# Debugging: Print captured values
+print(f"Captured Flow Type: {flow_type}")
+print(f"Captured Jurisdictions: {jurisdictions}")
+
+
+<div id="jurisdiction-checkbox-container" style="display: none;">
+  <label>Jurisdiction:</label>
+  <div class="checkbox-group">
+    {% for jurisdiction in jurisdictions %}
+    <label>
+      <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}" 
+             {% if jurisdiction in selected_jurisdictions %}checked{% endif %}>
+      {{ jurisdiction }}
+    </label>
+    {% endfor %}
+  </div>
+</div>
