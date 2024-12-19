@@ -1,3 +1,5 @@
+
+
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
@@ -63,17 +65,21 @@ def recon():
     enow = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Populate file paths
+    # Populate the file paths
     asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
     file_paths = []
     for asset_class in asset_classes:
         for recon_type in ["cmp", "posval"]:
             directory = os.path.join(BASE_DIR, asset_class, "data", recon_type)
+            print(f"Checking directory: {directory}")  # Debugging line
             if os.path.exists(directory):
                 files = os.listdir(directory)
                 for file in files:
                     relative_path = os.path.relpath(directory, BASE_DIR)
                     file_paths.append((file, relative_path))
+    
+    # Debugging line to check the file paths
+    print(f"File Paths: {file_paths}")
 
     return render_template_string(
         HTML_TEMPLATE,
@@ -81,5 +87,5 @@ def recon():
         jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
         recon_types=["COMP", "POS"],
         response=response,
-        file_paths=file_paths
+        file_paths=file_paths  # Pass the file_paths to the template
     )
