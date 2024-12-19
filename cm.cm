@@ -1,10 +1,40 @@
+import os
+import datetime
+import subprocess
+from flask import render_template_string, request
 
+# Base directory where your data is stored
+BASE_DIR = "/apps/TTR/prodp/OneReg/OneRegReconciler/recondataloader"
+
+# Mapping of Jurisdiction shortforms
+JURISDICTION_SHORTFORMS = {
+    "JFSA": "na",
+    "CANADA": "canada",
+    "CFTC": "cftc",
+    "SEC": "sec",
+    "HKMA": "hkma",
+    "ESMA": "esma",
+    "HKTR": "hktr",
+    "FCA": "fca",
+    "MAS": "mas",
+    "ASIC": "asic"
+}
+
+# Mapping of Asset Classes
+ASSET_CLASSES = {
+    "FX": "fx",
+    "IR": "ir",
+    "EQ": "eq",
+    "Co": "co",
+    "CD": "cd"
+}
 
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
     print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
+    # Get form data
     asset_class = request.form['assetClass']
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
@@ -66,14 +96,12 @@ def recon():
     print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
 
     # Populate the file paths
-    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
     file_paths = []
-    for asset_class in asset_classes:
+    for asset_class in ASSET_CLASSES:
         for recon_type in ["cmp", "posval"]:
-            # Construct the directory path
             for jurisdiction in jurisdictions:
-                jurisdiction_shortform = jurisdiction.lower()[:2]  # Assuming jurisdiction shortform is the first two letters
-                directory = os.path.join(BASE_DIR, "OneReg", "recondataloader", asset_class, "data", f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}")
+                jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+                directory = os.path.join(BASE_DIR, asset_class, "data", f"dtcc_{ASSET_CLASSES[asset_class]}_{jurisdiction_shortform}_{recon_type}")
                 print(f"Checking directory: {directory}")  # Debugging line
                 if os.path.exists(directory):
                     files = os.listdir(directory)
