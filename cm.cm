@@ -8,17 +8,32 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Process multiple jurisdictions
+    # Process jurisdictions
+    jurisdictions = []
     if flow_type == "onereg":
         # Retrieve jurisdictions from the form data
         jurisdictions = request.form.getlist('jurisdiction')
-
-        # Remove duplicates from the list
-        jurisdictions = list(set(jurisdictions))
     else:
         jurisdictions = [request.form['jurisdiction']]
 
+    # Remove duplicates and filter invalid jurisdictions
+    valid_jurisdictions = set(JURISDICTION_SHORTFORMS.keys())
+    jurisdictions = [j for j in jurisdictions if j in valid_jurisdictions]
+
+    # Debugging: Print the filtered jurisdictions
+    print(f"Filtered Jurisdictions: {jurisdictions}")
+
     jurisdiction_str = ",".join(jurisdictions)
+
+    if not jurisdictions:
+        return render_template_string(
+            HTML_TEMPLATE,
+            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            recon_types=["COMP", "POS"],
+            response="No valid jurisdictions provided. Please check your input.",
+            file_paths=[]
+        )
 
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
