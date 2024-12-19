@@ -11,15 +11,19 @@ def recon():
     # Get list of selected jurisdictions
     jurisdictions = request.form.getlist('jurisdiction')  # Get all selected jurisdictions from the form
 
-    # Ensure JFSA is only included if it's selected
+    # Ensure JFSA is only included if it's selected and not multiple times
+    jurisdictions = list(set(jurisdictions))  # Convert the list to a set and back to a list to remove duplicates
     if 'JFSA' in jurisdictions:
         print("JFSA selected")
     else:
         print("JFSA not selected")
 
+    # Print to ensure no duplicates
+    print(f"Selected Jurisdictions: {jurisdictions}")
+
     # Process jurisdiction list and command
     jurisdiction_str = ",".join(jurisdictions)  # Create a comma-separated string of selected jurisdictions
-    print(f"Selected Jurisdictions: {jurisdiction_str}")
+    print(f"Jurisdictions as string: {jurisdiction_str}")
 
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
