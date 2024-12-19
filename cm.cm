@@ -5,8 +5,12 @@ else:
     jurisdiction = request.form.get('jurisdiction')  # Only one jurisdiction selected
     jurisdictions = [jurisdiction] if jurisdiction else []
 
+# Filter out unwanted jurisdictions like "JFSA"
+jurisdictions = [jurisdiction for jurisdiction in jurisdictions if jurisdiction != "JFSA"]
+
 # If there's no jurisdiction selected, make sure to set an empty list
 if not jurisdictions:
     jurisdictions = []
 
+print(f"Filtered Jurisdictions: {jurisdictions}")  # Debugging the filtered jurisdictions
 jurisdiction_str = ','.join(jurisdictions)  # Convert list to a comma-separated string
