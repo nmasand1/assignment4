@@ -8,22 +8,23 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
+    # Debugging: Print the form data
+    print(f"Form Data Received: {request.form}")
+
     # Process jurisdictions
     jurisdictions = []
     if flow_type == "onereg":
-        # Retrieve jurisdictions from the form data
         jurisdictions = request.form.getlist('jurisdiction')
     else:
         jurisdictions = [request.form['jurisdiction']]
 
     # Remove duplicates and filter invalid jurisdictions
+    jurisdictions = list(set(jurisdictions))
     valid_jurisdictions = set(JURISDICTION_SHORTFORMS.keys())
     jurisdictions = [j for j in jurisdictions if j in valid_jurisdictions]
 
     # Debugging: Print the filtered jurisdictions
     print(f"Filtered Jurisdictions: {jurisdictions}")
-
-    jurisdiction_str = ",".join(jurisdictions)
 
     if not jurisdictions:
         return render_template_string(
@@ -49,6 +50,7 @@ def recon():
 
     try:
         # Prepare the shell command
+        jurisdiction_str = ",".join(jurisdictions)  # Join the filtered list of jurisdictions
         if flow_type.lower() == "onereg":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
@@ -62,6 +64,9 @@ def recon():
                 response="Invalid Flow Type",
                 file_paths=[]
             )
+
+        # Debugging: Print the command to be executed
+        print(f"Command to Execute: {cmd}")
 
         # Run the shell command and capture output
         result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
