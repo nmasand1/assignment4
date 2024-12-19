@@ -1,115 +1,18 @@
-@app.route('/recon', methods=['POST'])
-def recon():
-    now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+<!-- Jurisdiction Dropdown -->
+<select id="jurisdiction" name="jurisdiction" required>
+  {% for jurisdiction in jurisdictions %}
+    <option value="{{ jurisdiction }}" {% if jurisdiction == 'JFSA' %} {% endif %}>{{ jurisdiction }}</option>
+  {% endfor %}
+</select>
 
-    asset_class = request.form['assetClass']
-    recon_type = request.form['reconType']
-    recon_date = request.form['reconDate']
-    flow_type = request.form['flowType']
-
-    # Debugging: Print the form data
-    print(f"Form Data Received: {request.form}")
-
-    # Process jurisdictions
-    jurisdictions = []
-    if flow_type == "onereg":
-        jurisdictions = request.form.getlist('jurisdiction')
-    else:
-        jurisdictions = [request.form['jurisdiction']]
-
-    # Remove duplicates and filter invalid jurisdictions
-    jurisdictions = list(set(jurisdictions))
-    valid_jurisdictions = set(JURISDICTION_SHORTFORMS.keys())
-    jurisdictions = [j for j in jurisdictions if j in valid_jurisdictions]
-
-    # Debugging: Print the filtered jurisdictions
-    print(f"Filtered Jurisdictions: {jurisdictions}")
-
-    if not jurisdictions:
-        return render_template_string(
-            HTML_TEMPLATE,
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response="No valid jurisdictions provided. Please check your input.",
-            file_paths=[]
-        )
-
-    try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
-    except ValueError:
-        return render_template_string(
-            HTML_TEMPLATE,
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[]
-        )
-
-    try:
-        # Prepare the shell command
-        jurisdiction_str = ",".join(jurisdictions)  # Join the filtered list of jurisdictions
-        if flow_type.lower() == "onereg":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-        elif flow_type.lower() == "file":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-        else:
-            return render_template_string(
-                HTML_TEMPLATE,
-                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-                recon_types=["COMP", "POS"],
-                response="Invalid Flow Type",
-                file_paths=[]
-            )
-
-        # Debugging: Print the command to be executed
-        print(f"Command to Execute: {cmd}")
-
-        # Run the shell command and capture output
-        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-        command_output = result.stdout.strip()
-        command_error = result.stderr.strip()
-        full_output = f"{command_output} \n{command_error}".strip()
-
-        if result.returncode == 0:
-            response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
-        else:
-            response = f"Request Failed (Error Code: {result.returncode}):<br>{full_output.replace('\n', '<br>')}"
-
-        print(f"Command Output: \n{command_output}")
-        print(f"Command Error: \n{command_error}")
-
-    except Exception as e:
-        response = f"Request Failed: {str(e)}"
-        print(f"Exception Occurred: {str(e)}")
-
-    enow = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    # Generate file paths and render response
-    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    file_paths = []
-    for asset_class in asset_classes:
-        for recon_type in ["COMP", "POS"]:
-            for jurisdiction in jurisdictions:
-                jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "")
-                subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
-                directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
-                if os.path.exists(directory):
-                    files = os.listdir(directory)
-                    for file in files:
-                        relative_path = os.path.relpath(directory, BASE_DIR)
-                        file_paths.append((file, relative_path))
-
-    print("Paths:", file_paths)
-    return render_template_string(
-        HTML_TEMPLATE,
-        asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-        jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-        recon_types=["COMP", "POS"],
-        response=response,
-        file_paths=file_paths
-    )
+<!-- Jurisdiction Checkboxes -->
+<div id="jurisdiction-checkbox-container">
+  <label>Jurisdiction:</label>
+  <div class="checkbox-group">
+    {% for jurisdiction in jurisdictions %}
+      <label>
+        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}" {% if jurisdiction == 'JFSA' %} {% endif %}> {{ jurisdiction }}
+      </label>
+    {% endfor %}
+  </div>
+</div>
