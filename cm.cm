@@ -40,7 +40,7 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Process multiple jurisdictions
+    # Process multiple jurisdictions (ensure jurisdictions is a list)
     jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
     jurisdiction_str = ",".join(jurisdictions)
 
@@ -97,20 +97,24 @@ def recon():
 
     # Populate the file paths
     file_paths = []
-    for asset_class in ASSET_CLASSES:
-        for recon_type in ["cmp", "posval"]:
-            for jurisdiction in jurisdictions:
-                jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
-                directory = os.path.join(BASE_DIR, asset_class, "data", f"dtcc_{ASSET_CLASSES[asset_class]}_{jurisdiction_shortform}_{recon_type}")
-                print(f"Checking directory: {directory}")  # Debugging line
-                if os.path.exists(directory):
-                    files = os.listdir(directory)
-                    for file in files:
-                        relative_path = os.path.relpath(directory, BASE_DIR)
-                        file_paths.append((file, relative_path))
-    
-    # Debugging line to check the file paths
-    print(f"File Paths: {file_paths}")
+    try:
+        for asset_class in ASSET_CLASSES:
+            for recon_type in ["cmp", "posval"]:
+                for jurisdiction in jurisdictions:
+                    jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
+                    directory = os.path.join(BASE_DIR, asset_class, "data", f"dtcc_{ASSET_CLASSES[asset_class]}_{jurisdiction_shortform}_{recon_type}")
+                    print(f"Checking directory: {directory}")  # Debugging line
+                    if os.path.exists(directory):
+                        files = os.listdir(directory)
+                        for file in files:
+                            relative_path = os.path.relpath(directory, BASE_DIR)
+                            file_paths.append((file, relative_path))
+        
+        # Debugging line to check the file paths
+        print(f"File Paths: {file_paths}")
+
+    except Exception as e:
+        print(f"Error while fetching file paths: {str(e)}")
 
     return render_template_string(
         HTML_TEMPLATE,
