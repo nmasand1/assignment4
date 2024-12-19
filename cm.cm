@@ -1,11 +1,12 @@
-# Capture jurisdictions
+# Process multiple jurisdictions
 if flow_type.lower() == "onereg":
-    jurisdictions = request.form.getlist('jurisdiction')
-    if not jurisdictions:  # Handle empty selection explicitly
-        jurisdictions = []
+    jurisdictions = request.form.getlist('jurisdiction')  # Get selected jurisdictions
 else:
-    jurisdictions = [request.form.get('jurisdiction', '')]
+    jurisdiction = request.form.get('jurisdiction')  # Only one jurisdiction selected
+    jurisdictions = [jurisdiction] if jurisdiction else []
 
-print(f"Selected jurisdictions before formatting: {jurisdictions}")  # Debug
-jurisdiction_str = ",".join(jurisdictions)
-print(f"Jurisdiction string: {jurisdiction_str}")  # Debug formatted jurisdiction string
+# If there's no jurisdiction selected, make sure to set an empty list
+if not jurisdictions:
+    jurisdictions = []
+
+jurisdiction_str = ','.join(jurisdictions)  # Convert list to a comma-separated string
