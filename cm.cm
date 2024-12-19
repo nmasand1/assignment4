@@ -1,3 +1,139 @@
+from flask import Flask, request, render_template_string, send_from_directory
+import subprocess
+import datetime
+import os
+
+app = Flask(__name__)
+
+# Base path for the directories
+BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
+
+# Jurisdiction shortform mapping
+JURISDICTION_SHORTFORMS = {
+    "JFSA": "na",
+    "CANADA": "canada",
+    "CFTC": "cftc",
+    "SEC": "sec",
+    "HKMA": "hkma",
+    "ESMA": "esma",
+    "HKTR": "hktr",
+    "FCA": "fca",
+    "MAS": "mas",
+    "ASIC": "asic",
+}
+
+HTML_TEMPLATE = '''<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recon Automation Framework</title>
+    <style>
+        /* Style block */
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const flowTypeSelect = document.getElementById("flowType");
+            const jurisdictionSelect = document.getElementById("jurisdiction");
+            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+
+            flowTypeSelect.addEventListener("change", () => {
+                if (flowTypeSelect.value === "onereg") {
+                    jurisdictionSelect.style.display = "none";
+                    jurisdictionCheckboxContainer.style.display = "block";
+                } else {
+                    jurisdictionSelect.style.display = "block";
+                    jurisdictionCheckboxContainer.style.display = "none";
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Recon Automation Framework</h1>
+    <form action="/recon" method="POST">
+        <label for="assetClass">Asset Class: </label>
+        <select id="assetClass" name="assetClass" required>
+            {% for asset_class in asset_classes %}
+                <option value="{{ asset_class }}">{{ asset_class }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="reconType">Recon Type: </label>
+        <select id="reconType" name="reconType" required>
+            {% for recon_type in recon_types %}
+                <option value="{{ recon_type }}">{{ recon_type }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="reconDate">Recon Date: </label>
+        <input type="date" id="reconDate" name="reconDate" required>
+
+        <label for="flowType">Flow Type: </label>
+        <select id="flowType" name="flowType" required>
+            <option value="file">File</option>
+            <option value="onereg">OneReg</option>
+        </select>
+
+        <!-- Jurisdiction Dropdown -->
+        <div id="jurisdiction-dropdown">
+            <label for="jurisdiction">Jurisdiction: </label>
+            <select id="jurisdiction" name="jurisdiction" required>
+                {% for jurisdiction in jurisdictions %}
+                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Jurisdiction Checkboxes -->
+        <div id="jurisdiction-checkbox-container" style="display: none;">
+            <label>Jurisdiction:</label>
+            <div class="checkbox-group">
+                {% for jurisdiction in jurisdictions %}
+                    <label>
+                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <div class="response">
+        <h2>Response: </h2>
+        <p>{{ response|safe }}</p>
+    </div>
+
+    <div class="file-list">
+        <h2>Generated Files: </h2>
+        {% if file_paths %}
+            <ul>
+                {% for file, path in file_paths %}
+                    <li><strong>{{ file }}</strong>: <a href="/download/{{ path }}" download>{{ file }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No files generated yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
+'''
+
+@app.route('/', methods=['GET'])
+def home():
+    asset_classes = ['FX', 'IR', 'EQ', 'Co', 'CD']
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    recon_types = ["COMP", "POS"]
+    return render_template_string(
+        HTML_TEMPLATE,
+        asset_classes=asset_classes, 
+        jurisdictions=jurisdictions, 
+        recon_types=recon_types,
+        response="", 
+        file_paths=[]
+    )
+
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
@@ -8,54 +144,45 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Get list of selected jurisdictions
-    jurisdictions = request.form.getlist('jurisdiction')  # Get all selected jurisdictions from the form
-
-    # Remove duplicates and print the selected jurisdictions
-    jurisdictions = list(set(jurisdictions))  # Convert to set and back to list to remove duplicates
-    print(f"Selected Jurisdictions after duplicate removal: {jurisdictions}")
-
-    # If you need to exclude JFSA under certain conditions, you can do so here
-    if 'JFSA' in jurisdictions:
-        print("JFSA selected")
-    else:
-        print("JFSA not selected")
-        
-    # You can also explicitly exclude 'JFSA' if needed
-    # jurisdictions = [jurisdiction for jurisdiction in jurisdictions if jurisdiction != 'JFSA']
+    # Process multiple jurisdictions
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
     
-    # Format the jurisdictions for the shell command
-    jurisdiction_str = ",".join(jurisdictions)  # Create a comma-separated string of selected jurisdictions
-    print(f"Jurisdictions as string: {jurisdiction_str}")
+    # Check if JFSA is present in the list and remove it if it's not selected
+    if 'JFSA' in jurisdictions:
+        jurisdictions.remove('JFSA')
+
+    jurisdiction_str = ",".join(jurisdictions)  # Prepare string of jurisdictions
 
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
         return render_template_string(
-            HTML_TEMPLATE, asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+            HTML_TEMPLATE, 
+            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
             jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
             recon_types=["COMP", "POS"],
-            response="Invalid Date Format. Please use YYYY-MM-DD.", file_paths=[]
+            response="Invalid Date Format. Please use YYYY-MM-DD.", 
+            file_paths=[]
         )
 
     try:
-        # Prepare the shell command based on flow type
+        # Prepare the shell command
         if flow_type.lower() == "onereg":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_date_formatted}"
+            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         else:
             return render_template_string(
-                HTML_TEMPLATE, asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+                HTML_TEMPLATE, 
+                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
                 jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
                 recon_types=["COMP", "POS"],
-                response="Invalid Flow Type", file_paths=[]
+                response="Invalid Flow Type", 
+                file_paths=[]
             )
-
-        # Run the shell command
-        result = subprocess.run(
-            cmd, shell=True, text=True, capture_output=True
-        )
+        
+        # Run the shell command and capture output
+        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
         command_output = result.stdout.strip()
         command_error = result.stderr.strip()
         full_output = f"{command_output} \n{command_error}".strip()
@@ -64,34 +191,39 @@ def recon():
             response = f"Request Processed Successfully:<br>{full_output.replace('\n', '<br>')}"
         else:
             response = f"Request Failed (Error Code: {result.returncode}):<br>{full_output.replace('\n', '<br>')}"
-
+        
         print(f"Command Output: \n{command_output}")
         print(f"Command Error: \n{command_error}")
     except Exception as e:
         response = f"Request Failed: {str(e)}"
         print(f"Exception Occurred: {str(e)}")
 
-    now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Ended :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-
+    # List the generated files
     file_paths = []
-    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    for asset_class in asset_classes:
-        for recon_type in ["COMP", "POS"]:
-            for jurisdiction in jurisdictions:
-                jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "")
-                subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
-                directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
-                if os.path.exists(directory):
-                    files = os.listdir(directory)
-                    for file in files:
-                        relative_path = os.path.relpath(directory, BASE_DIR)
-                        file_paths.append((file, relative_path))
+    for jurisdiction in jurisdictions:
+        jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction)
+        subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
+        directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
+        if os.path.exists(directory):
+            files = os.listdir(directory)
+            for file in files:
+                relative_path = os.path.relpath(directory, BASE_DIR)
+                file_paths.append((file, relative_path))
 
     return render_template_string(
         HTML_TEMPLATE,
         asset_classes=["FX", "IR", "EQ", "Co", "CD"],
         jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
         recon_types=["COMP", "POS"],
-        response=response, file_paths=file_paths
+        response=response, 
+        file_paths=file_paths
     )
+
+@app.route('/download/<path:directory>/<filename>', methods=['GET'])
+def download_file(directory, filename):
+    """Serve a file for download"""
+    directory = os.path.join(BASE_DIR, directory)  # Resolve full path based on BASE_DIR
+    return send_from_directory(directory, filename, as_attachment=True)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0',port=8129,debug=True)
