@@ -1,3 +1,85 @@
+import { Component, OnInit, AfterViewInit, ViewChild, ViewEncapsulation } from "@angular/core";
+import { IChart, IChartOptions } from "@barclays/panther-components";
+import { DemoChartData } from "../../../assets/data/demo-chart-data";
+import { DemoPieChartOptions } from "../../../assets/data/demo-chart-options";
+
+@Component({
+  selector: 'app-panther-pie-chart-demo',
+  templateUrl: './panther-pie-chart-demo.component.html',
+  styleUrls: ['./panther-pie-chart-demo.component.scss'],
+  encapsulation: ViewEncapsulation.None // Correct usage of ViewEncapsulation
+})
+export class PantherPieChartDemoComponent implements OnInit, AfterViewInit, IChart {
+  @ViewChild('pieChartDemo', { static: false }) pieChartDemoView: IChart;
+
+  constructor() { }
+
+  ngOnInit(): void {
+    // Any initialization logic can go here
+  }
+
+  ngAfterViewInit(): void {
+    // Check if the chart view exists and update the chart options
+    if (this.pieChartDemoView) {
+      this.pieChartDemoView.options = DemoPieChartOptions;
+      this.pieChartDemoView.data = DemoChartData;
+      this.pieChartDemoView.id = "pieChartDemo";
+      this.pieChartDemoView.drawChart();
+    }
+  }
+
+  // Handle clicked event on the chart
+  clickedEventHandler(event: any) {
+    console.log("Chart clicked", event);
+  }
+
+  // Handle selection change event on the chart
+  selectionChangedEventHandler(event: any) {
+    console.log("Selection changed", event);
+  }
+}
+
+
+<panther-chart #pieChartDemo id="pieChartDemo" 
+               (onClicked)="clickedEventHandler($event)" 
+               (onSelectionChanged)="selectionChangedEventHandler($event)">
+</panther-chart>
+
+
+
+#pieChartDemo {
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff; // chart container background
+}
+
+.panther-chart {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.chart-title {
+  font-family: Arial, sans-serif;
+  color: #4089a9;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.chart-tooltip {
+  background-color: #00395d;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+
+
+
+demo-chart-data.ts)
+typescript
+Copy code
 export const DemoChartData = {
   rows: [
     { 'ROWID': 'A', 'TOTAL': 20 },
@@ -16,8 +98,9 @@ export const DemoChartData = {
 };
 
 
-
-
+ie Chart Options (demo-chart-options.ts)
+typescript
+Copy code
 import { IChartOptions } from "@barclays/panther-components";
 
 export const DemoPieChartOptions: IChartOptions = {
