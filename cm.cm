@@ -1,118 +1,40 @@
-from flask import Flask, request, render_template, send_from_directory
-import subprocess
-import datetime
-import os
+import { Component, OnInit, AfterViewInit, ViewChild } from "@angular/core";
+import { IChart, IChartOptions } from "@barclays/panther-components";
+import { DemoChartData } from "../../../assets/data/demo-chart-data";
+import { DemoPieChartOptions } from "../../../assets/data/demo-chart-options";
 
-app = Flask(__name__)
+@Component({
+  selector: 'app-panther-pie-chart-demo',
+  templateUrl: './panther-pie-chart-demo.component.html',
+  styleUrls: ['./panther-pie-chart-demo.component.scss'],
+  encapsulation: ViewEncapsulation.None
+})
+export class PantherPieChartDemoComponent implements OnInit, AfterViewInit, IChart {
+  @ViewChild('pieChartDemo', { static: false }) pieChartDemoView: IChart;
 
-# Base path for the directories
-BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
+  constructor() { }
 
-# Jurisdiction shortform mapping
-JURISDICTION_SHORTFORMS = {
-    "JFSA": "na",
-    "CANADA": "canada",
-    "CFTC": "cftc",
-    "SEC": "sec",
-    "HKMA": "hkma",
-    "ESMA": "esma",
-    "HKTR": "hktr",
-    "FCA": "fca",
-    "MAS": "mas",
-    "ASIC": "asic",
+  ngOnInit(): void {
+    // Any initialization logic can go here
+  }
+
+  ngAfterViewInit(): void {
+    // Check if the chart view exists and update the chart options
+    if (this.pieChartDemoView) {
+      this.pieChartDemoView.options = DemoPieChartOptions;
+      this.pieChartDemoView.data = DemoChartData;
+      this.pieChartDemoView.id = "pieChartDemo";
+      this.pieChartDemoView.drawChart();
+    }
+  }
+
+  // Handle clicked event on the chart
+  clickedEventHandler(event: any) {
+    console.log("Chart clicked", event);
+  }
+
+  // Handle selection change event on the chart
+  selectionChangedEventHandler(event: any) {
+    console.log("Selection changed", event);
+  }
 }
-
-@app.route('/', methods=['GET'])
-def home():
-    # Change 'Co' to 'CO' here
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD']  
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
-    recon_types = ["COMP", "POS"]
-    return render_template(
-        'home.html',
-        asset_classes=asset_classes,
-        jurisdictions=jurisdictions,
-        recon_types=recon_types,
-        response="",
-        file_paths=[]
-    )
-
-@app.route('/recon', methods=['POST'])
-def recon():
-    now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    asset_class = request.form['assetClass']
-    recon_type = request.form['reconType']
-    recon_date = request.form['reconDate']
-    flow_type = request.form['flowType']
-
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-
-    if flow_type == "onereg" and 'JFSA' in jurisdictions:
-        jurisdictions.remove('JFSA')
-
-    jurisdiction_str = ",".join(jurisdictions)
-
-    try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
-    except ValueError:
-        return render_template(
-            'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD"],  # Updated here as well
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[]
-        )
-
-    try:
-        if flow_type.lower() == "onereg":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-        elif flow_type.lower() == "file":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-        else:
-            return render_template(
-                'home.html',
-                asset_classes=["FX", "IR", "EQ", "CO", "CD"],  # Updated here as well
-                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-                recon_types=["COMP", "POS"],
-                response="Invalid Flow Type",
-                file_paths=[]
-            )
-
-        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-        command_output = result.stdout.strip()
-        command_error = result.stderr.strip()
-        full_output = f"{command_output} \n{command_error}".strip()
-
-        if 'connection refused' in full_output.lower() or 'failed to connect' in full_output.lower():
-            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n','<br>'))
-        elif result.returncode == 0:
-            response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
-        else:
-            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n','<br>'))
-
-        print(f"Command Output: \n{command_output}")
-        print(f"Command Error: \n{command_error}")
-        return render_template(
-            'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD"],  # Updated here as well
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response=response,
-            file_paths=[]
-        )
-    except Exception as e:
-        print(f"Error: {e}")
-        return render_template(
-            'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD"],  # Updated here as well
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response=str(e),
-            file_paths=[]
-        )
-
-if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0',port=8129)
