@@ -4,9 +4,6 @@ import datetime
 
 app = Flask(__name__)
 
-# Base path for the directories
-BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
-
 # Jurisdiction shortform mapping
 JURISDICTION_SHORTFORMS = {
     "JFSA": "na",
@@ -37,39 +34,45 @@ def home():
 
 @app.route('/recon', methods=['POST'])
 def recon():
-    now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    asset_class = request.form['assetClass']
-    recon_type = request.form['reconType']
-    recon_date = request.form['reconDate']
-    flow_type = request.form['flowType']
-
-    # Dynamically fetch jurisdictions based on the flow type
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-
-    # Ensure jurisdictions are filtered dynamically if needed
-    if flow_type == "onereg" and 'JFSA' in jurisdictions:
-        jurisdictions.remove('JFSA')
-
-    jurisdiction_str = ",".join(jurisdictions)
-
     try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
-    except ValueError:
-        return render_template(
-            'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD"],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[]
-        )
+        # Fetch form data
+        asset_class = request.form['assetClass']
+        recon_type = request.form['reconType']
+        recon_date = request.form['reconDate']
+        flow_type = request.form['flowType']
 
-    try:
+        # Get jurisdictions dynamically
+        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+
+        # Debug input received
+        print(f"Received Inputs - Asset Class: {asset_class}, Flow Type: {flow_type}, Jurisdictions: {jurisdictions}")
+
+        # Handle specific cases for 'onereg'
+        if flow_type == "onereg" and asset_class == "CO":
+            # Ensure only allowed jurisdictions are processed
+            allowed_jurisdictions = {"JFSA", "CANADA", "CFTC"}
+            jurisdictions = [j for j in jurisdictions if j in allowed_jurisdictions]
+
+        # Debug filtered jurisdictions
+        print(f"Filtered Jurisdictions: {jurisdictions}")
+
+        jurisdiction_str = ",".join(jurisdictions)
+
+        try:
+            recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
+        except ValueError:
+            return render_template(
+                'home.html',
+                asset_classes=["FX", "IR", "EQ", "CO", "CD"],
+                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+                recon_types=["COMP", "POS"],
+                response="Invalid Date Format. Please use YYYY-MM-DD.",
+                file_paths=[]
+            )
+
+        # Build the command based on flow type
         cmd = ""
         if flow_type.lower() == "onereg":
-            # Build the command dynamically
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
@@ -83,14 +86,16 @@ def recon():
                 file_paths=[]
             )
 
+        # Debug the command to be executed
+        print(f"Generated Command: {cmd}")
+
+        # Execute the command
         result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
         command_output = result.stdout.strip()
         command_error = result.stderr.strip()
         full_output = f"{command_output} \n{command_error}".strip()
 
-        if 'connection refused' in full_output.lower() or 'failed to connect' in full_output.lower():
-            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
-        elif result.returncode == 0:
+        if result.returncode == 0:
             response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
         else:
             response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
@@ -105,14 +110,16 @@ def recon():
             response=response,
             file_paths=[]
         )
+
     except Exception as e:
+        # Capture any unexpected errors
         print(f"Error: {e}")
         return render_template(
             'home.html',
             asset_classes=["FX", "IR", "EQ", "CO", "CD"],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=["COMP", "POS"],
-            response=str(e),
+            response=f"An error occurred: {str(e)}",
             file_paths=[]
         )
 
