@@ -1,26 +1,40 @@
-#pieChartDemo {
-  width: 100%;
-  height: 100%;
-  background-color: #ffffff; // chart container background
-}
+export const DemoChartData = {
+  rows: [
+    { 'ROWID': 'A', 'TOTAL': 20 },
+    { 'ROWID': 'B', 'TOTAL': 10 },
+    { 'ROWID': 'C', 'TOTAL': 40 },
+    { 'ROWID': 'D', 'TOTAL': 30 }
+  ],
+  columnCfg: {
+    keyColumnIndex: 0,
+    keyColumnName: "ROWID",
+    columns: [
+      { 'Name': 'ROWID' },
+      { 'Name': 'TOTAL' }
+    ]
+  }
+};
 
-.panther-chart {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
-}
 
-.chart-title {
-  font-family: Arial, sans-serif;
-  color: #4089a9;
-  font-size: 16px;
-  font-weight: bold;
-}
 
-.chart-tooltip {
-  background-color: #00395d;
-  color: #ffffff;
-  font-size: 12px;
-}
+
+import { IChartOptions } from "@barclays/panther-components";
+
+export const DemoPieChartOptions: IChartOptions = {
+  type: "pie",
+  columnOrder: ['ROWID', 'TOTAL'],
+  sortKey: 'TOTAL',
+  title: 'Pie Chart',
+  colors: ['#00395d', '#7f9bad', '#990000'],
+  style: {
+    bg: '#ffffff',
+    bgBody: '#ffffff',
+    font: { color: '#4089a9', family: 'Arial' }
+  },
+  chartProperties: {
+    width: 300,
+    height: 300,
+    tooltip: true,
+    legend: true
+  }
+};
