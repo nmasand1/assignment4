@@ -23,8 +23,8 @@ JURISDICTION_SHORTFORMS = {
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD']  # Corrected "Co" to "CO"
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD']
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())
     recon_types = ["COMP", "POS"]
     return render_template(
         'home.html',
@@ -45,13 +45,10 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
+    # Dynamically fetch jurisdictions based on the flow type
     jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
-    # Ensure "CO" is properly handled for "onereg"
-    if flow_type == "onereg" and asset_class == "CO":
-        jurisdictions = ["JFSA", "CANADA", "CFTC"]  # Customize jurisdictions for "CO"
-
-    # Remove JFSA for "onereg" flow type
+    # Ensure jurisdictions are filtered dynamically if needed
     if flow_type == "onereg" and 'JFSA' in jurisdictions:
         jurisdictions.remove('JFSA')
 
@@ -70,7 +67,9 @@ def recon():
         )
 
     try:
+        cmd = ""
         if flow_type.lower() == "onereg":
+            # Build the command dynamically
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
@@ -118,4 +117,4 @@ def recon():
         )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0',port=8129)
