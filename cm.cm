@@ -1,40 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from "@angular/core";
-import { IChart, IChartOptions } from "@barclays/panther-components";
-import { DemoChartData } from "../../../assets/data/demo-chart-data";
-import { DemoPieChartOptions } from "../../../assets/data/demo-chart-options";
-
-@Component({
-  selector: 'app-panther-pie-chart-demo',
-  templateUrl: './panther-pie-chart-demo.component.html',
-  styleUrls: ['./panther-pie-chart-demo.component.scss'],
-  encapsulation: ViewEncapsulation.None
-})
-export class PantherPieChartDemoComponent implements OnInit, AfterViewInit, IChart {
-  @ViewChild('pieChartDemo', { static: false }) pieChartDemoView: IChart;
-
-  constructor() { }
-
-  ngOnInit(): void {
-    // Any initialization logic can go here
-  }
-
-  ngAfterViewInit(): void {
-    // Check if the chart view exists and update the chart options
-    if (this.pieChartDemoView) {
-      this.pieChartDemoView.options = DemoPieChartOptions;
-      this.pieChartDemoView.data = DemoChartData;
-      this.pieChartDemoView.id = "pieChartDemo";
-      this.pieChartDemoView.drawChart();
-    }
-  }
-
-  // Handle clicked event on the chart
-  clickedEventHandler(event: any) {
-    console.log("Chart clicked", event);
-  }
-
-  // Handle selection change event on the chart
-  selectionChangedEventHandler(event: any) {
-    console.log("Selection changed", event);
-  }
-}
+<panther-chart #pieChartDemo id="pieChartDemo" 
+               (onClicked)="clickedEventHandler($event)" 
+               (onSelectionChanged)="selectionChangedEventHandler($event)">
+</panther-chart>
