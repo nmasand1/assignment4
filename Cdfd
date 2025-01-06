@@ -1,94 +1,139 @@
+from flask import Flask, request, render_template
+import subprocess
+import datetime
+
+app = Flask(__name__)
+
+# Base path for the directories
+BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
+
+# Jurisdiction shortform mapping
+JURISDICTION_SHORTFORMS = {
+    "JFSA": "na",
+    "CANADA": "canada",
+    "CFTC": "cftc",
+    "SEC": "sec",
+    "HKMA": "hkma",
+    "ESMA": "esma",
+    "HKTR": "hktr",
+    "FCA": "fca",
+    "MAS": "mas",
+    "ASIC": "asic",
+}
+
+@app.route('/', methods=['GET'])
+def home():
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD']  
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    recon_types = ["COMP", "POS"]
+    return render_template(
+        'home.html',
+        asset_classes=asset_classes,
+        jurisdictions=jurisdictions,
+        recon_types=recon_types,
+        response="",
+        file_paths=[]
+    )
+
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
-    start_log = f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}"
+    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # Parse form data
     asset_class = request.form['assetClass']
-    jurisdiction = request.form['jurisdiction']
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Convert date to YYMMDD format
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+
+    # Validate jurisdictions
+    invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
+    if invalid_jurisdictions:
+        return render_template(
+            'home.html',
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            recon_types=['COMP', 'POS'],
+            response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
+            file_paths=[]
+        )
+
+    # Remove JFSA for 'onereg' flow type
+    if flow_type == "onereg" and 'JFSA' in jurisdictions:
+        jurisdictions.remove('JFSA')
+
+    # Construct jurisdiction argument string
+    jurisdiction_str = ",".join(jurisdictions)
+
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
-        return render_template_string(
-            HTML_TEMPLATE,
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-            recon_types=["COMP", "POS"],
+        return render_template(
+            'home.html',
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            recon_types=['COMP', 'POS'],
             response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[],
-            log_output="No logs available.",
-            shell_parameters="No parameters available."
+            file_paths=[]
         )
 
-    # Prepare shell command
-    shell_script = ""
-    response = ""
-    log_output = ""
     try:
         if flow_type.lower() == "onereg":
-            shell_script = (
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh "
-                f"{asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            cmd = (
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/"
+                f"loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
             )
         elif flow_type.lower() == "file":
-            shell_script = (
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh "
-                f"{asset_class} {jurisdiction} {recon_type} {recon_date_formatted}"
+            cmd = (
+                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/"
+                f"loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
             )
         else:
-            response = "Request Failed: Invalid Flow Type"
-            shell_script = "Invalid flow type provided."
-            return render_template_string(
-                HTML_TEMPLATE,
-                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-                jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-                recon_types=["COMP", "POS"],
-                response=response,
-                file_paths=[],
-                log_output="No logs available.",
-                shell_parameters=shell_script
+            return render_template(
+                'home.html',
+                asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+                recon_types=['COMP', 'POS'],
+                response="Invalid Flow Type",
+                file_paths=[]
             )
 
-        # Run the shell command
-        process_output = subprocess.check_output(shell_script, shell=True, stderr=subprocess.STDOUT)
-        log_output = process_output.decode('utf-8')
-        response = "Request Processed Successfully."
-    except subprocess.CalledProcessError as e:
-        response = f"Request Failed: {str(e)}"
-        log_output = e.output.decode('utf-8')
+        # Debugging: Print the command
+        print(f"Executing command: {cmd}")
 
-    enow = datetime.datetime.now()
-    end_log = f"Recon Automation Framework :: Recon Data Loading Ended :: {enow.strftime('%Y-%m-%d %H:%M:%S')}"
+        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+        command_output = result.stdout.strip()
+        command_error = result.stderr.strip()
+        full_output = f"{command_output} \n{command_error}".strip()
 
-    # Combine logs
-    full_log = f"{start_log}\n{log_output}\n{end_log}"
+        if 'connection refused' in full_output.lower() or 'failed to connect' in full_output.lower():
+            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
+        elif result.returncode == 0:
+            response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
+        else:
+            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
 
-    # List files in directories
-    asset_classes = ["FX", "IR", "EQ", "Co", "CD"]
-    file_paths = []
-    for asset_class in asset_classes:
-        for recon_type in ["cmp", "posval"]:
-            jurisdiction_shortform = JURISDICTION_SHORTFORMS.get(jurisdiction, "na")
-            subdir = f"dtcc_{asset_class.lower()}_{jurisdiction_shortform}_{recon_type}"
-            directory = os.path.join(BASE_DIR, asset_class, "data", subdir)
-            if os.path.exists(directory):
-                files = os.listdir(directory)
-                for file in files:
-                    relative_path = os.path.relpath(directory, BASE_DIR)
-                    file_paths.append((file, relative_path))
+        print(f"Command Output: \n{command_output}")
+        print(f"Command Error: \n{command_error}")
+        return render_template(
+            'home.html',
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            recon_types=['COMP', 'POS'],
+            response=response,
+            file_paths=[]
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        return render_template(
+            'home.html',
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            recon_types=['COMP', 'POS'],
+            response=str(e),
+            file_paths=[]
+        )
 
-    return render_template_string(
-        HTML_TEMPLATE,
-        asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-        jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA", "DSMATCH"],
-        recon_types=["COMP", "POS"],
-        response=response,
-        file_paths=file_paths,
-        log_output=full_log,
-        shell_parameters=shell_script
-    )
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8129)
