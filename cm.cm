@@ -121,3 +121,27 @@ export const DemoPieChartOptions: IChartOptions = {
     legend: true
   }
 };
+
+
+
+
+
+
+
+
+src/
+├── app/
+│   ├── panther-pie-chart-demo/
+│   │   ├── panther-pie-chart-demo.component.ts           # TypeScript component file
+│   │   ├── panther-pie-chart-demo.component.html         # HTML template file
+│   │   ├── panther-pie-chart-demo.component.scss         # SCSS styles for the component
+│   │   ├── demo-chart-options.ts                         # Pie chart options file
+│   │   └── demo-chart-data.ts                            # Pie chart data file
+│   ├── app.module.ts                                     # Angular module file (if applicable)
+├── assets/
+│   ├── data/
+│   │   ├── demo-chart-options.ts                         # Pie chart options file (if shared)
+│   │   └── demo-chart-data.ts                            # Pie chart data file (if shared)
+└── environments/
+    ├── environment.ts                                    # Environment variables
+
