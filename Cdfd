@@ -19,11 +19,14 @@ JURISDICTION_SHORTFORMS = {
     "FCA": "fca",
     "MAS": "mas",
     "ASIC": "asic",
+    "TRAXCASH": "traxcash",
+    "TRAXNONCASH": "traxnoncash",
+    "TRAXNONCASHOTC": "traxnoncashotc",
 }
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD']  
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
@@ -45,14 +48,24 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+    # Special handling for TRAX
+    if asset_class == "TRAX":
+        recon_type = "COMP"  # Force recon type to COMP
+        if flow_type == "onereg":
+            jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
+        elif flow_type == "file":
+            jurisdictions = ["TRAX"]
+        else:
+            jurisdictions = []
+    else:
+        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
     # Validate jurisdictions
     invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
     if invalid_jurisdictions:
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
@@ -71,7 +84,7 @@ def recon():
     except ValueError:
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response="Invalid Date Format. Please use YYYY-MM-DD.",
@@ -92,7 +105,7 @@ def recon():
         else:
             return render_template(
                 'home.html',
-                asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+                asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
                 jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
                 recon_types=['COMP', 'POS'],
                 response="Invalid Flow Type",
@@ -118,7 +131,7 @@ def recon():
         print(f"Command Error: \n{command_error}")
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=response,
@@ -128,7 +141,7 @@ def recon():
         print(f"Error: {e}")
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD'],
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=str(e),
