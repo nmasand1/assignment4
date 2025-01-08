@@ -101,7 +101,7 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            jurisdictions=TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=response,
             file_paths=[]
@@ -111,7 +111,7 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            jurisdictions=TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=str(e),
             file_paths=[]
