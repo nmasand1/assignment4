@@ -22,25 +22,22 @@ JURISDICTION_SHORTFORMS = {
     "ASIC": "asic",
 }
 
-# New asset class and flow type logic
-NEW_ASSET_CLASS = 'TRAX'
-NEW_FLOW_TYPE = 'onereg'
-TRAX_FLOW_OPTIONS = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']
+# Jurisdictions for TRAX specific scenario
+TRAX_JURISDICTIONS = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
 
 @app.route('/', methods=['GET'])
 def home():
-    # Add TRAX to the asset classes
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', NEW_ASSET_CLASS]
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # Default jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
         'home.html',
         asset_classes=asset_classes,
         jurisdictions=jurisdictions,
+        trax_jurisdictions=TRAX_JURISDICTIONS,  # Pass TRAX jurisdictions
         recon_types=recon_types,
         response="",
-        file_paths=[],
-        trax_flow_options=None  # Initially no options
+        file_paths=[]
     )
 
 @app.route('/recon', methods=['POST'])
@@ -53,10 +50,16 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-
-    if flow_type == "onereg" and 'JFSA' in jurisdictions:
-        jurisdictions.remove('JFSA')
+    jurisdictions = []
+    if flow_type == "onereg":
+        if asset_class == "TRAX":
+            jurisdictions = [request.form['traxJurisdiction']]  # Only TRAX-specific jurisdiction
+        else:
+            jurisdictions = request.form.getlist('jurisdiction')  # Default jurisdictions
+        if 'JFSA' in jurisdictions:
+            jurisdictions.remove('JFSA')
+    else:
+        jurisdictions = [request.form['jurisdiction']]
 
     jurisdiction_str = ",".join(jurisdictions)
 
@@ -65,43 +68,28 @@ def recon():
     except ValueError:
         return render_template(
             'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD"],  # Updated here as well
+            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            trax_jurisdictions=TRAX_JURISDICTIONS,
             recon_types=["COMP", "POS"],
             response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[],
-            trax_flow_options=None
+            file_paths=[]
         )
 
     try:
-        # Add condition for TRAX and onereg
-        if asset_class == NEW_ASSET_CLASS and flow_type == NEW_FLOW_TYPE:
-            trax_flow_option = request.form.get('traxFlowOption')
-            if trax_flow_option not in TRAX_FLOW_OPTIONS:
-                return render_template(
-                    'home.html',
-                    asset_classes=["FX", "IR", "EQ", "CO", "CD", NEW_ASSET_CLASS],
-                    jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-                    recon_types=["COMP", "POS"],
-                    response="Invalid TRAX Flow Option.",
-                    file_paths=[],
-                    trax_flow_options=TRAX_FLOW_OPTIONS
-                )
-            # Proceed with command for TRAX and flowType onereg
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted} {trax_flow_option}"
-        elif flow_type.lower() == "onereg":
+        if flow_type.lower() == "onereg":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         else:
             return render_template(
                 'home.html',
-                asset_classes=["FX", "IR", "EQ", "CO", "CD", NEW_ASSET_CLASS],
+                asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
                 jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+                trax_jurisdictions=TRAX_JURISDICTIONS,
                 recon_types=["COMP", "POS"],
                 response="Invalid Flow Type",
-                file_paths=[],
-                trax_flow_options=None
+                file_paths=[]
             )
 
         result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
@@ -120,148 +108,72 @@ def recon():
         print(f"Command Error: \n{command_error}")
         return render_template(
             'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD", NEW_ASSET_CLASS],
+            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            trax_jurisdictions=TRAX_JURISDICTIONS,
             recon_types=["COMP", "POS"],
             response=response,
-            file_paths=[],
-            trax_flow_options=None
+            file_paths=[]
         )
     except Exception as e:
         print(f"Error: {e}")
         return render_template(
             'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD", NEW_ASSET_CLASS],
+            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            trax_jurisdictions=TRAX_JURISDICTIONS,
             recon_types=["COMP", "POS"],
             response=str(e),
-            file_paths=[],
-            trax_flow_options=None
+            file_paths=[]
         )
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0',port=8129)
+    app.run(debug=True, host='0.0.0.0', port=8129)
 
 
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recon Automation Framework</title>
-    <style>
-        /* Existing styles */
-    </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const flowTypeSelect = document.getElementById("flowType");
-            const jurisdictionSelect = document.getElementById("jurisdiction");
-            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-            const traxFlowOptionSelect = document.getElementById("traxFlowOption");
 
-            flowTypeSelect.addEventListener("change", () => {
-                if (flowTypeSelect.value === "onereg") {
+
+
+<!-- Add TRAX-specific jurisdictions -->
+<div id="trax-jurisdictions" style="display: none;">
+    <label for="traxJurisdiction">TRAX Jurisdiction:</label>
+    <select id="traxJurisdiction" name="traxJurisdiction">
+        {% for trax_jurisdiction in trax_jurisdictions %}
+            <option value="{{ trax_jurisdiction }}">{{ trax_jurisdiction }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const assetClassSelect = document.getElementById("assetClass");
+        const flowTypeSelect = document.getElementById("flowType");
+        const jurisdictionSelect = document.getElementById("jurisdiction");
+        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+        const traxJurisdictionsDiv = document.getElementById("trax-jurisdictions");
+
+        const toggleJurisdictionInputs = () => {
+            if (flowTypeSelect.value === "onereg") {
+                if (assetClassSelect.value === "TRAX") {
+                    jurisdictionSelect.style.display = "none";
+                    jurisdictionCheckboxContainer.style.display = "none";
+                    traxJurisdictionsDiv.style.display = "block";
+                } else {
                     jurisdictionSelect.style.display = "none";
                     jurisdictionCheckboxContainer.style.display = "block";
-                    if (document.getElementById("assetClass").value === 'TRAX') {
-                        traxFlowOptionSelect.style.display = "block";
-                    }
-                } else {
-                    jurisdictionSelect.style.display = "block";
-                    jurisdictionCheckboxContainer.style.display = "none";
-                    traxFlowOptionSelect.style.display = "none";
+                    traxJurisdictionsDiv.style.display = "none";
                 }
-            });
+            } else {
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+                traxJurisdictionsDiv.style.display = "none";
+            }
+        };
 
-            document.getElementById("assetClass").addEventListener("change", () => {
-                if (flowTypeSelect.value === "onereg" && document.getElementById("assetClass").value === 'TRAX') {
-                    traxFlowOptionSelect.style.display = "block";
-                }
-            });
-        });
-    </script>
-</head>
-<body>
-    <h1>Recon Automation Framework</h1>
-    <form action="/recon" method="POST">
-        <!-- Asset Class Dropdown -->
-        <label for="assetClass">Asset Class: </label>
-        <select id="assetClass" name="assetClass" required>
-            {% for asset_class in asset_classes %}
-                <option value="{{ asset_class }}">{{ asset_class }}</option>
-            {% endfor %}
-        </select>
+        assetClassSelect.addEventListener("change", toggleJurisdictionInputs);
+        flowTypeSelect.addEventListener("change", toggleJurisdictionInputs);
 
-        <!-- Recon Type Dropdown -->
-        <label for="reconType">Recon Type: </label>
-        <select id="reconType" name="reconType" required>
-            {% for recon_type in recon_types %}
-                <option value="{{ recon_type }}">{{ recon_type }}</option>
-            {% endfor %}
-        </select>
-
-        <!-- Recon Date -->
-        <label for="reconDate">Recon Date: </label>
-        <input type="date" id="reconDate" name="reconDate" required>
-
-        <!-- Flow Type Dropdown -->
-        <label for="flowType">Flow Type: </label>
-        <select id="flowType" name="flowType" required>
-            <option value="file">File</option>
-            <option value="onereg">OneReg</option>
-        </select>
-
-        <!-- Jurisdiction Dropdown -->
-        <div id="jurisdiction-dropdown">
-            <label for="jurisdiction">Jurisdiction: </label>
-            <select id="jurisdiction" name="jurisdiction" required>
-                {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <!-- Jurisdiction Checkboxes -->
-        <div id="jurisdiction-checkbox-container" style="display: none;">
-            <label>Jurisdiction:</label>
-            <div class="checkbox-group">
-                {% for jurisdiction in jurisdictions %}
-                    <label>
-                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- TRAX Flow Option Dropdown (Visible only for TRAX and OneReg) -->
-        <div id="traxFlowOption" style="display: none;">
-            <label for="traxFlowOption">TRAX Flow Option: </label>
-            <select id="traxFlowOption" name="traxFlowOption" required>
-                {% for option in trax_flow_options %}
-                    <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <input type="submit" value="Submit">
-    </form>
-
-    <div class="response">
-        <h2>Response: </h2>
-        <p>{{ response|safe }}</p>
-    </div>
-
-    <div class="file-list">
-        <h2>Generated Files: </h2>
-        {% if file_paths %}
-            <ul>
-                {% for file, path in file_paths %}
-                    <li><strong>{{ file }}</strong>: <a href="/download/{{ path }}" download>{{ file }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No files generated yet.</p>
-        {% endif %}
-    </div>
-</body>
-</html>
+        toggleJurisdictionInputs(); // Initialize on page load
+    });
+</script>
