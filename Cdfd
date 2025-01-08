@@ -93,24 +93,12 @@
       <option value="onereg">OneReg</option>
     </select>
 
-    <!-- Jurisdiction Dropdown -->
+    <!-- Jurisdiction Dropdown (Initially hidden) -->
     <div id="jurisdiction-dropdown">
       <label for="jurisdiction">Jurisdiction: </label>
       <select id="jurisdiction" name="jurisdiction" required>
-        {% for jurisdiction in jurisdictions %}
-          <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-        {% endfor %}
+        <!-- Options will be populated dynamically -->
       </select>
-    </div>
-
-    <!-- Jurisdiction Checkboxes -->
-    <div id="jurisdiction-checkbox-container" style="display: none;">
-      <label>Jurisdiction:</label>
-      <div class="checkbox-group">
-        {% for jurisdiction in jurisdictions %}
-          <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}">{{ jurisdiction }}
-        {% endfor %}
-      </div>
     </div>
 
     <input type="submit" value="Submit">
@@ -139,8 +127,7 @@
       const flowTypeSelect = document.getElementById("flowType");
       const assetClassSelect = document.getElementById("assetClass");
       const jurisdictionSelect = document.getElementById("jurisdiction");
-      const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-      const checkboxGroup = document.querySelector(".checkbox-group");
+      const jurisdictionDropdown = document.getElementById("jurisdiction-dropdown");
 
       flowTypeSelect.addEventListener("change", updateJurisdictions);
       assetClassSelect.addEventListener("change", updateJurisdictions);
@@ -150,28 +137,26 @@
         const flowType = flowTypeSelect.value;
 
         if (assetClass === "TRAX" && flowType === "onereg") {
-          jurisdictionSelect.style.display = "none";
-          jurisdictionCheckboxContainer.style.display = "block";
-          const jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"];
-          checkboxGroup.innerHTML = "";
-          jurisdictions.forEach(jurisdiction => {
-            checkboxGroup.innerHTML += `<input type="checkbox" name="jurisdiction" value="${jurisdiction}" onchange="ensureAtLeastOneSelected()"> ${jurisdiction}<br>`;
-          });
+          // Show dropdown with specific options for TRAX + onereg
+          jurisdictionDropdown.style.display = "block";
+          jurisdictionSelect.innerHTML = `
+            <option value="TRAXCASH">TRAXCASH</option>
+            <option value="TRAXNONCASH">TRAXNONCASH</option>
+            <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
+          `;
+        } else if (assetClass === "TRAX" && flowType === "file") {
+          // Show dropdown with only TRAX for TRAX + file
+          jurisdictionDropdown.style.display = "block";
+          jurisdictionSelect.innerHTML = `<option value="TRAX">TRAX</option>`;
         } else {
-          jurisdictionSelect.style.display = "block";
-          jurisdictionCheckboxContainer.style.display = "none";
-          const allJurisdictions = document.querySelectorAll("#jurisdiction option");
-          allJurisdictions.forEach(option => {
-            option.style.display = "block";
-          });
+          // Show regular multiselect for other combinations
+          jurisdictionDropdown.style.display = "block";
+          jurisdictionSelect.innerHTML = `
+            <option value="Jurisdiction1">Jurisdiction1</option>
+            <option value="Jurisdiction2">Jurisdiction2</option>
+            <option value="Jurisdiction3">Jurisdiction3</option>
+          `;
         }
-      }
-
-      // Ensure at least one checkbox is selected
-      function ensureAtLeastOneSelected() {
-        const checkboxes = document.querySelectorAll("input[name='jurisdiction']:checked");
-        const submitButton = document.querySelector('input[type="submit"]');
-        submitButton.disabled = checkboxes.length === 0;
       }
 
       // Call the function to update jurisdiction dropdowns on page load
