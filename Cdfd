@@ -8,6 +8,10 @@ if flow_type.lower() == "onereg":
         # Use TRADEWEB-specific script for OneReg
         jurisdiction_str = "TRADEWEB"
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegTRADEWEB.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+    elif asset_class == "TRADEECHO":
+        # Use TRADEECHO-specific script for OneReg
+        jurisdiction_str = "TRADEECHO"
+        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegTRADEECHO.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     else:
         # Existing script for other asset classes with multiple jurisdictions
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
@@ -20,6 +24,10 @@ elif flow_type.lower() == "file":
         # Use TRADEWEB-specific script for File
         jurisdiction_str = "TRADEWEB"
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileTRADEWEB.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+    elif asset_class == "TRADEECHO":
+        # Use TRADEECHO-specific script for File
+        jurisdiction_str = "TRADEECHO"
+        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileTRADEECHO.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     else:
         # Existing script for other asset classes
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
@@ -28,14 +36,12 @@ else:
     # Handle invalid flow type
     return render_template(
         'home.html',
-        asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX", "TRADEWEB"],  # Ensure TRADEWEB is included in asset_classes
+        asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX", "TRADEWEB", "TRADEECHO"],  # Ensure TRADEECHO is included in asset_classes
         jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
         recon_types=["COMP", "POS"],
         response="Invalid Flow Type",
         file_paths=[]
     )
-
-
 
 
 
@@ -50,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
     const assetClassSelect = document.getElementById("assetClass");
 
-    // Default jurisdictions for non-TRAX and non-TRADEWEB asset classes
+    // Default jurisdictions for non-TRAX, non-TRADEWEB, and non-TRADEECHO asset classes
     const defaultJurisdictions = `
         <option value="JFSA">JFSA</option>
         <option value="CANADA">CANADA</option>
@@ -86,6 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 jurisdictionSelect.style.display = "block";
                 jurisdictionCheckboxContainer.style.display = "none";
+            } else if (selectedAssetClass === "TRADEECHO") {
+                // TRADEECHO-specific jurisdiction for "OneReg"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRADEECHO">TRADEECHO</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
             } else {
                 // For other asset classes, multiple jurisdictions
                 jurisdictionSelect.style.display = "none";
@@ -103,6 +116,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 // TRADEWEB-specific jurisdiction for "File"
                 jurisdictionSelect.innerHTML = `
                     <option value="TRADEWEB">TRADEWEB</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else if (selectedAssetClass === "TRADEECHO") {
+                // TRADEECHO-specific jurisdiction for "File"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRADEECHO">TRADEECHO</option>
                 `;
                 jurisdictionSelect.style.display = "block";
                 jurisdictionCheckboxContainer.style.display = "none";
