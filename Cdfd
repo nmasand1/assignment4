@@ -65,6 +65,9 @@
             font-size: 16px;
             color: #333;
         }
+        .checkbox-group input {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -95,12 +98,14 @@
         <option value="onereg">OneReg</option>
     </select>
 
-    <!-- Jurisdiction Checkboxes -->
-    <div id="jurisdiction-checkbox-container" style="display: none;">
-        <label>Jurisdiction: </label>
-        <div class="checkbox-group">
+    <!-- Jurisdiction Dropdown -->
+    <div id="jurisdiction-dropdown">
+        <label for="jurisdiction">Jurisdiction: </label>
+        <div class="checkbox-group" id="jurisdiction-checkbox-container">
             {% for jurisdiction in jurisdictions %}
-                <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}<br>
+                <label>
+                    <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
+                </label><br>
             {% endfor %}
         </div>
     </div>
@@ -138,10 +143,25 @@
 
             if (flowType === "onereg" && selectedAssetClass === "TRAX") {
                 jurisdictionCheckboxContainer.style.display = "block";
+                // Update jurisdiction checkboxes for TRAX specific values
+                jurisdictionCheckboxContainer.innerHTML = `
+                    <label><input type="checkbox" name="jurisdiction" value="TRAXCASH"> TRAXCASH</label><br>
+                    <label><input type="checkbox" name="jurisdiction" value="TRAXNONCASH"> TRAXNONCASH</label><br>
+                    <label><input type="checkbox" name="jurisdiction" value="TRAXNONCASHOTC"> TRAXNONCASHOTC</label><br>
+                `;
             } else if (flowType === "file" && selectedAssetClass === "TRAX") {
-                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "block";
+                jurisdictionCheckboxContainer.innerHTML = `
+                    <label><input type="checkbox" name="jurisdiction" value="TRAX"> TRAX</label><br>
+                `;
             } else {
                 jurisdictionCheckboxContainer.style.display = "block";
+                // Reset jurisdiction checkboxes for other cases
+                jurisdictionCheckboxContainer.innerHTML = `
+                    {% for jurisdiction in jurisdictions %}
+                        <label><input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}</label><br>
+                    {% endfor %}
+                `;
             }
         });
 
@@ -151,8 +171,16 @@
 
             if (selectedAssetClass === "TRAX" && flowType === "onereg") {
                 jurisdictionCheckboxContainer.style.display = "block";
+                jurisdictionCheckboxContainer.innerHTML = `
+                    <label><input type="checkbox" name="jurisdiction" value="TRAXCASH"> TRAXCASH</label><br>
+                    <label><input type="checkbox" name="jurisdiction" value="TRAXNONCASH"> TRAXNONCASH</label><br>
+                    <label><input type="checkbox" name="jurisdiction" value="TRAXNONCASHOTC"> TRAXNONCASHOTC</label><br>
+                `;
             } else if (selectedAssetClass === "TRAX" && flowType === "file") {
-                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "block";
+                jurisdictionCheckboxContainer.innerHTML = `
+                    <label><input type="checkbox" name="jurisdiction" value="TRAX"> TRAX</label><br>
+                `;
             } else {
                 jurisdictionCheckboxContainer.style.display = "block";
             }
