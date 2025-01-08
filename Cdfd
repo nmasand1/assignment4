@@ -1,7 +1,7 @@
 @app.route('/', methods=['GET'])
 def home():
     # Change 'Co' to 'CO' here
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX asset class
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
@@ -23,16 +23,7 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Jurisdiction handling based on asset_class and flow_type
-    if asset_class == 'TRAX':
-        if flow_type == 'file':
-            jurisdictions = ['TRAX']  # Only TRAX jurisdiction available
-        elif flow_type == 'onereg':
-            jurisdictions = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']  # Specific TRAX jurisdictions for onereg
-        else:
-            jurisdictions = []  # No valid jurisdiction for other flow types
-    else:
-        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
     if flow_type == "onereg" and 'JFSA' in jurisdictions:
         jurisdictions.remove('JFSA')
@@ -53,8 +44,16 @@ def recon():
 
     try:
         if flow_type.lower() == "onereg":
+            if asset_class == "TRAX":
+                # For TRAX and onereg, only TRAXCASH, TRAXNONCASH, TRAXNONCASHOTC available
+                jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
+                jurisdiction_str = ",".join(jurisdictions)
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         elif flow_type.lower() == "file":
+            if asset_class == "TRAX":
+                # For TRAX and file, only TRAX jurisdiction available
+                jurisdictions = ["TRAX"]
+                jurisdiction_str = ",".join(jurisdictions)
             cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
         else:
             return render_template(
@@ -98,40 +97,3 @@ def recon():
             response=str(e),
             file_paths=[]
         )
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const flowTypeSelect = document.getElementById("flowType");
-        const assetClassSelect = document.getElementById("assetClass");
-        const jurisdictionSelect = document.getElementById("jurisdiction");
-        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-        const jurisdictionDropdown = document.getElementById("jurisdiction-dropdown");
-
-        function updateJurisdictionOptions() {
-            const assetClass = assetClassSelect.value;
-            const flowType = flowTypeSelect.value;
-
-            if (assetClass === "TRAX" && flowType === "file") {
-                jurisdictionSelect.innerHTML = '<option value="TRAX">TRAX</option>';
-                jurisdictionDropdown.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
-            } else if (assetClass === "TRAX" && flowType === "onereg") {
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAXCASH">TRAXCASH</option>
-                    <option value="TRAXNONCASH">TRAXNONCASH</option>
-                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-                `;
-                jurisdictionDropdown.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
-            } else {
-                jurisdictionDropdown.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
-            }
-        }
-
-        flowTypeSelect.addEventListener("change", updateJurisdictionOptions);
-        assetClassSelect.addEventListener("change", updateJurisdictionOptions);
-        updateJurisdictionOptions();  // Initialize on page load
-    });
-</script>
