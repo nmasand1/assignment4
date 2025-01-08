@@ -4,10 +4,8 @@ import datetime
 
 app = Flask(__name__)
 
-# Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
-# Jurisdiction shortform mapping
 JURISDICTION_SHORTFORMS = {
     "JFSA": "na",
     "CANADA": "canada",
@@ -19,6 +17,7 @@ JURISDICTION_SHORTFORMS = {
     "FCA": "fca",
     "MAS": "mas",
     "ASIC": "asic",
+    "TRAX": "trax",
     "TRAXCASH": "traxcash",
     "TRAXNONCASH": "traxnoncash",
     "TRAXNONCASHOTC": "traxnoncashotc",
@@ -26,7 +25,7 @@ JURISDICTION_SHORTFORMS = {
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Include TRAX
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())
     recon_types = ["COMP", "POS"]
     return render_template(
@@ -35,6 +34,7 @@ def home():
         jurisdictions=jurisdictions,
         recon_types=recon_types,
         response="",
+        file_paths=[]
     )
 
 @app.route('/recon', methods=['POST'])
@@ -47,17 +47,15 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    if asset_class == "TRAX":
-        if flow_type == "file":
-            jurisdictions = ["TRAX"]  # Only TRAX jurisdiction
-        elif flow_type == "onereg":
-            jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
-        else:
-            jurisdictions = request.form.getlist('jurisdiction')
+    if asset_class == "TRAX" and flow_type == "file" and recon_type == "COMP":
+        jurisdictions = ["TRAX"]  # Only TRAX jurisdiction allowed
+    elif asset_class == "TRAX" and flow_type == "onereg":
+        jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
+        multiselect_allowed = False
     else:
         jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+        multiselect_allowed = True
 
-    # Validate jurisdictions
     invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
     if invalid_jurisdictions:
         return render_template(
@@ -66,9 +64,9 @@ def recon():
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
+            file_paths=[]
         )
 
-    # Construct jurisdiction argument string
     jurisdiction_str = ",".join(jurisdictions)
 
     try:
@@ -80,6 +78,7 @@ def recon():
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response="Invalid Date Format. Please use YYYY-MM-DD.",
+            file_paths=[]
         )
 
     try:
@@ -100,15 +99,12 @@ def recon():
                 jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
                 recon_types=['COMP', 'POS'],
                 response="Invalid Flow Type",
+                file_paths=[]
             )
 
-        # Debugging: Print the command
         print(f"Executing command: {cmd}")
-
         result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-        command_output = result.stdout.strip()
-        command_error = result.stderr.strip()
-        full_output = f"{command_output} \n{command_error}".strip()
+        full_output = f"{result.stdout.strip()} \n{result.stderr.strip()}".strip()
 
         if result.returncode == 0:
             response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
@@ -121,6 +117,7 @@ def recon():
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=response,
+            file_paths=[]
         )
     except Exception as e:
         print(f"Error: {e}")
@@ -130,6 +127,7 @@ def recon():
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=str(e),
+            file_paths=[]
         )
 
 if __name__ == '__main__':
@@ -137,96 +135,185 @@ if __name__ == '__main__':
 
 
 
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recon Automation Framework</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #4CAF50;
-        }
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 6px;
-            color: #333;
-        }
-        select, input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-        .response {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #fff;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 20px auto;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recon Automation Framework</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+    }
+    h2 {
+      color: #333;
+    }
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+      color: #333;
+    }
+    select, input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .response, .file-list {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .file-list ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .file-list li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    .file-list li a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    .file-list li a:hover {
+      text-decoration: underline;
+    }
+    .response p {
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
-    <h1>Recon Automation Framework</h1>
-    <form action="/recon" method="POST">
-        <label for="assetClass">Asset Class:</label>
-        <select id="assetClass" name="assetClass" required>
-            {% for asset_class in asset_classes %}
-            <option value="{{ asset_class }}">{{ asset_class }}</option>
-            {% endfor %}
-        </select>
+  <h1>Recon Automation Framework</h1>
+  <form action="/recon" method="POST">
+    <label for="assetClass">Asset Class: </label>
+    <select id="assetClass" name="assetClass" required>
+      {% for asset_class in asset_classes %}
+        <option value="{{ asset_class }}">{{ asset_class }}</option>
+      {% endfor %}
+    </select>
 
-        <label for="reconType">Recon Type:</label>
-        <select id="reconType" name="reconType" required>
-            {% for recon_type in recon_types %}
-            <option value="{{ recon_type }}">{{ recon_type }}</option>
-            {% endfor %}
-        </select>
+    <label for="reconType">Recon Type: </label>
+    <select id="reconType" name="reconType" required>
+      {% for recon_type in recon_types %}
+        <option value="{{ recon_type }}">{{ recon_type }}</option>
+      {% endfor %}
+    </select>
 
-        <label for="reconDate">Recon Date:</label>
-        <input type="date" id="reconDate" name="reconDate" required>
+    <label for="reconDate">Recon Date: </label>
+    <input type="date" id="reconDate" name="reconDate" required>
 
-        <label for="flowType">Flow Type:</label>
-        <select id="flowType" name="flowType" required>
-            <option value="file">File</option>
-            <option value="onereg">OneReg</option>
-        </select>
+    <label for="flowType">Flow Type: </label>
+    <select id="flowType" name="flowType" required>
+      <option value="file">File</option>
+      <option value="onereg">OneReg</option>
+    </select>
 
-        <label for="jurisdiction">Jurisdiction:</label>
-        <select id="jurisdiction" name="jurisdiction" required>
-            {% for jurisdiction in jurisdictions %}
-            <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-            {% endfor %}
-        </select>
-
-        <button type="submit">Submit</button>
-    </form>
-
-    <div class="response">
-        <p>{{ response }}</p>
+    <!-- Jurisdiction Dropdown -->
+    <div id="jurisdiction-dropdown">
+      <label for="jurisdiction">Jurisdiction: </label>
+      <select id="jurisdiction" name="jurisdiction" required>
+        {% for jurisdiction in jurisdictions %}
+          <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+        {% endfor %}
+      </select>
     </div>
+
+    <!-- Jurisdiction Checkboxes -->
+    <div id="jurisdiction-checkbox-container" style="display: none;">
+      <label>Jurisdiction:</label>
+      <div class="checkbox-group">
+        {% for jurisdiction in jurisdictions %}
+          <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}">{{ jurisdiction }}
+        {% endfor %}
+      </div>
+    </div>
+
+    <input type="submit" value="Submit">
+  </form>
+
+  <div class="response">
+    <h2>Response: </h2>
+    <p>{{ response | safe }}</p>
+  </div>
+
+  <div class="file-list">
+    <h2>Generated Files: </h2>
+    {% if file_paths %}
+      <ul>
+        {% for file, path in file_paths %}
+          <li><strong>{{ file }}</strong>: <a href="/download/{{ path }}" download>{{ file }}</a></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No files generated yet.</p>
+    {% endif %}
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const flowTypeSelect = document.getElementById("flowType");
+      const jurisdictionSelect = document.getElementById("jurisdiction");
+      const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+
+      flowTypeSelect.addEventListener("change", () => {
+        const assetClass = document.getElementById("assetClass").value;
+
+        if (assetClass === "TRAX") {
+          if (flowTypeSelect.value === "file") {
+            jurisdictionSelect.style.display = "block";
+            jurisdictionCheckboxContainer.style.display = "none";
+            // Remove all jurisdictions except TRAX
+            const allJurisdictions = document.querySelectorAll("#jurisdiction option");
+            allJurisdictions.forEach(option => {
+              option.style.display = (option.value === "TRAX") ? "block" : "none";
+            });
+          } else if (flowTypeSelect.value === "onereg") {
+            jurisdictionSelect.style.display = "none";
+            jurisdictionCheckboxContainer.style.display = "block";
+            // Only show specific TRAX jurisdictions
+            const jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"];
+            const checkboxGroup = document.querySelector(".checkbox-group");
+            checkboxGroup.innerHTML = "";
+            jurisdictions.forEach(jurisdiction => {
+              checkboxGroup.innerHTML += `<input type="checkbox" name="jurisdiction" value="${jurisdiction}">${jurisdiction}`;
+            });
+          }
+        } else {
+          jurisdictionSelect.style.display = "block";
+          jurisdictionCheckboxContainer.style.display = "none";
+          // Reset jurisdiction dropdown
+          const allJurisdictions = document.querySelectorAll("#jurisdiction option");
+          allJurisdictions.forEach(option => {
+            option.style.display = "block";
+          });
+        }
+      });
+    });
+  </script>
 </body>
 </html>
+
+
 
