@@ -26,7 +26,7 @@ JURISDICTION_SHORTFORMS = {
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Add TRAX to the list
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
@@ -48,17 +48,15 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Special handling for TRAX
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+
+    # Special case for TRAX
     if asset_class == "TRAX":
         recon_type = "COMP"  # Force recon type to COMP
         if flow_type == "onereg":
-            jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
+            jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]  # Restrict jurisdictions for TRAX
         elif flow_type == "file":
-            jurisdictions = ["TRAX"]
-        else:
-            jurisdictions = []
-    else:
-        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+            jurisdictions = ["TRAX"]  # Single jurisdiction for file flow
 
     # Validate jurisdictions
     invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
@@ -71,10 +69,6 @@ def recon():
             response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
             file_paths=[]
         )
-
-    # Remove JFSA for 'onereg' flow type
-    if flow_type == "onereg" and 'JFSA' in jurisdictions:
-        jurisdictions.remove('JFSA')
 
     # Construct jurisdiction argument string
     jurisdiction_str = ",".join(jurisdictions)
