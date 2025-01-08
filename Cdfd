@@ -66,41 +66,23 @@
             color: #333;
         }
 
-        /* Style for the multiselect dropdown */
-        #jurisdiction {
-            height: 150px;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
+        /* Style for the checkbox container */
+        .checkbox-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-container label {
+            width: 50%;
+            padding: 5px;
             font-size: 14px;
-            background-color: #fff;
-            color: #333;
-            box-sizing: border-box;
-            overflow: auto;
+            margin: 5px 0;
         }
 
-        #jurisdiction option {
-            padding: 8px;
-            background-color: #f9f9f9;
-            margin: 2px 0;
-            border-radius: 5px;
-        }
-
-        #jurisdiction option:checked {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        /* Style for checkboxes when displayed */
-        .checkbox-group input[type="checkbox"] {
+        .checkbox-container input[type="checkbox"] {
             margin-right: 10px;
         }
 
-        .checkbox-group label {
-            font-size: 14px;
-            margin-bottom: 10px;
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -131,24 +113,16 @@
         <option value="onereg">OneReg</option>
     </select>
 
-    <!-- Jurisdiction Dropdown -->
-    <div id="jurisdiction-dropdown">
-        <label for="jurisdiction">Jurisdiction: </label>
-        <select id="jurisdiction" name="jurisdiction" required multiple>
+    <!-- Jurisdiction Checkboxes for multiselect -->
+    <div id="jurisdiction-checkbox-container">
+        <label>Jurisdiction: </label>
+        <div class="checkbox-container">
             {% for jurisdiction in jurisdictions %}
                 {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                    <label>
+                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
+                    </label>
                 {% endif %}
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Jurisdiction Checkboxes -->
-    <div id="jurisdiction-checkbox-container" style="display: none;">
-        <label>Jurisdiction: </label>
-        <div class="checkbox-group">
-            {% for jurisdiction in jurisdictions %}
-                <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}<br>
             {% endfor %}
         </div>
     </div>
@@ -177,8 +151,6 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const flowTypeSelect = document.getElementById("flowType");
-        const jurisdictionSelect = document.getElementById("jurisdiction");
-        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
         const assetClassSelect = document.getElementById("assetClass");
 
         flowTypeSelect.addEventListener("change", () => {
@@ -186,30 +158,14 @@
             const selectedAssetClass = assetClassSelect.value;
 
             if (flowType === "onereg" && selectedAssetClass === "TRAX") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAXCASH">TRAXCASH</option>
-                    <option value="TRAXNONCASH">TRAXNONCASH</option>
-                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-                `;
+                // Show checkboxes for jurisdiction
+                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
             } else if (flowType === "file" && selectedAssetClass === "TRAX") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAX">TRAX</option>
-                `;
+                // Show checkboxes for jurisdiction
+                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
             } else {
-                jurisdictionSelect.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.setAttribute("multiple", "multiple");
-                jurisdictionSelect.innerHTML = `
-                    {% for jurisdiction in jurisdictions %}
-                        {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
-                            <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                        {% endif %}
-                    {% endfor %}
-                `;
+                // Show checkboxes for jurisdiction
+                document.getElementById("jurisdiction-checkbox-container").style.display = "none";
             }
         });
 
@@ -218,22 +174,11 @@
             const selectedAssetClass = assetClassSelect.value;
 
             if (selectedAssetClass === "TRAX" && flowType === "onereg") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAXCASH">TRAXCASH</option>
-                    <option value="TRAXNONCASH">TRAXNONCASH</option>
-                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-                `;
+                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
             } else if (selectedAssetClass === "TRAX" && flowType === "file") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAX">TRAX</option>
-                `;
+                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
             } else {
-                jurisdictionSelect.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
+                document.getElementById("jurisdiction-checkbox-container").style.display = "none";
             }
         });
     });
