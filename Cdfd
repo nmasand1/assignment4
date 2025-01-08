@@ -35,7 +35,8 @@ def home():
         jurisdictions=jurisdictions,
         recon_types=recon_types,
         response="",
-        file_paths=[]
+        file_paths=[],
+        single_select=False  # Default is multi-select
     )
 
 @app.route('/recon', methods=['POST'])
@@ -53,16 +54,18 @@ def recon():
         if flow_type == "file" and recon_type == "COMP":
             jurisdictions = ["TRAX"]  # Only TRAX available
         elif flow_type == "onereg":
-            jurisdictions = [request.form['jurisdiction']]  # Single select dropdown for TRAX jurisdictions
-            if jurisdictions[0] not in TRAX_JURISDICTIONS:
+            jurisdictions = TRAX_JURISDICTIONS  # Only TRAX jurisdictions, as single-select
+            if request.form['jurisdiction'] not in jurisdictions:
                 return render_template(
                     'home.html',
                     asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
                     jurisdictions=TRAX_JURISDICTIONS,
                     recon_types=['COMP', 'POS'],
                     response="Please select a valid TRAX jurisdiction.",
-                    file_paths=[]
+                    file_paths=[],
+                    single_select=True  # Single-select for TRAX jurisdictions
                 )
+            jurisdictions = [request.form['jurisdiction']]
         else:
             jurisdictions = [request.form['jurisdiction']]
     else:
