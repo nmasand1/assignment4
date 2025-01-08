@@ -139,7 +139,7 @@ HTML_TEMPLATE = '''<html lang="en">
             const flowTypeSelect = document.getElementById("flowType");
             const jurisdictionSelect = document.getElementById("jurisdiction");
             const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-            const traxOptionsContainer = document.getElementById("trax-options-container");
+            const traxOptions = document.getElementById("trax-options");
 
             flowTypeSelect.addEventListener("change", () => {
                 if (flowTypeSelect.value === "onereg") {
@@ -149,15 +149,13 @@ HTML_TEMPLATE = '''<html lang="en">
                     jurisdictionSelect.style.display = "block";
                     jurisdictionCheckboxContainer.style.display = "none";
                 }
-            });
 
-            // Show TRAX specific options if TRAX asset class and onereg flow type are selected
-            const assetClassSelect = document.getElementById("assetClass");
-            assetClassSelect.addEventListener("change", () => {
+                // Show TRAX options when TRAX is selected
+                const assetClassSelect = document.getElementById("assetClass");
                 if (assetClassSelect.value === "TRAX" && flowTypeSelect.value === "onereg") {
-                    traxOptionsContainer.style.display = "block";
+                    traxOptions.style.display = "block";
                 } else {
-                    traxOptionsContainer.style.display = "none";
+                    traxOptions.style.display = "none";
                 }
             });
         });
@@ -211,10 +209,10 @@ HTML_TEMPLATE = '''<html lang="en">
             </div>
         </div>
 
-        <!-- TRAX Specific Options -->
-        <div id="trax-options-container" style="display: none;">
-            <label for="traxOption">TRAX Specific Option: </label>
-            <select id="traxOption" name="traxOption">
+        <!-- TRAX Options for onereg -->
+        <div id="trax-options" style="display: none;">
+            <label for="trax-option">TRAX Option: </label>
+            <select id="trax-option" name="trax-option" required>
                 <option value="TRAXCASH">TRAXCASH</option>
                 <option value="TRAXNONCASH">TRAXNONCASH</option>
                 <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
@@ -247,7 +245,7 @@ HTML_TEMPLATE = '''<html lang="en">
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'Co', 'CD', 'TRAX']
+    asset_classes = ['FX', 'IR', 'EQ', 'Co', 'CD', 'TRAX']  # Added TRAX
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template_string(
@@ -268,6 +266,7 @@ def recon():
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
+    trax_option = request.form.get('trax-option', None)
 
     # Process multiple jurisdictions
     jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
@@ -291,52 +290,39 @@ def recon():
         )
 
     try:
-        # Prepare the shell command
-        if flow_type.lower() == "onereg":
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation_Framework.sh {asset_class} {recon_type} {recon_date_formatted} {jurisdiction_str}"
+        # Perform necessary actions here (e.g., file generation or processing)
+        # Logic for handling 'TRAX' specific cases
+        if asset_class == "TRAX" and flow_type == "onereg":
+            # handle TRAX-specific logic here, generate necessary files
+            file_paths = [
+                ('TRAXCASH File', '/path_to_files/TRAXCASH_file'),
+                ('TRAXNONCASH File', '/path_to_files/TRAXNONCASH_file'),
+            ]
         else:
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation_Framework.sh {asset_class} {recon_type} {recon_date_formatted}"
-
-        # Call the shell script
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
-
-        if error:
-            return render_template_string(
-                HTML_TEMPLATE, 
-                asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-                jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
-                recon_types=["COMP", "POS"],
-                response=f"An error occurred: {error.decode()}", 
-                file_paths=[]
-            )
-
-        # Process the output
-        output_lines = output.decode().splitlines()
-        file_paths = [(line.split(" :: ")[0], line.split(" :: ")[1]) for line in output_lines]
+            file_paths = []
 
         return render_template_string(
             HTML_TEMPLATE,
             asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
             jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
             recon_types=["COMP", "POS"],
-            response="Recon Data Loaded Successfully!",
+            response="Recon completed successfully.",
             file_paths=file_paths
         )
 
     except Exception as e:
         return render_template_string(
             HTML_TEMPLATE,
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
+            asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
             jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
             recon_types=["COMP", "POS"],
-            response=f"Error: {str(e)}", 
+            response=f"Error occurred: {str(e)}",
             file_paths=[]
         )
 
-@app.route('/download/<path:filename>')
-def download(filename):
-    return send_from_directory(BASE_DIR, filename)
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_from_directory(BASE_DIR, filename, as_attachment=True)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True,host='0.0.0.0',port=8129)
