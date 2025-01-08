@@ -66,36 +66,24 @@
             color: #333;
         }
 
-        /* Enhanced Multiselect dropdown styles */
+        /* Style for the multiselect dropdown */
         #jurisdiction {
             height: auto;
             padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            border-radius: 5px;
+            border: 1px solid #ddd;
             font-size: 14px;
             background-color: #fff;
             color: #333;
             box-sizing: border-box;
             overflow: auto;
-            transition: border-color 0.3s ease;
-            width: 100%;
-        }
-
-        #jurisdiction:focus {
-            border-color: #4CAF50;
-            outline: none;
         }
 
         #jurisdiction option {
-            padding: 10px;
+            padding: 8px;
             background-color: #f9f9f9;
             margin: 2px 0;
             border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        #jurisdiction option:hover {
-            background-color: #e0e0e0;
         }
 
         #jurisdiction option:checked {
@@ -103,31 +91,64 @@
             color: white;
         }
 
-        /* Improve look of checkboxes in the multiselect */
-        .checkbox-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px;
-        }
-
-        .checkbox-container input[type="checkbox"] {
+        /* Style for checkboxes when displayed */
+        .checkbox-group input[type="checkbox"] {
             margin-right: 10px;
         }
 
-        .checkbox-container label {
+        .checkbox-group label {
             font-size: 14px;
             margin-bottom: 10px;
+            display: block;
         }
 
-        /* Style for the select field label */
-        .jurisdiction-label {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
+        /* Custom Style for a Multiselect Dropdown with Checkboxes */
+        .multiselect-checkbox-dropdown {
+            display: inline-block;
+            position: relative;
         }
 
+        .multiselect-checkbox-dropdown select {
+            display: none;
+        }
+
+        .multiselect-checkbox-dropdown button {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: left;
+        }
+
+        .multiselect-checkbox-dropdown .checkbox-list {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .multiselect-checkbox-dropdown.open .checkbox-list {
+            display: block;
+        }
+
+        .multiselect-checkbox-dropdown .checkbox-list label {
+            display: block;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .multiselect-checkbox-dropdown .checkbox-list input[type="checkbox"] {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -158,18 +179,11 @@
         <option value="onereg">OneReg</option>
     </select>
 
-    <!-- Jurisdiction Dropdown with checkboxes -->
-    <div id="jurisdiction-dropdown">
-        <label class="jurisdiction-label" for="jurisdiction">Jurisdiction: </label>
-        
-        <select id="jurisdiction" name="jurisdiction" required multiple>
-            {% for jurisdiction in jurisdictions %}
-                {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-        <div class="checkbox-container">
+    <!-- Custom Multiselect Dropdown -->
+    <div class="multiselect-checkbox-dropdown">
+        <label for="jurisdiction">Jurisdiction: </label>
+        <button type="button" id="jurisdictionButton">Select Jurisdictions</button>
+        <div class="checkbox-list">
             {% for jurisdiction in jurisdictions %}
                 {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
                     <label>
@@ -178,6 +192,13 @@
                 {% endif %}
             {% endfor %}
         </div>
+        <select id="jurisdiction" name="jurisdiction" required multiple style="display: none;">
+            {% for jurisdiction in jurisdictions %}
+                {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
+                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
     </div>
 
     <input type="submit" value="Submit">
@@ -203,64 +224,18 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const flowTypeSelect = document.getElementById("flowType");
-        const jurisdictionSelect = document.getElementById("jurisdiction");
-        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-dropdown");
-        const assetClassSelect = document.getElementById("assetClass");
+        const jurisdictionButton = document.getElementById("jurisdictionButton");
+        const checkboxList = document.querySelector(".checkbox-list");
+        const multiselectDropdown = document.querySelector(".multiselect-checkbox-dropdown");
 
-        flowTypeSelect.addEventListener("change", () => {
-            const flowType = flowTypeSelect.value;
-            const selectedAssetClass = assetClassSelect.value;
-
-            if (flowType === "onereg" && selectedAssetClass === "TRAX") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAXCASH">TRAXCASH</option>
-                    <option value="TRAXNONCASH">TRAXNONCASH</option>
-                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-                `;
-            } else if (flowType === "file" && selectedAssetClass === "TRAX") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAX">TRAX</option>
-                `;
-            } else {
-                jurisdictionSelect.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "block";
-                jurisdictionSelect.setAttribute("multiple", "multiple");
-                jurisdictionSelect.innerHTML = `
-                    {% for jurisdiction in jurisdictions %}
-                        {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
-                            <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                        {% endif %}
-                    {% endfor %}
-                `;
-            }
+        jurisdictionButton.addEventListener("click", () => {
+            multiselectDropdown.classList.toggle("open");
         });
 
-        assetClassSelect.addEventListener("change", () => {
-            const flowType = flowTypeSelect.value;
-            const selectedAssetClass = assetClassSelect.value;
-
-            if (selectedAssetClass === "TRAX" && flowType === "onereg") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAXCASH">TRAXCASH</option>
-                    <option value="TRAXNONCASH">TRAXNONCASH</option>
-                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-                `;
-            } else if (selectedAssetClass === "TRAX" && flowType === "file") {
-                jurisdictionCheckboxContainer.style.display = "none";
-                jurisdictionSelect.style.display = "block";
-                jurisdictionSelect.innerHTML = `
-                    <option value="TRAX">TRAX</option>
-                `;
-            } else {
-                jurisdictionSelect.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "block";
+        // Close the multiselect dropdown if clicked outside
+        document.addEventListener("click", (event) => {
+            if (!multiselectDropdown.contains(event.target)) {
+                multiselectDropdown.classList.remove("open");
             }
         });
     });
