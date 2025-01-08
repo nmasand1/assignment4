@@ -55,6 +55,15 @@ def recon():
         elif flow_type == "onereg":
             jurisdictions = request.form.getlist('jurisdiction')
             jurisdictions = [j for j in jurisdictions if j in TRAX_JURISDICTIONS]
+            if not jurisdictions:
+                return render_template(
+                    'home.html',
+                    asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
+                    jurisdictions=TRAX_JURISDICTIONS,
+                    recon_types=['COMP', 'POS'],
+                    response="Please select a valid TRAX jurisdiction.",
+                    file_paths=[]
+                )
             if len(jurisdictions) > 1:
                 return render_template(
                     'home.html',
