@@ -238,6 +238,8 @@ HTML_TEMPLATE = '''<html lang="en">
 
     <div class="output">
         <h2>Command Output: </h2>
+        <pre>{{ command|safe }}</pre>
+        <h2>Execution Output: </h2>
         <pre>{{ command_output|safe }}</pre>
     </div>
 
@@ -269,7 +271,8 @@ def home():
         recon_types=recon_types,
         response="", 
         file_paths=[],
-        command_output=""
+        command_output="",
+        command=""
     )
 
 @app.route('/recon', methods=['POST'])
@@ -281,35 +284,19 @@ def recon():
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
-    trax_option = request.form.get('trax-option', None)
+    trax_option = request.form.get('trax-option')
+    jurisdiction = request.form.getlist('jurisdiction')  # For checkboxes
 
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-
-    if flow_type == "onereg" and 'JFSA' in jurisdictions:
-        jurisdictions.remove('JFSA')
-
-    jurisdiction_str = ",".join(jurisdictions)
-
-    try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
-    except ValueError:
-        return render_template_string(
-            HTML_TEMPLATE, 
-            asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
-            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
-            recon_types=["COMP", "POS"],
-            response="Error: Invalid Date format. Please use yyyy-mm-dd.", 
-            file_paths=[],
-            command_output=""
-        )
-
+    # Construct the command
+    command = f'sh recon_script.sh {asset_class} {recon_type} {recon_date} {flow_type} ' + ' '.join(jurisdiction)
+    
     # Capture the shell command output
-    command = f'echo "Recon started for {asset_class} with type {recon_type} on {recon_date}"'
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
     command_output = stdout.decode('utf-8') + "\n" + stderr.decode('utf-8')
 
+    print(f"Command: {command}")
     print(f"Command Output: {command_output}")
 
     # Perform necessary actions here (e.g., file generation or processing)
@@ -328,6 +315,7 @@ def recon():
         recon_types=["COMP", "POS"],
         response="Recon completed successfully.",
         file_paths=file_paths,
+        command=command,
         command_output=command_output
     )
 
@@ -336,4 +324,4 @@ def download_file(filename):
     return send_from_directory(BASE_DIR, filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0',port=8129)
