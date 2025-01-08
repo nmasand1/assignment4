@@ -26,11 +26,11 @@ JURISDICTION_SHORTFORMS = {
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX to asset classes
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
-        'home.html',
+        'home_1.html',
         asset_classes=asset_classes,
         jurisdictions=jurisdictions,
         recon_types=recon_types,
@@ -48,28 +48,32 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Handle TRAX-specific behavior
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+
+    # If TRAX is selected as asset class
     if asset_class == 'TRAX':
         if flow_type == 'file':
-            jurisdictions = ['TRAX']  # Only TRAX jurisdiction
+            # Only TRAX jurisdiction should be available
+            jurisdictions = ['TRAX']
         elif flow_type == 'onereg':
-            jurisdictions = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']  # Specific jurisdictions for onereg
-        else:
-            jurisdictions = request.form.getlist('jurisdiction')  # Default behavior for other asset classes
-    else:
-        jurisdictions = request.form.getlist('jurisdiction')  # Default behavior for other asset classes
+            # Disable multiselect and only allow specific jurisdictions
+            jurisdictions = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']
 
     # Validate jurisdictions
     invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
     if invalid_jurisdictions:
         return render_template(
-            'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
+            'home_1.html',
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],  # Include TRAX here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
             file_paths=[]
         )
+
+    # Remove JFSA for 'onereg' flow type
+    if flow_type == "onereg" and 'JFSA' in jurisdictions:
+        jurisdictions.remove('JFSA')
 
     # Construct jurisdiction argument string
     jurisdiction_str = ",".join(jurisdictions)
@@ -78,7 +82,7 @@ def recon():
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
         return render_template(
-            'home.html',
+            'home_1.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
@@ -99,7 +103,7 @@ def recon():
             )
         else:
             return render_template(
-                'home.html',
+                'home_1.html',
                 asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
                 jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
                 recon_types=['COMP', 'POS'],
@@ -125,7 +129,7 @@ def recon():
         print(f"Command Output: \n{command_output}")
         print(f"Command Error: \n{command_error}")
         return render_template(
-            'home.html',
+            'home_1.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
@@ -135,7 +139,7 @@ def recon():
     except Exception as e:
         print(f"Error: {e}")
         return render_template(
-            'home.html',
+            'home_1.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
@@ -145,119 +149,3 @@ def recon():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8129)
-
-
-
-
-
-
-
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recon Automation Framework</title>
-    <style>
-        /* Style for the body */
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
-        background-color: #f4f4f9;
-    </style>
-</head>
-<body>
-    <h1>Recon Automation Framework</h1>
-    <form action="/recon" method="POST">
-        <label for="assetClass">Asset Class: </label>
-        <select id="assetClass" name="assetClass" required>
-            {% for asset_class in asset_classes %}
-                <option value="{{ asset_class }}">{{ asset_class }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="reconType">Recon Type: </label>
-        <select id="reconType" name="reconType" required>
-            {% for recon_type in recon_types %}
-                <option value="{{ recon_type }}">{{ recon_type }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="reconDate">Recon Date: </label>
-        <input type="date" id="reconDate" name="reconDate" required>
-
-        <label for="flowType">Flow Type: </label>
-        <select id="flowType" name="flowType" required>
-            <option value="file">File</option>
-            <option value="onereg">OneReg</option>
-        </select>
-
-        <div id="jurisdiction-dropdown">
-            <label for="jurisdiction">Jurisdiction: </label>
-            <select id="jurisdiction" name="jurisdiction" required>
-                {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div id="jurisdiction-checkbox-container" style="display: none;">
-            <label>Jurisdiction: </label>
-            <div class="checkbox-group">
-                {% for jurisdiction in jurisdictions %}
-                    <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                {% endfor %}
-            </div>
-        </div>
-
-        <input type="submit" value="Submit">
-    </form>
-
-    <div class="response">
-        <h2>Response: </h2>
-        <p>{{ response | safe }}</p>
-    </div>
-
-    <div class="file-list">
-        <h2>Generated Files:</h2>
-        {% if file_paths %}
-            <ul>
-                {% for file, path in file_paths %}
-                    <li><strong>{{ file }}</strong>: <a href="/download/{{ path }}" download>{{ file }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No files generated yet.</p>
-        {% endif %}
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const flowTypeSelect = document.getElementById("flowType");
-            const jurisdictionSelect = document.getElementById("jurisdiction");
-            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-
-            flowTypeSelect.addEventListener("change", () => {
-                const assetClass = document.getElementById("assetClass").value;
-                if (assetClass === "TRAX") {
-                    if (flowTypeSelect.value === "file") {
-                        jurisdictionSelect.innerHTML = "<option value='TRAX'>TRAX</option>";
-                    } else if (flowTypeSelect.value === "onereg") {
-                        jurisdictionSelect.innerHTML = "<option value='TRAXCASH'>TRAXCASH</option><option value='TRAXNONCASH'>TRAXNONCASH</option><option value='TRAXNONCASHOTC'>TRAXNONCASHOTC</option>";
-                        jurisdictionCheckboxContainer.style.display = "none";  // Hide checkboxes
-                    }
-                } else {
-                    // Reset to default behavior for other asset classes
-                    jurisdictionSelect.innerHTML = "";
-                    // Add default list of jurisdictions for other asset classes
-                    {% for jurisdiction in jurisdictions %}
-                        const option = document.createElement('option');
-                        option.value = "{{ jurisdiction }}";
-                        option.textContent = "{{ jurisdiction }}";
-                        jurisdictionSelect.appendChild(option);
-                    {% endfor %}
-                }
-            });
-        });
-    </script>
-</body>
-</html>
