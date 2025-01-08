@@ -148,7 +148,6 @@ if __name__ == '__main__':
 
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,7 +243,7 @@ if __name__ == '__main__':
         </select>
 
         <label for="jurisdiction">Jurisdiction: </label>
-        <select id="jurisdiction" name="jurisdiction" required>
+        <select id="jurisdiction" name="jurisdiction" multiple required>
             {% if asset_class == 'TRAX' and flow_type == 'onereg' %}
                 <option value="TRAXCASH">TRAXCASH</option>
                 <option value="TRAXNONCASH">TRAXNONCASH</option>
@@ -256,13 +255,15 @@ if __name__ == '__main__':
             {% endif %}
         </select>
 
-        <input type="submit" value="Submit">
+        <button type="submit">Submit</button>
     </form>
 
-    <div class="response">
-        <h2>Response: </h2>
-        <p>{{ response|safe }}</p>
-    </div>
+    {% if response %}
+        <div class="response">
+            <h2>Response</h2>
+            <p>{{ response }}</p>
+        </div>
+    {% endif %}
 
     <div class="file-list">
         <h2>Files:</h2>
