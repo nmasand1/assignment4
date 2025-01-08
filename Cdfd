@@ -6,8 +6,7 @@ if flow_type.lower() == "onereg":
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegTRAXData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     elif asset_class == "TRADEWEB":
         # Use TRADEWEB-specific script for OneReg
-        jurisdictions = ["TRADEWEB"]
-        jurisdiction_str = ",".join(jurisdictions)
+        jurisdiction_str = "TRADEWEB"
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegTRADEWEB.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     else:
         # Existing script for other asset classes with multiple jurisdictions
@@ -19,8 +18,7 @@ elif flow_type.lower() == "file":
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileTRAXData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     elif asset_class == "TRADEWEB":
         # Use TRADEWEB-specific script for File
-        jurisdictions = ["TRADEWEB"]
-        jurisdiction_str = ",".join(jurisdictions)
+        jurisdiction_str = "TRADEWEB"
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileTRADEWEB.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     else:
         # Existing script for other asset classes
