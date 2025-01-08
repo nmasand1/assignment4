@@ -148,6 +148,8 @@ if __name__ == '__main__':
 
 
 
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -238,13 +240,13 @@ if __name__ == '__main__':
 
         <label for="flowType">Flow Type: </label>
         <select id="flowType" name="flowType" required>
+            <option value="onereg">Onereg</option>
             <option value="file">File</option>
-            <option value="onereg">OneReg</option>
         </select>
 
         <label for="jurisdiction">Jurisdiction: </label>
-        <select id="jurisdiction" name="jurisdiction" multiple required>
-            {% if asset_class == 'TRAX' and flow_type == 'onereg' %}
+        <select id="jurisdiction" name="jurisdiction" {% if flowType == 'onereg' and assetClass == 'TRAX' %} multiple {% endif %} required>
+            {% if assetClass == 'TRAX' and flowType == 'onereg' %}
                 <option value="TRAXCASH">TRAXCASH</option>
                 <option value="TRAXNONCASH">TRAXNONCASH</option>
                 <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
