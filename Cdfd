@@ -1,14 +1,12 @@
-from flask import Flask, request, render_template_string, send_from_directory
 import subprocess
+from flask import Flask, request, render_template_string, send_from_directory
 import datetime
 import os
 
 app = Flask(__name__)
 
-# Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
-# Jurisdiction shortform mapping
 JURISDICTION_SHORTFORMS = {
     "JFSA": "na",
     "CANADA": "canada",
@@ -133,6 +131,17 @@ HTML_TEMPLATE = '''<html lang="en">
             font-size: 16px;
             color: #333;
         }
+
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap; /* Preserve formatting */
+            word-wrap: break-word;
+            border: 1px solid #ddd;
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -227,6 +236,11 @@ HTML_TEMPLATE = '''<html lang="en">
         <p>{{ response|safe }}</p>
     </div>
 
+    <div class="output">
+        <h2>Command Output: </h2>
+        <pre>{{ command_output|safe }}</pre>
+    </div>
+
     <div class="file-list">
         <h2>Generated Files: </h2>
         {% if file_paths %}
@@ -245,8 +259,8 @@ HTML_TEMPLATE = '''<html lang="en">
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'Co', 'CD', 'TRAX']  # Added TRAX
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    asset_classes = ['FX', 'IR', 'EQ', 'Co', 'CD', 'TRAX']
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())
     recon_types = ["COMP", "POS"]
     return render_template_string(
         HTML_TEMPLATE,
@@ -254,7 +268,8 @@ def home():
         jurisdictions=jurisdictions, 
         recon_types=recon_types,
         response="", 
-        file_paths=[]
+        file_paths=[],
+        command_output=""
     )
 
 @app.route('/recon', methods=['POST'])
@@ -268,61 +283,57 @@ def recon():
     flow_type = request.form['flowType']
     trax_option = request.form.get('trax-option', None)
 
-    # Process multiple jurisdictions
     jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
-    # Conditionally remove 'JFSA' when flow type is 'onereg'
     if flow_type == "onereg" and 'JFSA' in jurisdictions:
         jurisdictions.remove('JFSA')
 
-    jurisdiction_str = ",".join(jurisdictions)  # Prepare string of jurisdictions
+    jurisdiction_str = ",".join(jurisdictions)
 
     try:
         recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
     except ValueError:
         return render_template_string(
             HTML_TEMPLATE, 
-            asset_classes=["FX", "IR", "EQ", "Co", "CD"],
-            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
-            recon_types=["COMP", "POS"],
-            response="Invalid Date Format. Please use YYYY-MM-DD.", 
-            file_paths=[]
-        )
-
-    try:
-        # Perform necessary actions here (e.g., file generation or processing)
-        # Logic for handling 'TRAX' specific cases
-        if asset_class == "TRAX" and flow_type == "onereg":
-            # handle TRAX-specific logic here, generate necessary files
-            file_paths = [
-                ('TRAXCASH File', '/path_to_files/TRAXCASH_file'),
-                ('TRAXNONCASH File', '/path_to_files/TRAXNONCASH_file'),
-            ]
-        else:
-            file_paths = []
-
-        return render_template_string(
-            HTML_TEMPLATE,
             asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
             jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
             recon_types=["COMP", "POS"],
-            response="Recon completed successfully.",
-            file_paths=file_paths
+            response="Error: Invalid Date format. Please use yyyy-mm-dd.", 
+            file_paths=[],
+            command_output=""
         )
 
-    except Exception as e:
-        return render_template_string(
-            HTML_TEMPLATE,
-            asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
-            jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
-            recon_types=["COMP", "POS"],
-            response=f"Error occurred: {str(e)}",
-            file_paths=[]
-        )
+    # Capture the shell command output
+    command = f'echo "Recon started for {asset_class} with type {recon_type} on {recon_date}"'
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+
+    command_output = stdout.decode('utf-8') + "\n" + stderr.decode('utf-8')
+
+    print(f"Command Output: {command_output}")
+
+    # Perform necessary actions here (e.g., file generation or processing)
+    file_paths = []
+    # Logic for handling 'TRAX' specific cases
+    if asset_class == "TRAX" and flow_type == "onereg":
+        file_paths = [
+            ('TRAXCASH File', '/path_to_files/TRAXCASH_file'),
+            ('TRAXNONCASH File', '/path_to_files/TRAXNONCASH_file'),
+        ]
+    
+    return render_template_string(
+        HTML_TEMPLATE,
+        asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
+        jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
+        recon_types=["COMP", "POS"],
+        response="Recon completed successfully.",
+        file_paths=file_paths,
+        command_output=command_output
+    )
 
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(BASE_DIR, filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0',port=8129)
+    app.run(debug=True)
