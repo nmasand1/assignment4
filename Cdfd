@@ -1,140 +1,3 @@
-from flask import Flask, request, render_template
-import subprocess
-import datetime
-
-app = Flask(__name__)
-
-BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
-
-JURISDICTION_SHORTFORMS = {
-    "JFSA": "na",
-    "CANADA": "canada",
-    "CFTC": "cftc",
-    "SEC": "sec",
-    "HKMA": "hkma",
-    "ESMA": "esma",
-    "HKTR": "hktr",
-    "FCA": "fca",
-    "MAS": "mas",
-    "ASIC": "asic",
-    "TRAX": "trax",
-    "TRAXCASH": "traxcash",
-    "TRAXNONCASH": "traxnoncash",
-    "TRAXNONCASHOTC": "traxnoncashotc",
-}
-
-@app.route('/', methods=['GET'])
-def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Include TRAX
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())
-    recon_types = ["COMP", "POS"]
-    return render_template(
-        'home.html',
-        asset_classes=asset_classes,
-        jurisdictions=jurisdictions,
-        recon_types=recon_types,
-        response="",
-        file_paths=[]
-    )
-
-@app.route('/recon', methods=['POST'])
-def recon():
-    now = datetime.datetime.now()
-    print(f"Recon Automation Framework :: Recon Data Loading Started :: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-
-    asset_class = request.form['assetClass']
-    recon_type = request.form['reconType']
-    recon_date = request.form['reconDate']
-    flow_type = request.form['flowType']
-
-    if asset_class == "TRAX" and flow_type == "file" and recon_type == "COMP":
-        jurisdictions = ["TRAX"]  # Only TRAX jurisdiction allowed
-    elif asset_class == "TRAX" and flow_type == "onereg":
-        jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
-        multiselect_allowed = False
-    else:
-        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-        multiselect_allowed = True
-
-    invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
-    if invalid_jurisdictions:
-        return render_template(
-            'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=['COMP', 'POS'],
-            response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
-            file_paths=[]
-        )
-
-    jurisdiction_str = ",".join(jurisdictions)
-
-    try:
-        recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%y%m%d')
-    except ValueError:
-        return render_template(
-            'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=['COMP', 'POS'],
-            response="Invalid Date Format. Please use YYYY-MM-DD.",
-            file_paths=[]
-        )
-
-    try:
-        if flow_type.lower() == "onereg":
-            cmd = (
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/"
-                f"loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-            )
-        elif flow_type.lower() == "file":
-            cmd = (
-                f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/"
-                f"loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-            )
-        else:
-            return render_template(
-                'home.html',
-                asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-                recon_types=['COMP', 'POS'],
-                response="Invalid Flow Type",
-                file_paths=[]
-            )
-
-        print(f"Executing command: {cmd}")
-        result = subprocess.run(cmd, shell=True, text=True, capture_output=True)
-        full_output = f"{result.stdout.strip()} \n{result.stderr.strip()}".strip()
-
-        if result.returncode == 0:
-            response = "Request Processed Successfully:<br>{}".format(full_output.replace('\n', '<br>'))
-        else:
-            response = "Request Failed (Error Code: {}):<br>{}".format(result.returncode, full_output.replace('\n', '<br>'))
-
-        return render_template(
-            'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=['COMP', 'POS'],
-            response=response,
-            file_paths=[]
-        )
-    except Exception as e:
-        print(f"Error: {e}")
-        return render_template(
-            'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=['COMP', 'POS'],
-            response=str(e),
-            file_paths=[]
-        )
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8129)
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -274,46 +137,48 @@ if __name__ == '__main__':
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const flowTypeSelect = document.getElementById("flowType");
+      const assetClassSelect = document.getElementById("assetClass");
       const jurisdictionSelect = document.getElementById("jurisdiction");
       const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+      const checkboxGroup = document.querySelector(".checkbox-group");
 
-      flowTypeSelect.addEventListener("change", () => {
-        const assetClass = document.getElementById("assetClass").value;
+      flowTypeSelect.addEventListener("change", updateJurisdictions);
+      assetClassSelect.addEventListener("change", updateJurisdictions);
+
+      function updateJurisdictions() {
+        const assetClass = assetClassSelect.value;
+        const flowType = flowTypeSelect.value;
 
         if (assetClass === "TRAX") {
-          if (flowTypeSelect.value === "file") {
+          if (flowType === "file") {
             jurisdictionSelect.style.display = "block";
             jurisdictionCheckboxContainer.style.display = "none";
-            // Remove all jurisdictions except TRAX
             const allJurisdictions = document.querySelectorAll("#jurisdiction option");
             allJurisdictions.forEach(option => {
               option.style.display = (option.value === "TRAX") ? "block" : "none";
             });
-          } else if (flowTypeSelect.value === "onereg") {
+          } else if (flowType === "onereg") {
             jurisdictionSelect.style.display = "none";
             jurisdictionCheckboxContainer.style.display = "block";
-            // Only show specific TRAX jurisdictions
             const jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"];
-            const checkboxGroup = document.querySelector(".checkbox-group");
             checkboxGroup.innerHTML = "";
             jurisdictions.forEach(jurisdiction => {
-              checkboxGroup.innerHTML += `<input type="checkbox" name="jurisdiction" value="${jurisdiction}">${jurisdiction}`;
+              checkboxGroup.innerHTML += `<input type="checkbox" name="jurisdiction" value="${jurisdiction}" disabled>${jurisdiction}`;
             });
           }
         } else {
           jurisdictionSelect.style.display = "block";
           jurisdictionCheckboxContainer.style.display = "none";
-          // Reset jurisdiction dropdown
           const allJurisdictions = document.querySelectorAll("#jurisdiction option");
           allJurisdictions.forEach(option => {
             option.style.display = "block";
           });
         }
-      });
+      }
+
+      // Call the function to update jurisdiction dropdowns on page load
+      updateJurisdictions();
     });
   </script>
 </body>
 </html>
-
-
-
