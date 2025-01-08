@@ -48,26 +48,29 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Handle jurisdiction selection based on asset class and flow type
+    # Custom logic for TRAX
     if asset_class == "TRAX":
         if flow_type == "file" and recon_type == "COMP":
-            jurisdictions = ["TRAX"]  # Only TRAX jurisdiction available
+            jurisdictions = ["TRAX"]  # Only TRAX as jurisdiction
         elif flow_type == "onereg":
-            jurisdictions = request.form.getlist('jurisdiction')
-            # Limit jurisdictions to specific TRAX options and restrict multi-select
-            valid_trax_jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
-            jurisdictions = [j for j in jurisdictions if j in valid_trax_jurisdictions]
-            if len(jurisdictions) > 1:
+            jurisdictions = [
+                "TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"
+            ]
+        else:
+            jurisdictions = []  # Default empty jurisdictions for invalid cases
+
+        # Ensure single-select for TRAX jurisdictions in "onereg"
+        if flow_type == "onereg" and len(jurisdictions) > 1:
+            jurisdictions = [request.form.get('jurisdiction')]
+            if jurisdictions[0] not in JURISDICTION_SHORTFORMS:
                 return render_template(
                     'home.html',
                     asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-                    jurisdictions=valid_trax_jurisdictions,
+                    jurisdictions=["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"],
                     recon_types=['COMP', 'POS'],
-                    response="Only one jurisdiction can be selected for TRAX with flow type 'onereg'.",
+                    response="Invalid Jurisdiction Selected.",
                     file_paths=[]
                 )
-        else:
-            jurisdictions = request.form.getlist('jurisdiction')
     else:
         jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
