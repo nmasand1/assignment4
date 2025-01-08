@@ -10,8 +10,8 @@ def recon():
 
     # Determine jurisdictions based on asset class and flow type
     if asset_class == "TRAX":
-        if flow_type == "file" and recon_type == "COMP":
-            jurisdictions = ["TRAX"]  # Only TRAX available
+        if flow_type == "file":
+            jurisdictions = ["TRAX"]  # Fixed to TRAX for flowType = file
         elif flow_type == "onereg":
             jurisdiction = request.form['jurisdiction']  # Single select dropdown for TRAX jurisdictions
             if jurisdiction not in TRAX_JURISDICTIONS:
@@ -101,7 +101,7 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else list(JURISDICTION_SHORTFORMS.keys()),
+            jurisdictions=(TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else ["TRAX"] if asset_class == "TRAX" and flow_type == "file" else list(JURISDICTION_SHORTFORMS.keys())),
             recon_types=['COMP', 'POS'],
             response=response,
             file_paths=[]
@@ -111,7 +111,7 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else list(JURISDICTION_SHORTFORMS.keys()),
+            jurisdictions=(TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else ["TRAX"] if asset_class == "TRAX" and flow_type == "file" else list(JURISDICTION_SHORTFORMS.keys())),
             recon_types=['COMP', 'POS'],
             response=str(e),
             file_paths=[]
