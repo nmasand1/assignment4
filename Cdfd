@@ -53,6 +53,7 @@ def recon():
             jurisdictions = ["TRAX"]  # Only TRAX available
         elif flow_type == "onereg":
             jurisdictions = request.form.getlist('jurisdiction')
+            jurisdictions = [j for j in jurisdictions if j in TRAX_JURISDICTIONS]
             if len(jurisdictions) > 1:
                 return render_template(
                     'home.html',
@@ -62,7 +63,6 @@ def recon():
                     response="For TRAX with flowtype 'onereg', only one jurisdiction can be selected.",
                     file_paths=[]
                 )
-            jurisdictions = [j for j in jurisdictions if j in TRAX_JURISDICTIONS]
         else:
             jurisdictions = [request.form['jurisdiction']]
     else:
