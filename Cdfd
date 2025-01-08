@@ -1,12 +1,14 @@
-import subprocess
 from flask import Flask, request, render_template_string, send_from_directory
+import subprocess
 import datetime
 import os
 
 app = Flask(__name__)
 
+# Base path for the directories
 BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
 
+# Jurisdiction shortform mapping
 JURISDICTION_SHORTFORMS = {
     "JFSA": "na",
     "CANADA": "canada",
@@ -20,12 +22,16 @@ JURISDICTION_SHORTFORMS = {
     "ASIC": "asic",
 }
 
+# TRAX Jurisdictions for the specific case of TRAX asset class and onereg flow type
+TRAX_JURISDICTIONS = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']
+
 HTML_TEMPLATE = '''<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recon Automation Framework</title>
     <style>
+        /* Style for the body */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -42,6 +48,7 @@ HTML_TEMPLATE = '''<html lang="en">
             color: #333;
         }
 
+        /* Form container */
         form {
             background-color: #fff;
             padding: 20px;
@@ -66,6 +73,11 @@ HTML_TEMPLATE = '''<html lang="en">
             border: 1px solid #ddd;
         }
 
+        select:focus, input[type="date"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
         input[type="submit"] {
             background-color: #4CAF50;
             color: white;
@@ -79,6 +91,16 @@ HTML_TEMPLATE = '''<html lang="en">
 
         input[type="submit"]:hover {
             background-color: #45a049;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group label {
+            margin-right: 15px;
+            margin-bottom: 10px;
         }
 
         .response, .file-list {
@@ -114,18 +136,40 @@ HTML_TEMPLATE = '''<html lang="en">
             font-size: 16px;
             color: #333;
         }
-
-        .output {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border: 1px solid #ddd;
-        }
     </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const flowTypeSelect = document.getElementById("flowType");
+            const jurisdictionSelect = document.getElementById("jurisdiction");
+            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+            const traxJurisdictionSelect = document.getElementById("traxJurisdiction");
+
+            flowTypeSelect.addEventListener("change", () => {
+                if (flowTypeSelect.value === "onereg") {
+                    jurisdictionSelect.style.display = "none";
+                    jurisdictionCheckboxContainer.style.display = "block";
+                    if (document.getElementById("assetClass").value === "TRAX") {
+                        traxJurisdictionSelect.style.display = "block";
+                    } else {
+                        traxJurisdictionSelect.style.display = "none";
+                    }
+                } else {
+                    jurisdictionSelect.style.display = "block";
+                    jurisdictionCheckboxContainer.style.display = "none";
+                    traxJurisdictionSelect.style.display = "none";
+                }
+            });
+
+            const assetClassSelect = document.getElementById("assetClass");
+            assetClassSelect.addEventListener("change", () => {
+                if (assetClassSelect.value === "TRAX" && flowTypeSelect.value === "onereg") {
+                    traxJurisdictionSelect.style.display = "block";
+                } else {
+                    traxJurisdictionSelect.style.display = "none";
+                }
+            });
+        });
+    </script>
 </head>
 <body>
     <h1>Recon Automation Framework</h1>
@@ -153,12 +197,37 @@ HTML_TEMPLATE = '''<html lang="en">
             <option value="onereg">OneReg</option>
         </select>
 
-        <label for="jurisdiction">Jurisdiction: </label>
-        <select id="jurisdiction" name="jurisdiction" required>
-            {% for jurisdiction in jurisdictions %}
-                <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-            {% endfor %}
-        </select>
+        <!-- Jurisdiction Dropdown -->
+        <div id="jurisdiction-dropdown">
+            <label for="jurisdiction">Jurisdiction: </label>
+            <select id="jurisdiction" name="jurisdiction" required>
+                {% for jurisdiction in jurisdictions %}
+                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- TRAX Jurisdiction Dropdown -->
+        <div id="traxJurisdiction" style="display: none;">
+            <label for="traxJurisdiction">Select TRAX Jurisdiction: </label>
+            <select id="traxJurisdiction" name="traxJurisdiction" required>
+                {% for trax_jurisdiction in trax_jurisdictions %}
+                    <option value="{{ trax_jurisdiction }}">{{ trax_jurisdiction }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Jurisdiction Checkboxes -->
+        <div id="jurisdiction-checkbox-container" style="display: none;">
+            <label>Jurisdiction:</label>
+            <div class="checkbox-group">
+                {% for jurisdiction in jurisdictions %}
+                    <label>
+                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
 
         <input type="submit" value="Submit">
     </form>
@@ -166,13 +235,6 @@ HTML_TEMPLATE = '''<html lang="en">
     <div class="response">
         <h2>Response: </h2>
         <p>{{ response|safe }}</p>
-    </div>
-
-    <div class="output">
-        <h2>Command: </h2>
-        <pre>{{ command|safe }}</pre>
-        <h2>Execution Output: </h2>
-        <pre>{{ command_output|safe }}</pre>
     </div>
 
     <div class="file-list">
@@ -194,17 +256,17 @@ HTML_TEMPLATE = '''<html lang="en">
 @app.route('/', methods=['GET'])
 def home():
     asset_classes = ['FX', 'IR', 'EQ', 'Co', 'CD', 'TRAX']
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    trax_jurisdictions = TRAX_JURISDICTIONS  # TRAX specific jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template_string(
         HTML_TEMPLATE,
         asset_classes=asset_classes, 
         jurisdictions=jurisdictions, 
+        trax_jurisdictions=trax_jurisdictions,
         recon_types=recon_types,
         response="", 
-        file_paths=[],
-        command_output="",
-        command=""
+        file_paths=[]
     )
 
 @app.route('/recon', methods=['POST'])
@@ -216,47 +278,52 @@ def recon():
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
-    jurisdiction = request.form['jurisdiction']  # Getting jurisdiction as a single value
 
-    # Format jurisdiction as a string
-    jurisdiction_str = JURISDICTION_SHORTFORMS.get(jurisdiction.upper(), "na")
+    # Process multiple jurisdictions
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
-    # Format recon_date
-    recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%d-%b-%Y')
+    # Handle TRAX specific jurisdiction selection
+    if asset_class == "TRAX" and flow_type == "onereg":
+        trax_jurisdiction = request.form.get('traxJurisdiction')
+        jurisdictions = [trax_jurisdiction]
 
-    # Construct the shell command based on flow_type
-    if flow_type.lower() == "onereg":
-        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-    elif flow_type.lower() == "file":
-        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+    # Convert Jurisdictions to shortforms
+    jurisdiction_shortforms = [JURISDICTION_SHORTFORMS[jur] for jur in jurisdictions]
 
-    # Capture the shell command output
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    # Check if all required parameters are present
+    if asset_class and recon_type and recon_date and flow_type and jurisdictions:
+        # Running the shell script (add path to your shell script)
+        shell_command = f"bash {BASE_DIR}/OneRegReconciler.sh {asset_class} {recon_type} {recon_date} {flow_type} {' '.join(jurisdiction_shortforms)}"
+        print(f"Running command: {shell_command}")
 
-    command_output = stdout.decode('utf-8') + "\n" + stderr.decode('utf-8')
+        # Execute the shell command and capture output
+        process = subprocess.Popen(shell_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
 
-    print(f"Command: {cmd}")
-    print(f"Command Output: {command_output}")
+        if process.returncode == 0:
+            print(f"Recon Automation Framework :: Recon Data Loading Completed :: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            response = f"Recon started for asset class {asset_class} with jurisdictions: {', '.join(jurisdictions)}"
+            file_paths = [("Recon Files", os.path.join(BASE_DIR, f"{asset_class}_{recon_date}.csv"))]
+        else:
+            response = f"Error occurred: {stderr.decode()}"
+            file_paths = []
 
-    # Perform necessary actions here (e.g., file generation or processing)
-    file_paths = []
-    # Logic for handling generated files (if any)
-    
+    else:
+        response = "Missing required fields."
+
     return render_template_string(
         HTML_TEMPLATE,
-        asset_classes=["FX", "IR", "EQ", "Co", "CD", "TRAX"],
-        jurisdictions=["JFSA", "CANADA", "MAS", "HKMA", "HKTR", "ESMA", "CFTC", "ASIC", "SEC", "FCA"],
+        asset_classes=['FX', 'IR', 'EQ', 'Co', 'CD', 'TRAX'],
+        jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+        trax_jurisdictions=TRAX_JURISDICTIONS,
         recon_types=["COMP", "POS"],
-        response="Recon completed successfully.",
-        file_paths=file_paths,
-        command=cmd,
-        command_output=command_output
+        response=response,
+        file_paths=file_paths
     )
 
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory(BASE_DIR, filename, as_attachment=True)
+@app.route('/download/<path:filename>')
+def download(filename):
+    return send_from_directory(BASE_DIR, filename)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True,host='0.0.0.0',port=8129)
