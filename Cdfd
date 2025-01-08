@@ -1,44 +1,3 @@
-from flask import Flask, request, render_template
-import subprocess
-import datetime
-
-app = Flask(__name__)
-
-# Base path for the directories
-BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
-
-# Jurisdiction shortform mapping
-JURISDICTION_SHORTFORMS = {
-    "JFSA": "na",
-    "CANADA": "canada",
-    "CFTC": "cftc",
-    "SEC": "sec",
-    "HKMA": "hkma",
-    "ESMA": "esma",
-    "HKTR": "hktr",
-    "FCA": "fca",
-    "MAS": "mas",
-    "ASIC": "asic",
-    "TRAX": "trax"
-}
-
-TRAX_JURISDICTIONS = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
-
-@app.route('/', methods=['GET'])
-def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
-    recon_types = ["COMP", "POS"]
-    return render_template(
-        'home.html',
-        asset_classes=asset_classes,
-        jurisdictions=jurisdictions,
-        recon_types=recon_types,
-        response="",
-        file_paths=[],
-        single_select=False  # Default is multi-select
-    )
-
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
@@ -54,18 +13,17 @@ def recon():
         if flow_type == "file" and recon_type == "COMP":
             jurisdictions = ["TRAX"]  # Only TRAX available
         elif flow_type == "onereg":
-            jurisdictions = TRAX_JURISDICTIONS  # Only TRAX jurisdictions, as single-select
-            if request.form['jurisdiction'] not in jurisdictions:
+            jurisdiction = request.form['jurisdiction']  # Single select dropdown for TRAX jurisdictions
+            if jurisdiction not in TRAX_JURISDICTIONS:
                 return render_template(
                     'home.html',
                     asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
                     jurisdictions=TRAX_JURISDICTIONS,
                     recon_types=['COMP', 'POS'],
                     response="Please select a valid TRAX jurisdiction.",
-                    file_paths=[],
-                    single_select=True  # Single-select for TRAX jurisdictions
+                    file_paths=[]
                 )
-            jurisdictions = [request.form['jurisdiction']]
+            jurisdictions = [jurisdiction]  # Ensure single selection
         else:
             jurisdictions = [request.form['jurisdiction']]
     else:
@@ -158,6 +116,3 @@ def recon():
             response=str(e),
             file_paths=[]
         )
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8129)
