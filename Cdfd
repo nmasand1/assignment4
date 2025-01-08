@@ -1,32 +1,8 @@
-from flask import Flask, request, render_template, send_from_directory
-import subprocess
-import datetime
-import os
-
-app = Flask(__name__)
-
-# Base path for the directories
-BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
-
-# Jurisdiction shortform mapping
-JURISDICTION_SHORTFORMS = {
-    "JFSA": "na",
-    "CANADA": "canada",
-    "CFTC": "cftc",
-    "SEC": "sec",
-    "HKMA": "hkma",
-    "ESMA": "esma",
-    "HKTR": "hktr",
-    "FCA": "fca",
-    "MAS": "mas",
-    "ASIC": "asic",
-}
-
 @app.route('/', methods=['GET'])
 def home():
-    # Updated asset classes to include TRAX
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  
-    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())
+    # Change 'Co' to 'CO' here
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
         'home.html',
@@ -47,11 +23,16 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-
-    # Logic for TRAX and flowType onereg
-    if asset_class == "TRAX" and flow_type == "onereg":
-        jurisdictions.extend(["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"])
+    # Jurisdiction handling based on asset_class and flow_type
+    if asset_class == 'TRAX':
+        if flow_type == 'file':
+            jurisdictions = ['TRAX']  # Only TRAX jurisdiction available
+        elif flow_type == 'onereg':
+            jurisdictions = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']  # Specific TRAX jurisdictions for onereg
+        else:
+            jurisdictions = []  # No valid jurisdiction for other flow types
+    else:
+        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
     if flow_type == "onereg" and 'JFSA' in jurisdictions:
         jurisdictions.remove('JFSA')
@@ -63,7 +44,7 @@ def recon():
     except ValueError:
         return render_template(
             'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],
+            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=["COMP", "POS"],
             response="Invalid Date Format. Please use YYYY-MM-DD.",
@@ -78,7 +59,7 @@ def recon():
         else:
             return render_template(
                 'home.html',
-                asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],
+                asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
                 jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
                 recon_types=["COMP", "POS"],
                 response="Invalid Flow Type",
@@ -101,7 +82,7 @@ def recon():
         print(f"Command Error: \n{command_error}")
         return render_template(
             'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],
+            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=["COMP", "POS"],
             response=response,
@@ -111,251 +92,46 @@ def recon():
         print(f"Error: {e}")
         return render_template(
             'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],
+            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Updated here as well
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=["COMP", "POS"],
             response=str(e),
             file_paths=[]
         )
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8129)
 
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const flowTypeSelect = document.getElementById("flowType");
+        const assetClassSelect = document.getElementById("assetClass");
+        const jurisdictionSelect = document.getElementById("jurisdiction");
+        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+        const jurisdictionDropdown = document.getElementById("jurisdiction-dropdown");
 
+        function updateJurisdictionOptions() {
+            const assetClass = assetClassSelect.value;
+            const flowType = flowTypeSelect.value;
 
-
-
-
-
-
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recon Automation Framework</title>
-    <style>
-        /* Style for the body */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
+            if (assetClass === "TRAX" && flowType === "file") {
+                jurisdictionSelect.innerHTML = '<option value="TRAX">TRAX</option>';
+                jurisdictionDropdown.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else if (assetClass === "TRAX" && flowType === "onereg") {
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAXCASH">TRAXCASH</option>
+                    <option value="TRAXNONCASH">TRAXNONCASH</option>
+                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
+                `;
+                jurisdictionDropdown.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else {
+                jurisdictionDropdown.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            }
         }
 
-        h1 {
-            text-align: center;
-            color: #4CAF50;
-        }
-
-        h2 {
-            color: #333;
-        }
-
-        /* Form container */
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 6px;
-            color: #333;
-        }
-
-        select, input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        select:focus, input[type="date"]:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
-
-        input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .checkbox-group label {
-            margin-right: 15px;
-            margin-bottom: 10px;
-        }
-
-        .response, .file-list {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #fff;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            max-width: 600px;
-            margin: 20px auto;
-        }
-
-        .file-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .file-list li {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .file-list li a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
-
-        .file-list li a:hover {
-            text-decoration: underline;
-        }
-
-        .response p {
-            font-size: 16px;
-            color: #333;
-        }
-    </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const flowTypeSelect = document.getElementById("flowType");
-            const jurisdictionSelect = document.getElementById("jurisdiction");
-            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-            const assetClassSelect = document.getElementById("assetClass");
-            const additionalDropdownContainer = document.getElementById("additional-dropdown");
-
-            const updateJurisdictionDisplay = () => {
-                if (flowTypeSelect.value === "onereg") {
-                    jurisdictionSelect.style.display = "none";
-                    jurisdictionCheckboxContainer.style.display = "block";
-                } else {
-                    jurisdictionSelect.style.display = "block";
-                    jurisdictionCheckboxContainer.style.display = "none";
-                }
-            };
-
-            const updateAdditionalDropdown = () => {
-                const selectedAssetClass = assetClassSelect.value;
-                const selectedFlowType = flowTypeSelect.value;
-
-                if (selectedAssetClass === "TRAX" && selectedFlowType === "onereg") {
-                    additionalDropdownContainer.style.display = "block";
-                } else {
-                    additionalDropdownContainer.style.display = "none";
-                }
-            };
-
-            flowTypeSelect.addEventListener("change", () => {
-                updateJurisdictionDisplay();
-                updateAdditionalDropdown();
-            });
-
-            assetClassSelect.addEventListener("change", updateAdditionalDropdown);
-        });
-    </script>
-</head>
-<body>
-    <h1>Recon Automation Framework</h1>
-    <form action="/recon" method="POST">
-        <label for="assetClass">Asset Class: </label>
-        <select id="assetClass" name="assetClass" required>
-            {% for asset_class in asset_classes %}
-                <option value="{{ asset_class }}">{{ asset_class }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="reconType">Recon Type: </label>
-        <select id="reconType" name="reconType" required>
-            {% for recon_type in recon_types %}
-                <option value="{{ recon_type }}">{{ recon_type }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="reconDate">Recon Date: </label>
-        <input type="date" id="reconDate" name="reconDate" required>
-
-        <label for="flowType">Flow Type: </label>
-        <select id="flowType" name="flowType" required>
-            <option value="file">File</option>
-            <option value="onereg">OneReg</option>
-        </select>
-
-        <!-- Jurisdiction Dropdown -->
-        <div id="jurisdiction-dropdown">
-            <label for="jurisdiction">Jurisdiction: </label>
-            <select id="jurisdiction" name="jurisdiction" required>
-                {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <!-- Jurisdiction Checkboxes -->
-        <div id="jurisdiction-checkbox-container" style="display: none;">
-            <label>Jurisdiction:</label>
-            <div class="checkbox-group">
-                {% for jurisdiction in jurisdictions %}
-                    <label>
-                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}">
-                        {{ jurisdiction }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Additional Dropdown for TRAX -->
-        <div id="additional-dropdown" style="display: none;">
-            <label for="traxOptions">TRAX Options:</label>
-            <select id="traxOptions" name="traxOptions">
-                <option value="TRAXCASH">TRAXCASH</option>
-                <option value="TRAXNONCASH">TRAXNONCASH</option>
-                <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-            </select>
-        </div>
-
-        <input type="submit" value="Submit">
-    </form>
-
-    {% if response %}
-    <div class="response">
-        <h2>Response:</h2>
-        <p>{{ response|safe }}</p>
-    </div>
-    {% endif %}
-
-    {% if file_paths %}
-    <div class="file-list">
-        <h2>Generated Files:</h2>
-        <ul>
-            {% for file_path in file_paths %}
-            <li><a href="{{ file_path }}">{{ file_path }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-</body>
-</html>
+        flowTypeSelect.addEventListener("change", updateJurisdictionOptions);
+        assetClassSelect.addEventListener("change", updateJurisdictionOptions);
+        updateJurisdictionOptions();  // Initialize on page load
+    });
+</script>
