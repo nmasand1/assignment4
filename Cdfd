@@ -36,8 +36,6 @@
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
         .response, .file-list {
             margin-top: 20px;
@@ -68,49 +66,41 @@
             color: #333;
         }
 
-        /* Style for the custom multiselect dropdown */
-        .multiselect-container {
-            position: relative;
-            width: 100%;
+        /* Style for the multiselect dropdown */
+        #jurisdiction {
+            height: 150px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            background-color: #fff;
+            color: #333;
+            box-sizing: border-box;
+            overflow: auto;
         }
 
-        .multiselect-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
+        #jurisdiction option {
+            padding: 8px;
+            background-color: #f9f9f9;
+            margin: 2px 0;
+            border-radius: 5px;
         }
 
-        .multiselect-dropdown input[type="checkbox"] {
+        #jurisdiction option:checked {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Style for checkboxes when displayed */
+        .checkbox-group input[type="checkbox"] {
             margin-right: 10px;
         }
 
-        .multiselect-dropdown label {
+        .checkbox-group label {
+            font-size: 14px;
+            margin-bottom: 10px;
             display: block;
-            padding: 8px;
-            cursor: pointer;
         }
-
-        .multiselect-dropdown label:hover {
-            background-color: #f4f4f9;
-        }
-
-        .multiselect-selected {
-            padding: 10px;
-            background-color: #f4f4f9;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
     </style>
 </head>
 <body>
@@ -144,17 +134,20 @@
     <!-- Jurisdiction Dropdown -->
     <div id="jurisdiction-dropdown">
         <label for="jurisdiction">Jurisdiction: </label>
-        <div class="multiselect-container">
-            <div class="multiselect-selected" id="jurisdiction-selected">
-                Select Jurisdictions
-            </div>
-            <div class="multiselect-dropdown" id="jurisdiction-dropdown-list">
-                {% for jurisdiction in jurisdictions %}
-                    <label>
-                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                    </label>
-                {% endfor %}
-            </div>
+        <select id="jurisdiction" name="jurisdiction" required multiple>
+            {% for jurisdiction in jurisdictions %}
+                <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Jurisdiction Checkboxes -->
+    <div id="jurisdiction-checkbox-container" style="display: none;">
+        <label>Jurisdiction: </label>
+        <div class="checkbox-group">
+            {% for jurisdiction in jurisdictions %}
+                <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}<br>
+            {% endfor %}
         </div>
     </div>
 
@@ -181,24 +174,65 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const jurisdictionSelected = document.getElementById("jurisdiction-selected");
-        const jurisdictionDropdown = document.getElementById("jurisdiction-dropdown-list");
-        const checkboxes = jurisdictionDropdown.querySelectorAll('input[type="checkbox"]');
+        const flowTypeSelect = document.getElementById("flowType");
+        const jurisdictionSelect = document.getElementById("jurisdiction");
+        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+        const assetClassSelect = document.getElementById("assetClass");
 
-        jurisdictionSelected.addEventListener("click", () => {
-            jurisdictionDropdown.style.display = jurisdictionDropdown.style.display === "none" ? "block" : "none";
+        flowTypeSelect.addEventListener("change", () => {
+            const flowType = flowTypeSelect.value;
+            const selectedAssetClass = assetClassSelect.value;
+
+            if (flowType === "onereg" && selectedAssetClass === "TRAX") {
+                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionSelect.style.display = "block";
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAXCASH">TRAXCASH</option>
+                    <option value="TRAXNONCASH">TRAXNONCASH</option>
+                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
+                `;
+            } else if (flowType === "file" && selectedAssetClass === "TRAX") {
+                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionSelect.style.display = "block";
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAX">TRAX</option>
+                `;
+            } else {
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionSelect.setAttribute("multiple", "multiple");
+                jurisdictionSelect.innerHTML = `
+                    {% for jurisdiction in jurisdictions %}
+                        {% if jurisdiction !== 'TRAXCASH' && jurisdiction !== 'TRAXNONCASH' && jurisdiction !== 'TRAXNONCASHOTC' %}
+                            <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                        {% endif %}
+                    {% endfor %}
+                `;
+            }
         });
 
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener("change", () => {
-                const selectedValues = [];
-                checkboxes.forEach(checkbox => {
-                    if (checkbox.checked) {
-                        selectedValues.push(checkbox.value);
-                    }
-                });
-                jurisdictionSelected.textContent = selectedValues.length > 0 ? selectedValues.join(', ') : "Select Jurisdictions";
-            });
+        assetClassSelect.addEventListener("change", () => {
+            const flowType = flowTypeSelect.value;
+            const selectedAssetClass = assetClassSelect.value;
+
+            if (selectedAssetClass === "TRAX" && flowType === "onereg") {
+                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionSelect.style.display = "block";
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAXCASH">TRAXCASH</option>
+                    <option value="TRAXNONCASH">TRAXNONCASH</option>
+                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
+                `;
+            } else if (selectedAssetClass === "TRAX" && flowType === "file") {
+                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionSelect.style.display = "block";
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAX">TRAX</option>
+                `;
+            } else {
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            }
         });
     });
 </script>
