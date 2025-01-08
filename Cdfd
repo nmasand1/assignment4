@@ -32,7 +32,7 @@
             margin-bottom: 6px;
             color: #333;
         }
-        select, input[type="date"] {
+        select, input[type="date"], .checkbox-group input[type="checkbox"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
@@ -66,23 +66,21 @@
             color: #333;
         }
 
-        /* Style for the checkbox container */
-        .checkbox-container {
+        /* Style for the checkboxes */
+        .checkbox-group {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
         }
 
-        .checkbox-container label {
-            width: 50%;
-            padding: 5px;
-            font-size: 14px;
-            margin: 5px 0;
-        }
-
-        .checkbox-container input[type="checkbox"] {
+        .checkbox-group input[type="checkbox"] {
             margin-right: 10px;
         }
 
+        .checkbox-group label {
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -113,15 +111,13 @@
         <option value="onereg">OneReg</option>
     </select>
 
-    <!-- Jurisdiction Checkboxes for multiselect -->
+    <!-- Jurisdiction Dropdown (now replaced with checkboxes) -->
     <div id="jurisdiction-checkbox-container">
         <label>Jurisdiction: </label>
-        <div class="checkbox-container">
+        <div class="checkbox-group">
             {% for jurisdiction in jurisdictions %}
                 {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
-                    <label>
-                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                    </label>
+                    <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}<br>
                 {% endif %}
             {% endfor %}
         </div>
@@ -151,6 +147,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const flowTypeSelect = document.getElementById("flowType");
+        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
         const assetClassSelect = document.getElementById("assetClass");
 
         flowTypeSelect.addEventListener("change", () => {
@@ -158,14 +155,11 @@
             const selectedAssetClass = assetClassSelect.value;
 
             if (flowType === "onereg" && selectedAssetClass === "TRAX") {
-                // Show checkboxes for jurisdiction
-                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "block";
             } else if (flowType === "file" && selectedAssetClass === "TRAX") {
-                // Show checkboxes for jurisdiction
-                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "block";
             } else {
-                // Show checkboxes for jurisdiction
-                document.getElementById("jurisdiction-checkbox-container").style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "none";
             }
         });
 
@@ -174,11 +168,11 @@
             const selectedAssetClass = assetClassSelect.value;
 
             if (selectedAssetClass === "TRAX" && flowType === "onereg") {
-                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "block";
             } else if (selectedAssetClass === "TRAX" && flowType === "file") {
-                document.getElementById("jurisdiction-checkbox-container").style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "block";
             } else {
-                document.getElementById("jurisdiction-checkbox-container").style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "none";
             }
         });
     });
