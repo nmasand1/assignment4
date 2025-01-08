@@ -100,7 +100,9 @@
         <label for="jurisdiction">Jurisdiction: </label>
         <select id="jurisdiction" name="jurisdiction" required multiple>
             {% for jurisdiction in jurisdictions %}
-                <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
+                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+                {% endif %}
             {% endfor %}
         </select>
     </div>
@@ -167,7 +169,7 @@
                 jurisdictionSelect.setAttribute("multiple", "multiple");
                 jurisdictionSelect.innerHTML = `
                     {% for jurisdiction in jurisdictions %}
-                        {% if jurisdiction !== 'TRAXCASH' && jurisdiction !== 'TRAXNONCASH' && jurisdiction !== 'TRAXNONCASHOTC' %}
+                        {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
                             <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
                         {% endif %}
                     {% endfor %}
