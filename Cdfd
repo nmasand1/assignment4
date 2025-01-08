@@ -26,7 +26,6 @@ HTML_TEMPLATE = '''<html lang="en">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recon Automation Framework</title>
     <style>
-        /* Style for the body */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -43,7 +42,6 @@ HTML_TEMPLATE = '''<html lang="en">
             color: #333;
         }
 
-        /* Form container */
         form {
             background-color: #fff;
             padding: 20px;
@@ -68,11 +66,6 @@ HTML_TEMPLATE = '''<html lang="en">
             border: 1px solid #ddd;
         }
 
-        select:focus, input[type="date"]:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
-
         input[type="submit"] {
             background-color: #4CAF50;
             color: white;
@@ -86,16 +79,6 @@ HTML_TEMPLATE = '''<html lang="en">
 
         input[type="submit"]:hover {
             background-color: #45a049;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .checkbox-group label {
-            margin-right: 15px;
-            margin-bottom: 10px;
         }
 
         .response, .file-list {
@@ -138,37 +121,11 @@ HTML_TEMPLATE = '''<html lang="en">
             background-color: #f9f9f9;
             border-radius: 8px;
             font-family: monospace;
-            white-space: pre-wrap; /* Preserve formatting */
+            white-space: pre-wrap;
             word-wrap: break-word;
             border: 1px solid #ddd;
         }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const flowTypeSelect = document.getElementById("flowType");
-            const jurisdictionSelect = document.getElementById("jurisdiction");
-            const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-            const traxOptions = document.getElementById("trax-options");
-
-            flowTypeSelect.addEventListener("change", () => {
-                if (flowTypeSelect.value === "onereg") {
-                    jurisdictionSelect.style.display = "none";
-                    jurisdictionCheckboxContainer.style.display = "block";
-                } else {
-                    jurisdictionSelect.style.display = "block";
-                    jurisdictionCheckboxContainer.style.display = "none";
-                }
-
-                // Show TRAX options when TRAX is selected
-                const assetClassSelect = document.getElementById("assetClass");
-                if (assetClassSelect.value === "TRAX" && flowTypeSelect.value === "onereg") {
-                    traxOptions.style.display = "block";
-                } else {
-                    traxOptions.style.display = "none";
-                }
-            });
-        });
-    </script>
 </head>
 <body>
     <h1>Recon Automation Framework</h1>
@@ -196,37 +153,12 @@ HTML_TEMPLATE = '''<html lang="en">
             <option value="onereg">OneReg</option>
         </select>
 
-        <!-- Jurisdiction Dropdown -->
-        <div id="jurisdiction-dropdown">
-            <label for="jurisdiction">Jurisdiction: </label>
-            <select id="jurisdiction" name="jurisdiction" required>
-                {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <!-- Jurisdiction Checkboxes -->
-        <div id="jurisdiction-checkbox-container" style="display: none;">
-            <label>Jurisdiction:</label>
-            <div class="checkbox-group">
-                {% for jurisdiction in jurisdictions %}
-                    <label>
-                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- TRAX Options for onereg -->
-        <div id="trax-options" style="display: none;">
-            <label for="trax-option">TRAX Option: </label>
-            <select id="trax-option" name="trax-option" required>
-                <option value="TRAXCASH">TRAXCASH</option>
-                <option value="TRAXNONCASH">TRAXNONCASH</option>
-                <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-            </select>
-        </div>
+        <label for="jurisdiction">Jurisdiction: </label>
+        <select id="jurisdiction" name="jurisdiction" required>
+            {% for jurisdiction in jurisdictions %}
+                <option value="{{ jurisdiction }}">{{ jurisdiction }}</option>
+            {% endfor %}
+        </select>
 
         <input type="submit" value="Submit">
     </form>
@@ -237,7 +169,7 @@ HTML_TEMPLATE = '''<html lang="en">
     </div>
 
     <div class="output">
-        <h2>Command Output: </h2>
+        <h2>Command: </h2>
         <pre>{{ command|safe }}</pre>
         <h2>Execution Output: </h2>
         <pre>{{ command_output|safe }}</pre>
@@ -284,29 +216,32 @@ def recon():
     recon_type = request.form['reconType']
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
-    trax_option = request.form.get('trax-option')
-    jurisdiction = request.form.getlist('jurisdiction')  # For checkboxes
+    jurisdiction = request.form['jurisdiction']  # Getting jurisdiction as a single value
 
-    # Construct the command
-    command = f'sh recon_script.sh {asset_class} {recon_type} {recon_date} {flow_type} ' + ' '.join(jurisdiction)
-    
+    # Format jurisdiction as a string
+    jurisdiction_str = JURISDICTION_SHORTFORMS.get(jurisdiction.upper(), "na")
+
+    # Format recon_date
+    recon_date_formatted = datetime.datetime.strptime(recon_date, '%Y-%m-%d').strftime('%d-%b-%Y')
+
+    # Construct the shell command based on flow_type
+    if flow_type.lower() == "onereg":
+        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+    elif flow_type.lower() == "file":
+        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+
     # Capture the shell command output
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
     command_output = stdout.decode('utf-8') + "\n" + stderr.decode('utf-8')
 
-    print(f"Command: {command}")
+    print(f"Command: {cmd}")
     print(f"Command Output: {command_output}")
 
     # Perform necessary actions here (e.g., file generation or processing)
     file_paths = []
-    # Logic for handling 'TRAX' specific cases
-    if asset_class == "TRAX" and flow_type == "onereg":
-        file_paths = [
-            ('TRAXCASH File', '/path_to_files/TRAXCASH_file'),
-            ('TRAXNONCASH File', '/path_to_files/TRAXNONCASH_file'),
-        ]
+    # Logic for handling generated files (if any)
     
     return render_template_string(
         HTML_TEMPLATE,
@@ -315,7 +250,7 @@ def recon():
         recon_types=["COMP", "POS"],
         response="Recon completed successfully.",
         file_paths=file_paths,
-        command=command,
+        command=cmd,
         command_output=command_output
     )
 
@@ -324,4 +259,4 @@ def download_file(filename):
     return send_from_directory(BASE_DIR, filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0',port=8129)
+    app.run(debug=True)
