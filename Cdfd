@@ -1,56 +1,47 @@
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const flowTypeSelect = document.getElementById("flowType");
-        const jurisdictionSelect = document.getElementById("jurisdiction");
-        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
-        const assetClassSelect = document.getElementById("assetClass");
+document.addEventListener("DOMContentLoaded", () => {
+    const flowTypeSelect = document.getElementById("flowType");
+    const jurisdictionSelect = document.getElementById("jurisdiction");
+    const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+    const assetClassSelect = document.getElementById("assetClass");
 
-        flowTypeSelect.addEventListener("change", () => {
-            const selectedAssetClass = assetClassSelect.value;
+    flowTypeSelect.addEventListener("change", () => {
+        const selectedAssetClass = assetClassSelect.value;
 
-            if (flowTypeSelect.value === "onereg") {
-                if (selectedAssetClass === "TRAX") {
-                    // TRAX specific jurisdiction options for "OneReg"
-                    jurisdictionSelect.innerHTML = `
-                        <option value="TRAXCASH">TRAXCASH</option>
-                        <option value="TRAXNONCASH">TRAXNONCASH</option>
-                        <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
-                    `;
-                    jurisdictionSelect.style.display = "block";
-                    jurisdictionCheckboxContainer.style.display = "none";
-                } else {
-                    // For other asset classes, the original multiple jurisdiction options
-                    jurisdictionSelect.style.display = "none";
-                    jurisdictionCheckboxContainer.style.display = "block";
-                }
+        if (flowTypeSelect.value === "onereg") {
+            if (selectedAssetClass === "TRAX") {
+                // TRAX-specific jurisdiction options for "OneReg"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAXCASH">TRAXCASH</option>
+                    <option value="TRAXNONCASH">TRAXNONCASH</option>
+                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
             } else {
-                // For file flowtype, show the jurisdiction dropdown as usual
+                // For other asset classes, the original multiple jurisdiction options
+                jurisdictionSelect.style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "block";
+            }
+        } else if (flowTypeSelect.value === "file") {
+            if (selectedAssetClass === "TRAX") {
+                // Include TRAX as jurisdiction option when flowtype is "file"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAX">TRAX</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else {
+                // Default jurisdiction logic for other asset classes
                 jurisdictionSelect.style.display = "block";
                 jurisdictionCheckboxContainer.style.display = "none";
             }
-        });
+        } else {
+            jurisdictionSelect.style.display = "block";
+            jurisdictionCheckboxContainer.style.display = "none";
+        }
     });
-</script>
 
-
-
-    if flow_type.lower() == "onereg":
-        if asset_class == "TRAX":
-            # For TRAX, handle the jurisdictions specifically
-            jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
-            jurisdiction_str = ",".join(jurisdictions)
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-        else:
-            # For other asset classes, process as usual (multiple jurisdictions for OneReg)
-            cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-    elif flow_type.lower() == "file":
-        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
-    else:
-        return render_template(
-            'home.html',
-            asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Ensure TRAX is included in asset_classes
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
-            recon_types=["COMP", "POS"],
-            response="Invalid Flow Type",
-            file_paths=[]
-        )
+    assetClassSelect.addEventListener("change", () => {
+        flowTypeSelect.dispatchEvent(new Event("change"));
+    });
+});
