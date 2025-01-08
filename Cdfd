@@ -4,6 +4,11 @@ if flow_type.lower() == "onereg":
         jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
         jurisdiction_str = ",".join(jurisdictions)
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegTRAXData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+    elif asset_class == "TRADEWEB":
+        # Use TRADEWEB-specific script for OneReg
+        jurisdictions = ["TRADEWEB"]
+        jurisdiction_str = ",".join(jurisdictions)
+        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegTRADEWEB.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     else:
         # Existing script for other asset classes with multiple jurisdictions
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadOneRegData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
@@ -12,6 +17,11 @@ elif flow_type.lower() == "file":
     if asset_class == "TRAX":
         # Use TRAX-specific script for File
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileTRAXData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
+    elif asset_class == "TRADEWEB":
+        # Use TRADEWEB-specific script for File
+        jurisdictions = ["TRADEWEB"]
+        jurisdiction_str = ",".join(jurisdictions)
+        cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileTRADEWEB.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
     else:
         # Existing script for other asset classes
         cmd = f"sh /apps/TTR/uat2/OneReg/OneRegReconciler/UnixScript/Recon_Automation/loadFileData.sh {asset_class} {jurisdiction_str} {recon_type} {recon_date_formatted}"
@@ -20,9 +30,98 @@ else:
     # Handle invalid flow type
     return render_template(
         'home.html',
-        asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX"],  # Ensure TRAX is included in asset_classes
+        asset_classes=["FX", "IR", "EQ", "CO", "CD", "TRAX", "TRADEWEB"],  # Ensure TRADEWEB is included in asset_classes
         jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
         recon_types=["COMP", "POS"],
         response="Invalid Flow Type",
         file_paths=[]
     )
+
+
+
+
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const flowTypeSelect = document.getElementById("flowType");
+    const jurisdictionSelect = document.getElementById("jurisdiction");
+    const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+    const assetClassSelect = document.getElementById("assetClass");
+
+    // Default jurisdictions for non-TRAX and non-TRADEWEB asset classes
+    const defaultJurisdictions = `
+        <option value="JFSA">JFSA</option>
+        <option value="CANADA">CANADA</option>
+        <option value="CFTC">CFTC</option>
+        <option value="SEC">SEC</option>
+        <option value="HKMA">HKMA</option>
+        <option value="ESMA">ESMA</option>
+        <option value="HKTR">HKTR</option>
+        <option value="FCA">FCA</option>
+        <option value="MAS">MAS</option>
+        <option value="ASIC">ASIC</option>
+    `;
+
+    // Function to update jurisdictions dynamically
+    function updateJurisdictions() {
+        const selectedFlowType = flowTypeSelect.value;
+        const selectedAssetClass = assetClassSelect.value;
+
+        if (selectedFlowType === "onereg") {
+            if (selectedAssetClass === "TRAX") {
+                // TRAX-specific jurisdiction options for "OneReg"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAXCASH">TRAXCASH</option>
+                    <option value="TRAXNONCASH">TRAXNONCASH</option>
+                    <option value="TRAXNONCASHOTC">TRAXNONCASHOTC</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else if (selectedAssetClass === "TRADEWEB") {
+                // TRADEWEB-specific jurisdiction for "OneReg"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRADEWEB">TRADEWEB</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else {
+                // For other asset classes, multiple jurisdictions
+                jurisdictionSelect.style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "block";
+            }
+        } else if (selectedFlowType === "file") {
+            if (selectedAssetClass === "TRAX") {
+                // TRAX-specific jurisdiction for "File"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRAX">TRAX</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else if (selectedAssetClass === "TRADEWEB") {
+                // TRADEWEB-specific jurisdiction for "File"
+                jurisdictionSelect.innerHTML = `
+                    <option value="TRADEWEB">TRADEWEB</option>
+                `;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            } else {
+                // Default jurisdiction options for other asset classes
+                jurisdictionSelect.innerHTML = defaultJurisdictions;
+                jurisdictionSelect.style.display = "block";
+                jurisdictionCheckboxContainer.style.display = "none";
+            }
+        } else {
+            // Default jurisdiction behavior
+            jurisdictionSelect.style.display = "block";
+            jurisdictionCheckboxContainer.style.display = "none";
+        }
+    }
+
+    // Event listeners
+    flowTypeSelect.addEventListener("change", updateJurisdictions);
+    assetClassSelect.addEventListener("change", updateJurisdictions);
+});
