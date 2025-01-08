@@ -53,24 +53,14 @@ def recon():
         if flow_type == "file" and recon_type == "COMP":
             jurisdictions = ["TRAX"]  # Only TRAX available
         elif flow_type == "onereg":
-            jurisdictions = request.form.getlist('jurisdiction')
-            jurisdictions = [j for j in jurisdictions if j in TRAX_JURISDICTIONS]
-            if not jurisdictions:
+            jurisdictions = [request.form['jurisdiction']]  # Single select dropdown for TRAX jurisdictions
+            if jurisdictions[0] not in TRAX_JURISDICTIONS:
                 return render_template(
                     'home.html',
                     asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
                     jurisdictions=TRAX_JURISDICTIONS,
                     recon_types=['COMP', 'POS'],
                     response="Please select a valid TRAX jurisdiction.",
-                    file_paths=[]
-                )
-            if len(jurisdictions) > 1:
-                return render_template(
-                    'home.html',
-                    asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-                    jurisdictions=TRAX_JURISDICTIONS,
-                    recon_types=['COMP', 'POS'],
-                    response="For TRAX with flowtype 'onereg', only one jurisdiction can be selected.",
                     file_paths=[]
                 )
         else:
@@ -167,4 +157,4 @@ def recon():
         )
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8130)
+    app.run(debug=True, host='0.0.0.0', port=8129)
