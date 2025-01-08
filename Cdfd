@@ -19,14 +19,14 @@ JURISDICTION_SHORTFORMS = {
     "FCA": "fca",
     "MAS": "mas",
     "ASIC": "asic",
-    "TRAXCASH": "traxcash",
-    "TRAXNONCASH": "traxnoncash",
-    "TRAXNONCASHOTC": "traxnoncashotc",
 }
+
+# Jurisdictions for TRAX
+TRAX_JURISDICTIONS = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]
 
 @app.route('/', methods=['GET'])
 def home():
-    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  # Added TRAX to asset classes
     jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
     recon_types = ["COMP", "POS"]
     return render_template(
@@ -48,22 +48,26 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
-
-    # Handle TRAX specific logic
     if asset_class == "TRAX":
-        if flow_type == "file" and recon_type == "COMP":
-            jurisdictions = ["TRAX"]  # Only TRAX jurisdiction available
+        if flow_type == "file":
+            jurisdictions = ['TRAX']  # Only TRAX should be visible for 'file' flow type
+            single_select_jurisdiction = True  # Make it single select for file
         elif flow_type == "onereg":
-            # Disable multiselect for jurisdictions and limit to specific options
-            jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"]  # Restricted jurisdictions for TRAX
+            jurisdictions = TRAX_JURISDICTIONS  # Only TRAX jurisdictions for 'onereg' flow type
+            single_select_jurisdiction = False  # Keep multiselect for 'onereg'
+        else:
+            jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # Default jurisdictions for other cases
+            single_select_jurisdiction = False  # Default to multiselect
+    else:
+        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+        single_select_jurisdiction = False  # Default to multiselect for other asset classes
 
     # Validate jurisdictions
     invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS]
     if invalid_jurisdictions:
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],  # Include TRAX
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
             jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
             recon_types=['COMP', 'POS'],
             response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
@@ -130,7 +134,7 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            jurisdictions=jurisdictions,
             recon_types=['COMP', 'POS'],
             response=response,
             file_paths=[]
