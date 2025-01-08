@@ -68,7 +68,7 @@
 
         /* Enhanced Multiselect dropdown styles */
         #jurisdiction {
-            height: 200px;
+            height: auto;
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #ccc;
@@ -78,6 +78,7 @@
             box-sizing: border-box;
             overflow: auto;
             transition: border-color 0.3s ease;
+            width: 100%;
         }
 
         #jurisdiction:focus {
@@ -102,15 +103,21 @@
             color: white;
         }
 
-        /* Improved look for checkboxes when displayed */
-        .checkbox-group input[type="checkbox"] {
+        /* Improve look of checkboxes in the multiselect */
+        .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
             margin-right: 10px;
         }
 
-        .checkbox-group label {
+        .checkbox-container label {
             font-size: 14px;
             margin-bottom: 10px;
-            display: block;
         }
 
         /* Style for the select field label */
@@ -120,6 +127,7 @@
             margin-bottom: 10px;
             color: #333;
         }
+
     </style>
 </head>
 <body>
@@ -150,9 +158,10 @@
         <option value="onereg">OneReg</option>
     </select>
 
-    <!-- Jurisdiction Dropdown -->
+    <!-- Jurisdiction Dropdown with checkboxes -->
     <div id="jurisdiction-dropdown">
         <label class="jurisdiction-label" for="jurisdiction">Jurisdiction: </label>
+        
         <select id="jurisdiction" name="jurisdiction" required multiple>
             {% for jurisdiction in jurisdictions %}
                 {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
@@ -160,14 +169,13 @@
                 {% endif %}
             {% endfor %}
         </select>
-    </div>
-
-    <!-- Jurisdiction Checkboxes -->
-    <div id="jurisdiction-checkbox-container" style="display: none;">
-        <label>Jurisdiction: </label>
-        <div class="checkbox-group">
+        <div class="checkbox-container">
             {% for jurisdiction in jurisdictions %}
-                <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}<br>
+                {% if jurisdiction != 'TRAXCASH' and jurisdiction != 'TRAXNONCASH' and jurisdiction != 'TRAXNONCASHOTC' %}
+                    <label>
+                        <input type="checkbox" name="jurisdiction" value="{{ jurisdiction }}"> {{ jurisdiction }}
+                    </label>
+                {% endif %}
             {% endfor %}
         </div>
     </div>
@@ -197,7 +205,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         const flowTypeSelect = document.getElementById("flowType");
         const jurisdictionSelect = document.getElementById("jurisdiction");
-        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
+        const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-dropdown");
         const assetClassSelect = document.getElementById("assetClass");
 
         flowTypeSelect.addEventListener("change", () => {
@@ -220,7 +228,7 @@
                 `;
             } else {
                 jurisdictionSelect.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "block";
                 jurisdictionSelect.setAttribute("multiple", "multiple");
                 jurisdictionSelect.innerHTML = `
                     {% for jurisdiction in jurisdictions %}
@@ -252,7 +260,7 @@
                 `;
             } else {
                 jurisdictionSelect.style.display = "block";
-                jurisdictionCheckboxContainer.style.display = "none";
+                jurisdictionCheckboxContainer.style.display = "block";
             }
         });
     });
