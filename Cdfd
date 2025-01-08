@@ -149,23 +149,14 @@
         const assetClass = assetClassSelect.value;
         const flowType = flowTypeSelect.value;
 
-        if (assetClass === "TRAX") {
-          if (flowType === "file") {
-            jurisdictionSelect.style.display = "block";
-            jurisdictionCheckboxContainer.style.display = "none";
-            const allJurisdictions = document.querySelectorAll("#jurisdiction option");
-            allJurisdictions.forEach(option => {
-              option.style.display = (option.value === "TRAX") ? "block" : "none";
-            });
-          } else if (flowType === "onereg") {
-            jurisdictionSelect.style.display = "none";
-            jurisdictionCheckboxContainer.style.display = "block";
-            const jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"];
-            checkboxGroup.innerHTML = "";
-            jurisdictions.forEach(jurisdiction => {
-              checkboxGroup.innerHTML += `<input type="checkbox" name="jurisdiction" value="${jurisdiction}" disabled>${jurisdiction}`;
-            });
-          }
+        if (assetClass === "TRAX" && flowType === "onereg") {
+          jurisdictionSelect.style.display = "none";
+          jurisdictionCheckboxContainer.style.display = "block";
+          const jurisdictions = ["TRAXCASH", "TRAXNONCASH", "TRAXNONCASHOTC"];
+          checkboxGroup.innerHTML = "";
+          jurisdictions.forEach(jurisdiction => {
+            checkboxGroup.innerHTML += `<input type="checkbox" name="jurisdiction" value="${jurisdiction}" onchange="ensureAtLeastOneSelected()"> ${jurisdiction}<br>`;
+          });
         } else {
           jurisdictionSelect.style.display = "block";
           jurisdictionCheckboxContainer.style.display = "none";
@@ -174,6 +165,13 @@
             option.style.display = "block";
           });
         }
+      }
+
+      // Ensure at least one checkbox is selected
+      function ensureAtLeastOneSelected() {
+        const checkboxes = document.querySelectorAll("input[name='jurisdiction']:checked");
+        const submitButton = document.querySelector('input[type="submit"]');
+        submitButton.disabled = checkboxes.length === 0;
       }
 
       // Call the function to update jurisdiction dropdowns on page load
