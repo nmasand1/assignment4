@@ -4,10 +4,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const jurisdictionCheckboxContainer = document.getElementById("jurisdiction-checkbox-container");
     const assetClassSelect = document.getElementById("assetClass");
 
-    flowTypeSelect.addEventListener("change", () => {
+    // Default jurisdictions for non-TRAX asset classes
+    const defaultJurisdictions = `
+        <option value="JFSA">JFSA</option>
+        <option value="CANADA">CANADA</option>
+        <option value="CFTC">CFTC</option>
+        <option value="SEC">SEC</option>
+        <option value="HKMA">HKMA</option>
+        <option value="ESMA">ESMA</option>
+        <option value="HKTR">HKTR</option>
+        <option value="FCA">FCA</option>
+        <option value="MAS">MAS</option>
+        <option value="ASIC">ASIC</option>
+    `;
+
+    // Function to update jurisdictions dynamically
+    function updateJurisdictions() {
+        const selectedFlowType = flowTypeSelect.value;
         const selectedAssetClass = assetClassSelect.value;
 
-        if (flowTypeSelect.value === "onereg") {
+        if (selectedFlowType === "onereg") {
             if (selectedAssetClass === "TRAX") {
                 // TRAX-specific jurisdiction options for "OneReg"
                 jurisdictionSelect.innerHTML = `
@@ -18,30 +34,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 jurisdictionSelect.style.display = "block";
                 jurisdictionCheckboxContainer.style.display = "none";
             } else {
-                // For other asset classes, the original multiple jurisdiction options
+                // For other asset classes, multiple jurisdictions
                 jurisdictionSelect.style.display = "none";
                 jurisdictionCheckboxContainer.style.display = "block";
             }
-        } else if (flowTypeSelect.value === "file") {
+        } else if (selectedFlowType === "file") {
             if (selectedAssetClass === "TRAX") {
-                // Include TRAX as jurisdiction option when flowtype is "file"
+                // TRAX-specific jurisdiction for "File"
                 jurisdictionSelect.innerHTML = `
                     <option value="TRAX">TRAX</option>
                 `;
                 jurisdictionSelect.style.display = "block";
                 jurisdictionCheckboxContainer.style.display = "none";
             } else {
-                // Default jurisdiction logic for other asset classes
+                // Default jurisdiction options for other asset classes
+                jurisdictionSelect.innerHTML = defaultJurisdictions;
                 jurisdictionSelect.style.display = "block";
                 jurisdictionCheckboxContainer.style.display = "none";
             }
         } else {
+            // Default jurisdiction behavior
             jurisdictionSelect.style.display = "block";
             jurisdictionCheckboxContainer.style.display = "none";
         }
-    });
+    }
 
-    assetClassSelect.addEventListener("change", () => {
-        flowTypeSelect.dispatchEvent(new Event("change"));
-    });
+    // Event listeners
+    flowTypeSelect.addEventListener("change", updateJurisdictions);
+    assetClassSelect.addEventListener("change", updateJurisdictions);
 });
