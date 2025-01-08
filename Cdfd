@@ -1,3 +1,43 @@
+from flask import Flask, request, render_template
+import subprocess
+import datetime
+
+app = Flask(__name__)
+
+# Base path for the directories
+BASE_DIR = "/apps/TTR/prod/OneReg/OneRegReconciler/recondataloader"
+
+# Jurisdiction shortform mapping
+JURISDICTION_SHORTFORMS = {
+    "JFSA": "na",
+    "CANADA": "canada",
+    "CFTC": "cftc",
+    "SEC": "sec",
+    "HKMA": "hkma",
+    "ESMA": "esma",
+    "HKTR": "hktr",
+    "FCA": "fca",
+    "MAS": "mas",
+    "ASIC": "asic",
+}
+
+@app.route('/', methods=['GET'])
+def home():
+    asset_classes = ['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX']  
+    jurisdictions = list(JURISDICTION_SHORTFORMS.keys())  # All jurisdictions
+    recon_types = ["COMP", "POS"]
+    # Add condition to display TRAX-specific jurisdictions if TRAX is selected
+    trax_jurisdictions = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']
+    return render_template(
+        'home.html',
+        asset_classes=asset_classes,
+        jurisdictions=jurisdictions,
+        recon_types=recon_types,
+        response="",
+        file_paths=[],
+        trax_jurisdictions=trax_jurisdictions
+    )
+
 @app.route('/recon', methods=['POST'])
 def recon():
     now = datetime.datetime.now()
@@ -8,42 +48,32 @@ def recon():
     recon_date = request.form['reconDate']
     flow_type = request.form['flowType']
 
-    # Determine jurisdictions based on asset class and flow type
-    if asset_class == "TRAX":
-        if flow_type == "file":
-            jurisdictions = ["TRAX"]  # Fixed to TRAX for flowType = file
-        elif flow_type == "onereg":
-            jurisdiction = request.form['jurisdiction']  # Single select dropdown for TRAX jurisdictions
-            if jurisdiction not in TRAX_JURISDICTIONS:
-                return render_template(
-                    'home.html',
-                    asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-                    jurisdictions=TRAX_JURISDICTIONS,
-                    recon_types=['COMP', 'POS'],
-                    response="Please select a valid TRAX jurisdiction.",
-                    file_paths=[]
-                )
-            jurisdictions = [jurisdiction]  # Ensure single selection
-        else:
-            jurisdictions = [request.form['jurisdiction']]
-    else:
-        jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
+    jurisdictions = request.form.getlist('jurisdiction') if flow_type == "onereg" else [request.form['jurisdiction']]
 
-    # Ensure JFSA is excluded for onereg flow type
-    if flow_type == "onereg":
-        jurisdictions = [j for j in jurisdictions if j != "JFSA"]
+    # Check if the asset class is 'TRAX' and handle specific cases
+    if asset_class == "TRAX":
+        if flow_type == "file" and recon_type == "COMP":
+            # For TRAX, when flowtype is 'file' and recon type is 'COMP', only TRAX should be available as jurisdiction
+            jurisdictions = ['TRAX']  # Only TRAX should be available
+        elif flow_type == "onereg":
+            # For TRAX and flowtype 'onereg', jurisdiction multiselect should not work
+            jurisdictions = ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']  # Only these jurisdictions available for TRAX
 
     # Validate jurisdictions
-    invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS and j not in TRAX_JURISDICTIONS]
+    invalid_jurisdictions = [j for j in jurisdictions if j not in JURISDICTION_SHORTFORMS and j not in ['TRAX', 'TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC']]
     if invalid_jurisdictions:
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],  # Include TRAX in the asset classes list
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()) + ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC'],  # Add TRAX jurisdictions
             recon_types=['COMP', 'POS'],
             response=f"Invalid Jurisdictions: {', '.join(invalid_jurisdictions)}",
             file_paths=[]
         )
+
+    # Remove JFSA for 'onereg' flow type
+    if flow_type == "onereg" and 'JFSA' in jurisdictions:
+        jurisdictions.remove('JFSA')
 
     # Construct jurisdiction argument string
     jurisdiction_str = ",".join(jurisdictions)
@@ -54,7 +84,7 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()) + ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC'],
             recon_types=['COMP', 'POS'],
             response="Invalid Date Format. Please use YYYY-MM-DD.",
             file_paths=[]
@@ -75,7 +105,7 @@ def recon():
             return render_template(
                 'home.html',
                 asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()),
+                jurisdictions=list(JURISDICTION_SHORTFORMS.keys()) + ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC'],
                 recon_types=['COMP', 'POS'],
                 response="Invalid Flow Type",
                 file_paths=[]
@@ -100,8 +130,8 @@ def recon():
         print(f"Command Error: \n{command_error}")
         return render_template(
             'home.html',
-            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=(TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else ["TRAX"] if asset_class == "TRAX" and flow_type == "file" else list(JURISDICTION_SHORTFORMS.keys())),
+            asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],  # Include TRAX in the asset classes list
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()) + ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC'],  # Add TRAX jurisdictions
             recon_types=['COMP', 'POS'],
             response=response,
             file_paths=[]
@@ -111,8 +141,12 @@ def recon():
         return render_template(
             'home.html',
             asset_classes=['FX', 'IR', 'EQ', 'CO', 'CD', 'TRAX'],
-            jurisdictions=(TRAX_JURISDICTIONS if asset_class == "TRAX" and flow_type == "onereg" else ["TRAX"] if asset_class == "TRAX" and flow_type == "file" else list(JURISDICTION_SHORTFORMS.keys())),
+            jurisdictions=list(JURISDICTION_SHORTFORMS.keys()) + ['TRAXCASH', 'TRAXNONCASH', 'TRAXNONCASHOTC'],
             recon_types=['COMP', 'POS'],
             response=str(e),
             file_paths=[]
         )
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8129)
